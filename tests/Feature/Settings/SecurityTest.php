@@ -17,8 +17,6 @@ class SecurityTest extends TestCase
     {
         parent::setUp();
 
-        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
@@ -30,6 +28,9 @@ class SecurityTest extends TestCase
 
     public function test_security_settings_page_can_be_rendered(): void
     {
+        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+        $this->skipUnlessFortifyHas(Features::passkeys());
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
@@ -72,6 +73,8 @@ class SecurityTest extends TestCase
 
     public function test_two_factor_authentication_disabled_when_confirmation_abandoned_between_requests(): void
     {
+        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+
         $user = User::factory()->create();
 
         $user->forceFill([
