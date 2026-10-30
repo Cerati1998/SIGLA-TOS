@@ -23,7 +23,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T06** · Armar y aprobar la identidad visual (colores, tipografías, logos y estilo). 3 h. (Aprobada por el usuario el 2026-10-29; está en la página "Identidad visual" del lienzo.)
 - [x] **T07** · Diseñar y aprobar las plantillas base (acceso y panel de administración, por ahora). 4 h. (Aprobadas por el usuario el 2026-10-29, con versión móvil y colores de insignias de Flowbite; están en la página "Plantillas base" del lienzo.)
 - [x] **T08** · Escribir la guideline `.ai/guidelines/flujo-de-trabajo.md` (flujo de Scrum con Claude Code, ligado a los IDs del backlog). 2.5 h. (Aprobada por el usuario el 2026-10-30, las seis partes. Se sube al repo en T09.)
-- [ ] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 1 h.
+- [x] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 1 h. (Hecho el 2026-10-30: PR #2 mergeado a `main` con `docs/` y la guideline; `boost:update` agregó el flujo de trabajo a `CLAUDE.md`, sin skills nuevas.)
 
 **Total estimado:** 16.5 h para unas 18 disponibles (margen de 1.5 h).
 
