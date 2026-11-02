@@ -10,7 +10,7 @@
 Dejar lista la base del proyecto: stack TALL instalado, identidad visual y plantillas aprobadas, guideline y rules base en el repo.
 
 ## Historias del sprint
-Ninguna por ahora (opción A). Si la base sale rápido, se evalúa sumar H01 · Iniciar sesión durante el sprint. Si a mitad de semana se va justo, la base no se aprieta.
+H01 · Iniciar sesión, H02 · Cerrar sesión y H03 · Recuperar contraseña, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10). Antes: ninguna (opción A).
 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
@@ -25,7 +25,14 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T08** · Escribir la guideline `.ai/guidelines/flujo-de-trabajo.md` (flujo de Scrum con Claude Code, ligado a los IDs del backlog). 2.5 h. (Aprobada por el usuario el 2026-10-30, las seis partes. Se sube al repo en T09.)
 - [x] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 1 h. (Hecho el 2026-10-30: PR #2 mergeado a `main` con `docs/` y la guideline; `boost:update` agregó el flujo de trabajo a `CLAUDE.md`, sin skills nuevas.)
 
-**Total estimado:** 16.5 h para unas 18 disponibles (margen de 1.5 h).
+
+## Tareas agregadas el 2026-11-02
+- [ ] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h.
+- [ ] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h.
+- [ ] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h.
+- [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
+
+**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T13 suman 9 h más y superan esa capacidad; el usuario decidió incluirlas.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
