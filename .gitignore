@@ -34,5 +34,7 @@ yarn-error.log
 /AGENTS.md
 /opencode.json
 /opencode.jsonc
+# Template de ThemeForest: solo referencia local
+/templates/
 # Configuración personal de Claude Code (la del proyecto sí se versiona)
 /.claude/settings.local.json
