@@ -22,6 +22,12 @@ Bootstrap 5 no se usa en el proyecto: cada clase, propiedad y estilo de la plant
 
 Se usan los componentes de Flux con los tokens del tema, siempre que se pueda replicar la plantilla; si Flux no trae uno equivalente o no se puede ajustar, se arma un componente Blade a partir de la plantilla. Se mantienen: controles de al menos 44 px en celular, tablas con desplazamiento horizontal y solo tema claro.
 
+## Menú lateral
+Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
+
+## Migas de pan
+Toda pantalla pasa sus migas al layout como parámetro `breadcrumbs`, un arreglo de elementos con `name` y, salvo el último, `route` (la URL ya generada). El layout las muestra junto al título; una sola miga solo muestra el título. Las vistas no escriben migas en su HTML. En páginas Livewire se pasan con `layoutData`.
+
 ## Títulos
 Los títulos de pantalla van en `h2` con el componente `x-page-title` (Rubik 400, 24 px, sin negrita) y no se usa `h1`. Los títulos de sección o de tarjeta van en `h3` (20 px).
 
