@@ -4,6 +4,7 @@ use App\Concerns\PasswordValidationRules;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -17,12 +18,23 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 /* @end-chisel-2fa */
 
-new #[Title('Security settings')] class extends Component {
+new #[Title('Seguridad')] class extends Component {
     use PasswordValidationRules;
 
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
+
+    /**
+     * Pass the breadcrumbs to the layout.
+     */
+    public function rendering(View $view): void
+    {
+        $view->layoutData(['breadcrumbs' => [
+            ['name' => 'Inicio', 'route' => route('dashboard')],
+            ['name' => 'Seguridad'],
+        ]]);
+    }
 
     /* @chisel-2fa */
     public bool $canManageTwoFactor;
@@ -183,8 +195,6 @@ new #[Title('Security settings')] class extends Component {
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
     <flux:heading level="2" class="sr-only">{{ __('Security settings') }}</flux:heading>
 
     <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">

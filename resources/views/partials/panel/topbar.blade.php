@@ -21,7 +21,7 @@
 
         <flux:dropdown position="bottom" align="end" class="max-md:order-3 max-md:ms-auto">
             <button type="button" aria-label="Menú de usuario" class="flex size-11 cursor-pointer items-center justify-center">
-                <span class="flex size-10 items-center justify-center rounded-card bg-brand/10 text-sm font-semibold text-brand">{{ auth()->user()->initials() }}</span>
+                <img src="{{ auth()->user()->profilePhotoUrl() }}" alt="" class="size-10 rounded-card bg-brand/10 object-cover">
             </button>
 
             <flux:menu>

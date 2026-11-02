@@ -7,15 +7,27 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Perfil')] class extends Component {
     use ProfileValidationRules;
 
     public string $name = '';
     public string $email = '';
+
+    /**
+     * Pass the breadcrumbs to the layout.
+     */
+    public function rendering(View $view): void
+    {
+        $view->layoutData(['breadcrumbs' => [
+            ['name' => 'Inicio', 'route' => route('dashboard')],
+            ['name' => 'Perfil'],
+        ]]);
+    }
 
     /**
      * Mount the component.
@@ -71,21 +83,15 @@ new #[Title('Profile settings')] class extends Component {
         return Auth::user() instanceof MustVerifyEmail && ! Auth::user()->hasVerifiedEmail();
     }
 
-    #[Computed]
-    public function showDeleteUser(): bool
-    {
-        return ! Auth::user() instanceof MustVerifyEmail
-            || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
-    }
     /* @end-chisel-email-verification */
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
     <flux:heading level="2" class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+        <livewire:pages::settings.profile-photo />
+
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 
@@ -122,13 +128,5 @@ new #[Title('Profile settings')] class extends Component {
 
             </div>
         </form>
-
-        {{-- @chisel-email-verification --}}
-        @if ($this->showDeleteUser)
-        {{-- @end-chisel-email-verification --}}
-            <livewire:pages::settings.delete-user-form />
-        {{-- @chisel-email-verification --}}
-        @endif
-        {{-- @end-chisel-email-verification --}}
     </x-pages::settings.layout>
 </section>

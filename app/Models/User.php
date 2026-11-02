@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -21,6 +20,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property bool $is_active
+ * @property string|null $profile_photo_path
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -50,14 +50,12 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * Get the user's initials
+     * Get the URL of the user's profile photo, or of the default image if there is none.
      */
-    public function initials(): string
+    public function profilePhotoUrl(): string
     {
-        $initials = Str::initials($this->name, true);
-
-        return Str::length($initials) > 1
-            ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
-            : $initials;
+        return asset($this->profile_photo_path !== null
+            ? 'storage/'.$this->profile_photo_path
+            : 'images/default-avatar.svg');
     }
 }
