@@ -7,15 +7,27 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Perfil')] class extends Component {
     use ProfileValidationRules;
 
     public string $name = '';
     public string $email = '';
+
+    /**
+     * Pass the breadcrumbs to the layout.
+     */
+    public function rendering(View $view): void
+    {
+        $view->layoutData(['breadcrumbs' => [
+            ['name' => 'Inicio', 'route' => route('dashboard')],
+            ['name' => 'Perfil'],
+        ]]);
+    }
 
     /**
      * Mount the component.
@@ -81,8 +93,6 @@ new #[Title('Profile settings')] class extends Component {
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
-
     <flux:heading level="2" class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
