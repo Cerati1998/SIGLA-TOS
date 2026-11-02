@@ -22,6 +22,11 @@
     --text-h3: 1.25rem;
     --text-h3--line-height: 1.2;
 
+    --spacing-sidebar: 16.875rem;
+    --spacing-sidebar-mini: 3.75rem;
+    --spacing-header: 5rem;
+    --spacing-header-mobile: 7.8125rem;
+
     --radius-card: 10px;
     --radius-control: 5px;
     --shadow-card: 0 3px 5px 1px rgb(0 0 0 / 0.05);
@@ -130,6 +135,10 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+[data-flux-menu-item] {
+    @apply min-h-11;
+}
+
 [data-flux-card] {
     --flux-card-radius: var(--radius-card);
     @apply rounded-card border-0 shadow-card;
@@ -154,4 +163,8 @@ select:focus[data-flux-control] {
 
 [data-flux-cell] {
     @apply border-t-0 border-b border-line px-4 py-3 text-base text-ink;
+}
+
+[x-cloak] {
+    display: none !important;
 }

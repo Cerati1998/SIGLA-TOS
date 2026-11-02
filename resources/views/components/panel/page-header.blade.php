@@ -2,10 +2,10 @@
     'title',
 ])
 
-<div {{ $attributes->class('flex flex-col gap-1') }}>
+<div {{ $attributes->class('flex flex-wrap items-center gap-x-4 gap-y-1') }}>
+    <x-page-title>{{ $title }}</x-page-title>
+
     @isset($breadcrumbs)
         <flux:breadcrumbs>{{ $breadcrumbs }}</flux:breadcrumbs>
     @endisset
-
-    <x-page-title>{{ $title }}</x-page-title>
 </div>

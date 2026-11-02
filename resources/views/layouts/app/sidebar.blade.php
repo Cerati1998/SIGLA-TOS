@@ -4,12 +4,29 @@
         @include('partials.head')
     </head>
     <body class="min-h-svh bg-surface font-sans text-ink antialiased">
-        <div x-data="{ menuOpen: false }" class="flex min-h-svh max-md:flex-col">
+        <div
+            x-data="{
+                menuOpen: false,
+                menuCollapsed: $persist(false).as('sidebar-collapsed'),
+                openTree: null,
+                toggleMenu() {
+                    if (window.matchMedia('(min-width: 768px)').matches) {
+                        this.menuCollapsed = ! this.menuCollapsed;
+                    } else {
+                        this.menuOpen = ! this.menuOpen;
+                    }
+                },
+            }"
+            :data-collapsed="menuCollapsed"
+            class="group/panel"
+        >
+            @include('partials.panel.topbar')
             @include('partials.panel.sidebar')
 
-            <div class="flex min-w-0 flex-1 flex-col">
-                @include('partials.panel.topbar')
-
+            <div
+                x-on:click="menuOpen = false"
+                class="min-w-0 pt-header-mobile transition-[padding] duration-300 ease-in-out md:ps-sidebar md:pt-header md:group-data-collapsed/panel:ps-sidebar-mini"
+            >
                 {{ $slot }}
             </div>
         </div>
