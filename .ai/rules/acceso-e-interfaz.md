@@ -29,5 +29,8 @@ Los formularios grandes usan Livewire Form Objects, con sus reglas de validació
 ## Alpine para la UX en el navegador
 Todo lo de UX que no necesita el estado del servidor se resuelve con Alpine, aprovechándolo al máximo (menús, modales, pestañas, mostrar y ocultar, confirmaciones, filtros en pantalla sobre datos ya cargados, máscaras de campos). No se hace una petición al backend para algo que Alpine resuelve en el navegador; se usa `$wire` solo cuando hay que hablar con el componente. Alpine ya viene con Livewire: no se instala aparte.
 
+## Controladores y componentes
+No deben tener lógica de negocio, esta se debe llevar a un action o services.
+
 ## Escaneo
 El dato escaneado se guarda solo, de forma asíncrona, y la pantalla muestra qué se guardó y qué falló, con reintento.
