@@ -18,4 +18,15 @@ class PasswordConfirmationTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_confirm_password_screen_offers_to_cancel_and_return_home(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('password.confirm'));
+
+        $response->assertOk()
+            ->assertSeeText('Cancelar')
+            ->assertSee('href="'.route('dashboard').'"', false);
+    }
 }
