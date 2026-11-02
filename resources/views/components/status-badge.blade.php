@@ -3,7 +3,7 @@
 ])
 
 <span {{ $attributes->class([
-    'inline-block rounded-full px-2.5 py-0.5 text-sm font-medium',
+    'inline-block rounded-badge px-2 py-1 text-sm font-normal',
     match ($variant) {
         'success' => 'bg-badge-success text-badge-success-ink',
         'info' => 'bg-badge-info text-badge-info-ink',

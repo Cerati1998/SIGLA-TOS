@@ -4,7 +4,7 @@
     'active' => false,
 ])
 
-<div @if ($active) x-init="openTree = @js($label)" @endif class="flex flex-col gap-1.5">
+<div @if ($active) x-init="openTree = @js($label)" @endif class="flex flex-col gap-1.25">
     <x-panel.menu-item
         :icon="$icon"
         :active="$active"

@@ -4,7 +4,7 @@
 
 <a
     {{ $attributes->class([
-        'flex min-h-11 items-center gap-2.5 ps-10 pe-4 text-base hover:text-white',
+        'ms-5 flex items-center py-1.25 ps-6.25 pe-1.25 text-base font-medium hover:text-white max-md:min-h-11',
         'font-semibold text-white' => $active,
         'text-sidebar-muted' => ! $active,
     ]) }}
@@ -12,6 +12,6 @@
     wire:navigate
     x-on:click="menuOpen = false"
 >
-    <x-feather name="circle" class="size-2" />
+    <x-feather name="circle" class="ms-2.5 me-5 size-2" />
     {{ $slot }}
 </a>

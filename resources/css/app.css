@@ -29,7 +29,10 @@
 
     --radius-card: 10px;
     --radius-control: 5px;
+    --radius-badge: 3px;
     --shadow-card: 0 3px 5px 1px rgb(0 0 0 / 0.05);
+    --shadow-auth: 0 1rem 3rem rgb(0 0 0 / 0.175);
+    --shadow-menu: 0 0 4px 0 rgb(0 0 0 / 0.06);
 
     --color-brand: #002f7f;
     --color-highlight: #d2430a;
@@ -87,9 +90,9 @@
     }
 }
 
-/* Flux con los tokens del lienzo. Sin @layer para ganarle a las utilidades de Flux. */
+/* Flux con las medidas de la plantilla y los tokens del tema. Sin @layer para ganarle a las utilidades de Flux. */
 [data-flux-field]:not(ui-radio, ui-checkbox) {
-    @apply grid gap-1.5;
+    @apply grid gap-1.75;
 }
 
 [data-flux-label] {
@@ -113,16 +116,21 @@
 }
 
 [data-flux-button]:not(:where([data-flux-input] *)) {
-    @apply h-11 rounded-control text-base;
+    @apply h-10.25 rounded-control px-4 text-base transition-all duration-500 max-md:h-11;
 }
 
 input[data-flux-control]:not([type='checkbox'], [type='radio']),
 select[data-flux-control] {
-    @apply h-11 rounded-control border-control text-base;
+    @apply h-8.5 rounded-control border-control py-[5.25px] text-base max-md:h-11;
+}
+
+input[data-flux-control]:not([type='checkbox'], [type='radio'], [class*='ps-10']),
+select[data-flux-control] {
+    padding-inline-start: 10.5px;
 }
 
 textarea[data-flux-control] {
-    @apply rounded-control border-control text-base;
+    @apply rounded-control border-control px-[10.5px] py-[5.25px] text-base;
 }
 
 :is(input, select, textarea)[data-flux-control]:is([data-invalid], [aria-invalid='true']) {
@@ -132,11 +140,15 @@ textarea[data-flux-control] {
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply border-brand shadow-none outline-hidden;
+}
+
+[data-flux-menu] {
+    @apply min-w-37.25 overflow-hidden rounded-none rounded-b border-line p-0 shadow-menu;
 }
 
 [data-flux-menu-item] {
-    @apply min-h-11;
+    @apply my-1.25 min-h-11.25 rounded-none px-3.75 py-2.5 text-base font-normal text-ink-muted;
 }
 
 [data-flux-card] {
@@ -150,7 +162,7 @@ select:focus[data-flux-control] {
 
 [data-flux-breadcrumbs-item],
 [data-flux-breadcrumbs-item] * {
-    @apply font-normal text-ink-muted;
+    @apply font-normal text-brand;
 }
 
 [data-flux-table] {
@@ -158,13 +170,23 @@ select:focus[data-flux-control] {
 }
 
 [data-flux-column] {
-    @apply border-b border-line bg-table-head px-4 py-3 text-sm font-semibold text-ink;
+    @apply border-b border-line bg-table-head p-3.5 text-sm font-bold text-ink;
 }
 
 [data-flux-cell] {
-    @apply border-t-0 border-b border-line px-4 py-3 text-base text-ink;
+    @apply border-t-0 border-b border-line p-3.5 text-base text-ink;
 }
 
 [x-cloak] {
     display: none !important;
+}
+
+[data-flux-column]:first-child,
+[data-flux-cell]:first-child {
+    @apply ps-5.25;
+}
+
+[data-flux-column]:last-child,
+[data-flux-cell]:last-child {
+    @apply pe-5.25;
 }

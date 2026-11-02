@@ -8,11 +8,11 @@
         <img src="{{ asset('images/sigla-icon.png') }}" alt="SIGLA" class="hidden size-10 md:group-data-collapsed/panel:block">
     </a>
 
-    <div class="flex flex-1 items-center justify-between gap-3 px-5 max-md:h-18.75 max-md:flex-none">
+    <div class="flex flex-1 items-center justify-between gap-3 px-5.25 max-md:h-18.75 max-md:flex-none">
         <flux:button
             variant="subtle"
             :square="true"
-            class="w-11! rounded-card! bg-brand/10! text-brand!"
+            class="size-11.25! rounded-card! bg-brand/10! text-brand!"
             aria-label="Abrir o cerrar el menú"
             x-on:click="toggleMenu()"
         >
@@ -25,7 +25,7 @@
             </button>
 
             <flux:menu>
-                <div class="px-2 py-1.5 text-sm font-medium text-ink">{{ auth()->user()->name }}</div>
+                <div class="px-3.75 py-2.5 text-sm font-medium text-ink">{{ auth()->user()->name }}</div>
 
                 <flux:menu.separator />
 

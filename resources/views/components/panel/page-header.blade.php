@@ -2,7 +2,7 @@
     'title',
 ])
 
-<div {{ $attributes->class('flex flex-wrap items-center gap-x-4 gap-y-1') }}>
+<div {{ $attributes->class('flex flex-wrap items-center gap-x-5.25 gap-y-1') }}>
     <x-page-title>{{ $title }}</x-page-title>
 
     @isset($breadcrumbs)
