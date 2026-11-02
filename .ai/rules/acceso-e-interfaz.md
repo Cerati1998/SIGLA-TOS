@@ -22,6 +22,9 @@ Bootstrap 5 no se usa en el proyecto: cada clase, propiedad y estilo de la plant
 
 Se usan los componentes de Flux con los tokens del tema, siempre que se pueda replicar la plantilla; si Flux no trae uno equivalente o no se puede ajustar, se arma un componente Blade a partir de la plantilla. Se mantienen: controles de al menos 44 px en celular, tablas con desplazamiento horizontal y solo tema claro.
 
+## Menú lateral
+Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
+
 ## Componentes Livewire livianos
 Un componente Livewire nunca debe estar sobrecargado: una sola responsabilidad y tamaño pequeño; si crece, se divide en componentes anidados o componentes Blade. Buenas prácticas y clean code: nombres claros, métodos cortos, sin duplicar código. La lógica de negocio y las consultas pesadas van en clases propias (Actions o Services), no en el componente, que solo coordina la pantalla.
 
