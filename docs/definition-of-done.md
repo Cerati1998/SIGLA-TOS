@@ -22,7 +22,7 @@ Una historia se considera terminada solo si cumple todo lo de abajo. Si falta al
 7. Los datos personales (DNI y brevete) no se muestran ni se guardan donde no corresponde, cuando la historia los toca. No es asesoría legal.
 
 ## Parte 3 · Registro y entrega
-1. El diseño de la historia con pantallas está aprobado por el usuario en el lienzo, con el ID de la historia en el nombre.
+1. Las pantallas de la historia siguen la identidad del lienzo (colores, tipografía, escala de texto y disposición) y el detalle de la plantilla, como pide `.ai/rules/acceso-e-interfaz.md`. Basta el visto bueno del usuario sobre lo construido. Solo una pantalla sin base en la plantilla necesita antes un diseño aprobado en el lienzo, con el ID de la historia en el nombre. (Ajustado el 2026-11-02.)
 2. Las dudas marcadas "por confirmar" en la historia están resueltas y escritas en el backlog antes de empezar a construir.
 3. La tarea está marcada como terminada en `docs/sprint-N.md`.
 4. Si el trabajo cambió algo del producto (un criterio, una regla o una historia), el cambio queda actualizado en `docs/product-backlog.md` y el usuario lo vio.
