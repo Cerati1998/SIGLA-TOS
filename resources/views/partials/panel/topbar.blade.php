@@ -1,10 +1,10 @@
-<header class="fixed inset-x-0 top-0 z-30 flex bg-white">
+<header class="fixed inset-x-0 top-0 z-30 flex h-header bg-white">
     <a
         href="{{ route('dashboard') }}"
         wire:navigate
-        class="flex flex-none items-center justify-center transition-[width] duration-300 ease-in-out h-header max-md:ps-5.25 md:w-sidebar md:group-data-collapsed/panel:w-sidebar-mini"
+        class="flex w-sidebar flex-none items-center justify-center transition-[width] duration-300 ease-in-out max-md:hidden md:group-data-collapsed/panel:w-sidebar-mini"
     >
-        <img src="{{ asset('images/sigla-logo.png') }}" alt="SIGLA, Powered by Macromar" class="h-auto max-md:h-10 max-md:w-auto md:w-50 md:group-data-collapsed/panel:hidden">
+        <img src="{{ asset('images/sigla-logo.png') }}" alt="SIGLA, Powered by Macromar" class="h-auto w-50 md:group-data-collapsed/panel:hidden">
         <img src="{{ asset('images/sigla-icon.png') }}" alt="SIGLA" class="hidden size-10 md:group-data-collapsed/panel:block">
     </a>
 
