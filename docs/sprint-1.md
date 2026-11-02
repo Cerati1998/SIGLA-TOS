@@ -15,7 +15,7 @@ Ninguna por ahora (opción A). Si la base sale rápido, se evalúa sumar H01 · 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
 
-- [ ] **T01** · Registrar las rules base en `.ai/rules/` (Claude Code, con `record-rule`, sin preguntar). Solo se puede ejecutar cuando T03 haya instalado el proyecto con Boost. Quién: Claude Code. 1 h.
+- [x] **T01** · Registrar las rules base en `.ai/rules/` (Claude Code, con `record-rule`, sin preguntar). Solo se puede ejecutar cuando T03 haya instalado el proyecto con Boost. Quién: Claude Code. 1 h. (Hecho el 2026-11-02 en la rama `chore/rules-base`, PR pendiente. Archivos escritos a mano e índice generado con `boost:index-rules`: el MCP de Boost no estaba conectado y `record-rule` no agrupa por tema.)
 - [x] **T02** · Crear el repositorio vacío en GitHub. Quién: Scrum Master. 0.5 h.
 - [x] **T03** · Instalar Laravel 13, el starter kit Livewire (TALL), Reverb y Boost desde cero, con el prompt de instalación. Quién: Claude Code. 3 h. (Hecho el 2026-10-29 en la rama `chore/instalacion-base`; PR #1 mergeado a `main` el 2026-10-30.)
 - [x] **T04** · Revisar lo instalado en el repo y confirmarlo con el usuario. 1 h. (Aprobado por el usuario el 2026-10-29.)
