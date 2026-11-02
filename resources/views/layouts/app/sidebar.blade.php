@@ -25,7 +25,7 @@
 
             <div
                 x-on:click="menuOpen = false"
-                class="min-w-0 pt-header-mobile transition-[padding] duration-300 ease-in-out md:ps-sidebar md:pt-header md:group-data-collapsed/panel:ps-sidebar-mini"
+                class="min-w-0 pt-header transition-[padding] duration-300 ease-in-out md:ps-sidebar md:group-data-collapsed/panel:ps-sidebar-mini"
             >
                 {{ $slot }}
             </div>

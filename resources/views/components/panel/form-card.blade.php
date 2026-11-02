@@ -1,7 +1,7 @@
 <flux:card {{ $attributes->class('flex max-w-190 flex-col p-0!') }}>
     @isset($heading)
         <div class="border-b border-line p-5.25">
-            <h3 class="m-0 font-heading text-h3 font-medium">{{ $heading }}</h3>
+            <h3 class="m-0 font-heading text-h3 font-normal">{{ $heading }}</h3>
         </div>
     @endisset
 

@@ -25,7 +25,6 @@
     --spacing-sidebar: 16.875rem;
     --spacing-sidebar-mini: 3.75rem;
     --spacing-header: 5rem;
-    --spacing-header-mobile: 7.8125rem;
 
     --radius-card: 10px;
     --radius-control: 5px;
@@ -112,7 +111,7 @@
 }
 
 [data-flux-heading] {
-    font-family: var(--font-heading);
+    @apply font-heading font-normal;
 }
 
 [data-flux-button]:not(:where([data-flux-input] *)) {
