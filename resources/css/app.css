@@ -13,10 +13,6 @@
     --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-heading: 'Rubik', ui-sans-serif, system-ui, sans-serif;
 
-    --text-h1: 2rem;
-    --text-h1--line-height: 1.2;
-    --text-h1-mobile: 1.75rem;
-    --text-h1-mobile--line-height: 1.2;
     --text-h2: 1.5rem;
     --text-h2--line-height: 1.2;
     --text-h3: 1.25rem;
