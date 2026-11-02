@@ -54,7 +54,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - Tipografías: Rubik para títulos e IBM Plex Sans para texto, tablas y formularios.
 - Escala tipográfica (aprobada el 2026-10-29): base de 16 px. h1 32 px (28 px en celular), h2 24 px y h3 20 px, todos en Rubik 400, sin negrita (cambio pedido por el usuario el 2026-11-02), texto base 16 px (párrafos, campos, botones, celdas de tabla y menú), texto pequeño 14 px (etiquetas, ayudas, texto secundario, encabezados de tabla, migas) y grupos del menú 12 px en mayúsculas. Interlineado 1.2 en títulos y 1.5 en texto.
 - Estilo: fondo gris muy claro con tarjetas blancas (esquinas de 10 px, sombra suave); botones y campos con esquinas de 5 px y al menos 44 px de alto en celular; menú lateral azul con el logo arriba; tablas con desplazamiento horizontal en pantallas chicas; solo tema claro por ahora.
-- Menú en celular: se esconde y se abre con un botón de hamburguesa. Al abrirse se despliega sobre el contenido, justo debajo de la barra superior, que queda fija arriba. Por debajo de 768 px (celular y `sm`) el logo no se muestra; la barra superior lleva solo el botón del menú y el menú de usuario (decisión del usuario del 2026-11-02).
+- Menú en celular: se esconde y se abre con un botón de hamburguesa. Al abrirse se despliega sobre el contenido, justo debajo de la barra superior, que queda fija arriba. Por debajo de 768 px (celular y `sm`) la barra superior va en una sola fila: el botón del menú a la izquierda, el logo a su derecha y el menú de usuario al final (decisión del usuario del 2026-11-02).
 
 ## Plantillas base aprobadas (2026-10-29)
 - Acceso: iniciar sesión, olvidé mi contraseña y restablecer contraseña (H01 a H03). Sin enlace de registro.
