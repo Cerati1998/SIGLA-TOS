@@ -10,7 +10,7 @@
 Dejar lista la base del proyecto: stack TALL instalado, identidad visual y plantillas aprobadas, guideline y rules base en el repo.
 
 ## Historias del sprint
-H01 · Iniciar sesión, H02 · Cerrar sesión y H03 · Recuperar contraseña, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10). Antes: ninguna (opción A).
+H01 · Iniciar sesión, H02 · Cerrar sesión, H03 · Recuperar contraseña y H04 · Gestionar usuarios intranet, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10) y la separación de rutas de intranet y extranet (T14). Antes: ninguna (opción A).
 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
@@ -31,8 +31,10 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h. (Hecho el 2026-11-02, PR #6.)
 - [x] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #7.)
 - [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
+- [ ] **T14** · Separación de rutas de intranet y extranet. Quién: Claude Code. 3 h.
+- [ ] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 5 h.
 
-**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T13 suman 9 h más y superan esa capacidad; el usuario decidió incluirlas.
+**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T15 suman 17 h más y superan esa capacidad; el usuario decidió incluirlas.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
