@@ -27,9 +27,9 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 
 
 ## Tareas agregadas el 2026-11-02
-- [ ] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h.
-- [ ] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h.
-- [ ] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h.
+- [x] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h. (Hecho el 2026-11-02, PR #5.)
+- [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h. (Hecho el 2026-11-02, PR #6.)
+- [x] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #7.)
 - [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
 
 **Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T13 suman 9 h más y superan esa capacidad; el usuario decidió incluirlas.
