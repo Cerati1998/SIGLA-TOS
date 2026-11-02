@@ -28,6 +28,9 @@ Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada en
 ## Migas de pan
 Toda pantalla pasa sus migas al layout como parámetro `breadcrumbs`, un arreglo de elementos con `name` y, salvo el último, `route` (la URL ya generada). El layout las muestra junto al título; una sola miga solo muestra el título. Las vistas no escriben migas en su HTML. En páginas Livewire se pasan con `layoutData`.
 
+## Títulos
+Los títulos de pantalla van en `h2` con el componente `x-page-title` (Rubik 400, 24 px, sin negrita) y no se usa `h1`. Los títulos de sección o de tarjeta van en `h3` (20 px).
+
 ## Componentes Livewire livianos
 Un componente Livewire nunca debe estar sobrecargado: una sola responsabilidad y tamaño pequeño; si crece, se divide en componentes anidados o componentes Blade. Buenas prácticas y clean code: nombres claros, métodos cortos, sin duplicar código. La lógica de negocio y las consultas pesadas van en clases propias (Actions o Services), no en el componente, que solo coordina la pantalla.
 
