@@ -33,6 +33,10 @@
             <flux:button variant="primary" type="submit" class="w-full" data-test="confirm-password-button">
                 {{ __('Confirm') }}
             </flux:button>
+
+            <flux:button variant="outline" :href="route('dashboard')" wire:navigate class="w-full" data-test="cancel-confirm-password-button">
+                {{ __('Cancel') }}
+            </flux:button>
         </form>
     </div>
 </x-layouts::auth>
