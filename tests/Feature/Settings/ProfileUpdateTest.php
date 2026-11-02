@@ -63,4 +63,15 @@ class ProfileUpdateTest extends TestCase
             ->assertDontSee('delete-user', false)
             ->assertDontSeeText('Delete account');
     }
+
+    public function test_profile_page_is_shown_in_spanish(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('profile.edit'))
+            ->assertOk()
+            ->assertSeeText('Actualiza tu nombre y tu correo electrónico')
+            ->assertSeeText('Guardar')
+            ->assertDontSeeText('Update your name and email address');
+    }
 }
