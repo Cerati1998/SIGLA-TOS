@@ -14,11 +14,13 @@ paths:
 Cada pantalla y cada acción de Livewire valida el rol en el servidor, no solo oculta el menú. Las rutas de intranet van separadas de las de una futura extranet.
 
 ## Origen de los componentes
-Se crean a partir del template entregado con el lienzo de Claude Design (carpeta `templates/`, ignorada por git, solo referencia local), tomando solo lo necesario.
+Se crean a partir de la plantilla `documentation/TEMPLATE/html/main` (carpeta ignorada por git, solo referencia local), tomando solo lo necesario.
 
-Lo visual lo define el lienzo aprobado: colores, tipografías (Rubik e IBM Plex Sans), insignias de estado, escala de texto y componentes base (acceso, panel, lista, formulario), usados como tokens del tema y sin colores hex sueltos. El comportamiento UX y la responsividad siguen los del template (menú lateral, apertura del menú en celular, tablas, filtros, formularios). Si el template y el lienzo chocan en lo visual, manda el lienzo; en comportamiento, manda el template.
+El lienzo de Claude Design da la idea general de la identidad de la aplicación: colores, tipografías (Rubik e IBM Plex Sans), escala de texto y disposición de las pantallas, usados como tokens del tema y sin colores hex sueltos. El detalle sale de la plantilla: tamaños, espaciados, bordes, sombras, iconos (Feather), menús, tablas, filtros, formularios, comportamiento y responsividad. Si chocan, el lienzo manda en colores, tipografía y disposición; la plantilla manda en todo lo demás.
 
-Se usan los componentes de Flux con los tokens del lienzo, siempre que se pueda replicar el comportamiento del template; si Flux no trae uno equivalente, se arma un componente Blade a partir del template. Se mantienen: controles de al menos 44 px en celular, tablas con desplazamiento horizontal y solo tema claro.
+Bootstrap 5 no se usa en el proyecto: cada clase, propiedad y estilo de la plantilla se pasa a Tailwind para respetar el stack TALL. Tampoco se copian su CSS, su jQuery ni sus plugins.
+
+Se usan los componentes de Flux con los tokens del tema, siempre que se pueda replicar la plantilla; si Flux no trae uno equivalente o no se puede ajustar, se arma un componente Blade a partir de la plantilla. Se mantienen: controles de al menos 44 px en celular, tablas con desplazamiento horizontal y solo tema claro.
 
 ## Componentes Livewire livianos
 Un componente Livewire nunca debe estar sobrecargado: una sola responsabilidad y tamaño pequeño; si crece, se divide en componentes anidados o componentes Blade. Buenas prácticas y clean code: nombres claros, métodos cortos, sin duplicar código. La lógica de negocio y las consultas pesadas van en clases propias (Actions o Services), no en el componente, que solo coordina la pantalla.

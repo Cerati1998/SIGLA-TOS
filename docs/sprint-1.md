@@ -10,7 +10,7 @@
 Dejar lista la base del proyecto: stack TALL instalado, identidad visual y plantillas aprobadas, guideline y rules base en el repo.
 
 ## Historias del sprint
-Ninguna por ahora (opción A). Si la base sale rápido, se evalúa sumar H01 · Iniciar sesión durante el sprint. Si a mitad de semana se va justo, la base no se aprieta.
+H01 · Iniciar sesión, H02 · Cerrar sesión y H03 · Recuperar contraseña, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10). Antes: ninguna (opción A).
 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
@@ -25,7 +25,14 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T08** · Escribir la guideline `.ai/guidelines/flujo-de-trabajo.md` (flujo de Scrum con Claude Code, ligado a los IDs del backlog). 2.5 h. (Aprobada por el usuario el 2026-10-30, las seis partes. Se sube al repo en T09.)
 - [x] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 1 h. (Hecho el 2026-10-30: PR #2 mergeado a `main` con `docs/` y la guideline; `boost:update` agregó el flujo de trabajo a `CLAUDE.md`, sin skills nuevas.)
 
-**Total estimado:** 16.5 h para unas 18 disponibles (margen de 1.5 h).
+
+## Tareas agregadas el 2026-11-02
+- [ ] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h.
+- [ ] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h.
+- [ ] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h.
+- [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
+
+**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T13 suman 9 h más y superan esa capacidad; el usuario decidió incluirlas.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
@@ -45,9 +52,9 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - Colores de apoyo: fondo `#F3F5F9`, borde `#D9DEE8`, encabezado de tabla `#EEF1F7`, texto `#1F2937`, texto secundario `#4B5563` y error `#D0021B`.
 - Insignias de estado (colores de Flowbite, aprobados el 2026-10-29): éxito fondo `#ECFDF5` y texto `#004F3B`; información (azul) fondo `#EFF6FF` y texto `#1C398E`; advertencia fondo `#FFF7ED` y texto `#7E2A0C`. Disponibles si hacen falta: peligro fondo `#FFF1F2` y texto `#8B0836`; gris fondo `#F9FAFB` y texto `#101828`. Tamaño de texto de 14 px según nuestra escala.
 - Tipografías: Rubik para títulos e IBM Plex Sans para texto, tablas y formularios.
-- Escala tipográfica (aprobada el 2026-10-29): base de 16 px. h1 32 px (28 px en celular, Rubik 600), h2 24 px (Rubik 500), h3 20 px (Rubik 500), texto base 16 px (párrafos, campos, botones, celdas de tabla y menú), texto pequeño 14 px (etiquetas, ayudas, texto secundario, encabezados de tabla, migas) y grupos del menú 12 px en mayúsculas. Interlineado 1.2 en títulos y 1.5 en texto.
+- Escala tipográfica (aprobada el 2026-10-29): base de 16 px. h2 24 px y h3 20 px, en Rubik 400, sin negrita; los títulos de pantalla van en h3 y no se usa h1 (cambios pedidos por el usuario el 2026-11-02), texto base 16 px (párrafos, campos, botones, celdas de tabla y menú), texto pequeño 14 px (etiquetas, ayudas, texto secundario, encabezados de tabla, migas) y grupos del menú 12 px en mayúsculas. Interlineado 1.2 en títulos y 1.5 en texto.
 - Estilo: fondo gris muy claro con tarjetas blancas (esquinas de 10 px, sombra suave); botones y campos con esquinas de 5 px y al menos 44 px de alto en celular; menú lateral azul con el logo arriba; tablas con desplazamiento horizontal en pantallas chicas; solo tema claro por ahora.
-- Menú en celular: se esconde y se abre con un botón de hamburguesa. Al abrirse se despliega sobre el contenido, justo debajo de la barra superior, que queda fija arriba. En celular el logo no se muestra (la barra superior todavía no lo lleva; pendiente de decidir).
+- Menú en celular: se esconde y se abre con un botón de hamburguesa. Al abrirse se despliega sobre el contenido, justo debajo de la barra superior, que queda fija arriba. Por debajo de 768 px (celular y `sm`) la barra superior va en una sola fila: el botón del menú a la izquierda, el logo a su derecha y el menú de usuario al final (decisión del usuario del 2026-11-02).
 
 ## Plantillas base aprobadas (2026-10-29)
 - Acceso: iniciar sesión, olvidé mi contraseña y restablecer contraseña (H01 a H03). Sin enlace de registro.

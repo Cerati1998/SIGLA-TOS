@@ -8,8 +8,54 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Identidad visual aprobada en el lienzo (página "Identidad visual"). */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-heading: 'Rubik', ui-sans-serif, system-ui, sans-serif;
+
+    --text-h2: 1.5rem;
+    --text-h2--line-height: 1.2;
+    --text-h3: 1.25rem;
+    --text-h3--line-height: 1.2;
+
+    --spacing-sidebar: 16.875rem;
+    --spacing-sidebar-mini: 3.75rem;
+    --spacing-header: 5rem;
+
+    --radius-card: 10px;
+    --radius-control: 5px;
+    --radius-badge: 3px;
+    --shadow-card: 0 3px 5px 1px rgb(0 0 0 / 0.05);
+    --shadow-auth: 0 1rem 3rem rgb(0 0 0 / 0.175);
+    --shadow-menu: 0 0 4px 0 rgb(0 0 0 / 0.06);
+
+    --color-brand: #002f7f;
+    --color-highlight: #d2430a;
+    --color-logo-orange: #f25010;
+
+    --color-status-green: #97bf0e;
+    --color-status-sky: #229bd2;
+    --color-status-orange: #f0930a;
+
+    --color-surface: #f3f5f9;
+    --color-line: #d9dee8;
+    --color-table-head: #eef1f7;
+    --color-control: #9ca3af;
+    --color-ink: #1f2937;
+    --color-ink-muted: #4b5563;
+    --color-danger: #d0021b;
+    --color-sidebar-muted: #cbd5f5;
+
+    --color-badge-success: #ecfdf5;
+    --color-badge-success-ink: #004f3b;
+    --color-badge-info: #eff6ff;
+    --color-badge-info-ink: #1c398e;
+    --color-badge-warning: #fff7ed;
+    --color-badge-warning-ink: #7e2a0c;
+    --color-badge-danger: #fff1f2;
+    --color-badge-danger-ink: #8b0836;
+    --color-badge-neutral: #f9fafb;
+    --color-badge-neutral-ink: #101828;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,17 +69,9 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-brand);
+    --color-accent-content: var(--color-brand);
     --color-accent-foreground: var(--color-white);
-}
-
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
-    }
 }
 
 @layer base {
@@ -43,24 +81,107 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-line, currentColor);
     }
 }
 
+/* Flux con las medidas de la plantilla y los tokens del tema. Sin @layer para ganarle a las utilidades de Flux. */
 [data-flux-field]:not(ui-radio, ui-checkbox) {
-    @apply grid gap-2;
+    @apply grid gap-1.75;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight text-sm font-medium text-ink;
+}
+
+[data-flux-description] {
+    @apply text-sm text-ink-muted;
+}
+
+[data-flux-error] {
+    @apply mt-0 text-sm font-normal text-danger;
+}
+
+[data-flux-error] svg {
+    display: none;
+}
+
+[data-flux-heading] {
+    @apply font-heading font-normal;
+}
+
+[data-flux-button]:not(:where([data-flux-input] *)) {
+    @apply h-10.25 rounded-control px-4 text-base transition-all duration-500 max-md:h-11;
+}
+
+input[data-flux-control]:not([type='checkbox'], [type='radio']),
+select[data-flux-control] {
+    @apply h-8.5 rounded-control border-control py-[5.25px] text-base max-md:h-11;
+}
+
+input[data-flux-control]:not([type='checkbox'], [type='radio'], [class*='ps-10']),
+select[data-flux-control] {
+    padding-inline-start: 10.5px;
+}
+
+textarea[data-flux-control] {
+    @apply rounded-control border-control px-[10.5px] py-[5.25px] text-base;
+}
+
+:is(input, select, textarea)[data-flux-control]:is([data-invalid], [aria-invalid='true']) {
+    @apply border-2 border-danger;
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply border-brand shadow-none outline-hidden;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+[data-flux-menu] {
+    @apply min-w-37.25 overflow-hidden rounded-none rounded-b border-line p-0 shadow-menu;
+}
+
+[data-flux-menu-item] {
+    @apply my-1.25 min-h-11.25 rounded-none px-3.75 py-2.5 text-base font-normal text-ink-muted;
+}
+
+[data-flux-card] {
+    --flux-card-radius: var(--radius-card);
+    @apply rounded-card border-0 shadow-card;
+}
+
+[data-flux-card]::after {
+    display: none;
+}
+
+[data-flux-breadcrumbs-item],
+[data-flux-breadcrumbs-item] * {
+    @apply font-normal text-brand;
+}
+
+[data-flux-table] {
+    @apply w-full min-w-160;
+}
+
+[data-flux-column] {
+    @apply border-b border-line bg-table-head p-3.5 text-sm font-bold text-ink;
+}
+
+[data-flux-cell] {
+    @apply border-t-0 border-b border-line p-3.5 text-base text-ink;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+[data-flux-column]:first-child,
+[data-flux-cell]:first-child {
+    @apply ps-5.25;
+}
+
+[data-flux-column]:last-child,
+[data-flux-cell]:last-child {
+    @apply pe-5.25;
+}
