@@ -13,7 +13,10 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
+                bunny('Rubik', {
+                    weights: [400, 500, 600],
+                }),
+                bunny('IBM Plex Sans', {
                     weights: [400, 500, 600],
                 }),
             ],
@@ -28,6 +31,7 @@ export default defineConfig({
                 '**/.claude/**',
                 '**/.cursor/**',
                 '**/.junie/**',
+                '**/documentation/**',
                 '**/storage/framework/views/**',
                 '**/vendor/**',
             ],

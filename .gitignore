@@ -38,3 +38,4 @@ yarn-error.log
 /templates/
 # Configuración personal de Claude Code (la del proyecto sí se versiona)
 /.claude/settings.local.json
+/documentation/
