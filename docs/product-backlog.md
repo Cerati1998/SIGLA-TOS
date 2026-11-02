@@ -62,7 +62,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Con correo y contraseña correctos, el usuario entra al sistema.
   2. Con datos incorrectos, ve un mensaje de error que no dice si falló el correo o la contraseña.
-  3. Un usuario desactivado no puede entrar (por confirmar).
+  3. Un usuario desactivado no puede entrar (confirmado el 2026-11-02: columna `is_active` en `users`, activa por defecto; la pantalla para desactivar llega en H04).
   4. La pantalla se puede usar bien desde el celular.
 
 **H02 · Cerrar sesión**
