@@ -28,7 +28,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 
 ## Tareas agregadas el 2026-11-02
 - [x] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h. (Hecho el 2026-11-02, PR #5.)
-- [ ] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h.
+- [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h. (Hecho el 2026-11-02, PR #6.)
 - [ ] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h.
 - [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
 
