@@ -82,14 +82,14 @@ class UsersTable extends BaseTable
         $this->authorize('delete', $user);
 
         if ($user->trashed()) {
-            $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está desactivado.');
+            $this->dispatch('toast', icon: 'warning', title: 'Usuario ya desactivado', text: 'Este usuario ya está desactivado.');
 
             return;
         }
 
         $user->delete();
 
-        $this->dispatch('toast', icon: 'success', text: 'Usuario desactivado.');
+        $this->dispatch('toast', icon: 'success', title: 'Usuario desactivado', text: 'El usuario se desactivó correctamente.');
     }
 
     /**
@@ -102,13 +102,13 @@ class UsersTable extends BaseTable
         $this->authorize('restore', $user);
 
         if (! $user->trashed()) {
-            $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está activo.');
+            $this->dispatch('toast', icon: 'warning', title: 'Usuario ya activo', text: 'Este usuario ya está activo.');
 
             return;
         }
 
         $user->restore();
 
-        $this->dispatch('toast', icon: 'success', text: 'Usuario reactivado.');
+        $this->dispatch('toast', icon: 'success', title: 'Usuario reactivado', text: 'El usuario se reactivó correctamente.');
     }
 }

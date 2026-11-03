@@ -27,7 +27,7 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 ```blade
 <div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
     <x-wire-button positive x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
-        <i class="fa-solid fa-pen text-sm text-ink" aria-hidden="true"></i>
+        <i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>
     </x-wire-button>
 
     @can('delete', $user)
@@ -53,7 +53,7 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 
   | Acción | Botón | Color |
   |---|---|---|
-  | Editar | `positive` con icono `text-ink` | Verde SIGLA (`status-green`). Lleva icono oscuro porque el blanco no contrasta sobre ese verde |
+  | Editar | `positive` | Verde SIGLA (`status-green`), con icono blanco como las demás acciones |
   | Eliminar o desactivar | `negative` | Rojo de error (`danger`) |
   | Otras, como reactivar | `primary` | Azul Macromar (`brand`) |
 
@@ -77,13 +77,13 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 | Qué | Con qué |
 |---|---|
 | Confirmar una acción | `confirmAction(titulo, texto, callback)`, de `resources/js/confirm.js`, con SweetAlert2 |
-| Avisar el resultado | `$this->dispatch('toast', icon: 'success', text: '...')`, de `resources/js/toast.js`, con SweetAlert2 |
-| Avisar que no procede | `$this->dispatch('toast', icon: 'warning', text: '...')` |
+| Avisar el resultado | `$this->dispatch('toast', icon: 'success', title: '...', text: '...')`, de `resources/js/toast.js`, con SweetAlert2 |
+| Avisar que no procede | `$this->dispatch('toast', icon: 'warning', title: '...', text: '...')` |
 
 - El texto de SweetAlert2 se pasa con `titleText` y `text`, nunca con `title` ni `html`: esos dos interpretan HTML y pueden traer
   datos del usuario.
 - No uses `wire:confirm` ni `confirm()` del navegador.
-- Los avisos salen arriba a la derecha, con fondo blanco, sombra marcada e icono de color. `icon` acepta `success`, `warning` y
+- Todo aviso lleva `title` y `text`. Salen arriba a la derecha, con sombra marcada, icono de color y fondo y texto suaves según el tipo (tokens `toast-success` y `badge-*`). `icon` acepta `success`, `warning` y
   `error`. SweetAlert2 muestra uno a la vez: un aviso nuevo reemplaza al anterior.
 
 ## Una acción de fila, en este orden
@@ -96,14 +96,14 @@ public function deactivate(int $id): void
     $this->authorize('delete', $user);
 
     if ($user->trashed()) {
-        $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está desactivado.');
+        $this->dispatch('toast', icon: 'warning', title: 'Usuario ya desactivado', text: 'Este usuario ya está desactivado.');
 
         return;
     }
 
     $user->delete();
 
-    $this->dispatch('toast', icon: 'success', text: 'Usuario desactivado.');
+    $this->dispatch('toast', icon: 'success', title: 'Usuario desactivado', text: 'El usuario se desactivó correctamente.');
 }
 ```
 

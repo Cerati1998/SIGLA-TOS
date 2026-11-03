@@ -1,6 +1,6 @@
 <div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
     <x-wire-button positive x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
-        <i class="fa-solid fa-pen text-sm text-ink" aria-hidden="true"></i>
+        <i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>
     </x-wire-button>
 
     @if ($user->trashed())
