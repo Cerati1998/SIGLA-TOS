@@ -9,7 +9,7 @@ Una historia se considera terminada solo si cumple todo lo de abajo. Si falta al
 ## Parte 1 · Funcionamiento
 1. Cumple todos los criterios de aceptación de su historia.
 2. Cada pantalla se puede usar bien desde el celular.
-3. Cada pantalla y acción solo está disponible para los roles que corresponden.
+3. Cada pantalla y acción solo está disponible para los roles que corresponden. (Hasta culminar E6 no se validan roles: las pantallas solo exigen sesión iniciada. Decisión del usuario del 2026-11-03; ver H24 en el backlog.)
 4. El usuario la probó y dio su visto bueno antes de abrir el PR.
 
 ## Parte 2 · Calidad
