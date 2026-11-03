@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
  */
 window.confirmAction = (title, text, onConfirm) =>
     Swal.fire({
-        title,
+        titleText: title,
         text,
         icon: 'warning',
         showCancelButton: true,
