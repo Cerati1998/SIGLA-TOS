@@ -1,13 +1,19 @@
 <div>
-    <x-wire-modal-card :title="$form->userId === null ? 'Nuevo usuario' : 'Editar usuario'" wire:model="form.openModal">
-        <form id="user-form" wire:submit="save" class="grid gap-4">
-            <x-pages::users.fields />
+    <x-wire-modal-card
+        title="Nuevo usuario"
+        name="user-create"
+        wire:model="form.openModal"
+        x-on:open="$wire.form.name = ''; $wire.form.email = ''"
+        x-on:close="$wire.$errors.any() && $wire.clearErrors()"
+    >
+        <form id="user-create-form" wire:submit="save" class="grid gap-4">
+            <x-pages::users.fields id-prefix="user-create" />
         </form>
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
                 <flux:button type="button" x-on:click="close">Cancelar</flux:button>
-                <flux:button variant="primary" type="submit" form="user-form" wire:loading.attr="disabled" wire:target="save">Guardar</flux:button>
+                <flux:button variant="primary" type="submit" form="user-create-form" wire:loading.attr="disabled" wire:target="save">Guardar</flux:button>
             </div>
         </x-slot:footer>
     </x-wire-modal-card>
@@ -27,7 +33,7 @@
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
-                <flux:button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create">Crear otro</flux:button>
+                <flux:button type="button" x-on:click="$openModal('user-create')" wire:click="closePassword" wire:loading.attr="disabled" wire:target="closePassword">Crear otro</flux:button>
                 <flux:button variant="primary" type="button" wire:click="closePassword" wire:loading.attr="disabled" wire:target="closePassword">Cerrar</flux:button>
             </div>
         </x-slot:footer>

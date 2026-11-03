@@ -6,5 +6,6 @@
         <livewire:tables.users-table />
     </x-panel.list-card>
 
-    <livewire:users.form-modal />
+    <livewire:users.create-modal />
+    <livewire:users.edit-modal />
 </x-layouts::app>

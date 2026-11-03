@@ -21,7 +21,7 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 `x-panel.create-button`, que lo muestra en el naranja de acento de la marca (`highlight`) y con el icono `plus`:
 
 ```blade
-<x-panel.create-button x-on:click="$dispatch('create-user')">Nuevo</x-panel.create-button>
+<x-panel.create-button x-on:click="$openModal('user-create')">Nuevo</x-panel.create-button>
 ```
 
 ```blade
@@ -121,7 +121,9 @@ public function deactivate(int $id): void
 
 - El modal es un componente Livewire aparte, montado en la página junto a la tabla. No pongas form objects en la tabla: la
   rule pide componentes livianos.
-- Se abre con un evento: `$dispatch('edit-user', { userId: id })`, recibido con `#[On('edit-user')]`.
+- El de edición se abre con un evento, porque carga el registro: `$dispatch('edit-user', { userId: id })`, recibido con
+  `#[On('edit-user')]`.
+- El de creación es otro modal y se abre solo con Alpine: `$openModal('user-create')`.
 - Después de guardar, el modal refresca la tabla con `$this->dispatch('refreshDatatable')`.
 - Una acción de la propia tabla no necesita refresco: Livewire vuelve a renderizarla.
 
