@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +40,27 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configurePasswordResetMail();
+    }
+
+    /**
+     * Configure the password reset mail.
+     */
+    private function configurePasswordResetMail(): void
+    {
+        ResetPassword::toMailUsing(function (User $user, string $token): MailMessage {
+            return (new MailMessage)
+                ->subject(__('Reset your password'))
+                ->markdown('mail.password-reset', [
+                    'userName' => $user->name,
+                    'url' => route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()]),
+                    'details' => [
+                        'Cuenta' => $user->getEmailForPasswordReset(),
+                        'Solicitado' => now()->setTimezone(config('app.display_timezone'))->translatedFormat('j \d\e F \d\e Y, g:i a'),
+                        'Vence en' => config('auth.passwords.users.expire').' minutos',
+                    ],
+                ]);
+        });
     }
 
     /**
