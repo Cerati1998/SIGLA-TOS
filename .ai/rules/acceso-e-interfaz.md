@@ -36,6 +36,9 @@ Todo botón que ejecuta un método de un componente Livewire, con `wire:click`, 
 ## Avisos y confirmaciones
 Los avisos son toasts de SweetAlert2, con el evento `toast`, y las confirmaciones usan `confirmAction`. Razón: que todos los avisos y confirmaciones se vean igual.
 
+## Modales de creación
+Todo modal de creación es propio: no reutiliza el de edición y se abre solo con Alpine (`x-on:click="$openModal('...')"`), sin petición al servidor. Razón: abrir no gasta una petición y crear no hereda datos de una edición.
+
 ## Menú lateral
 Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
 
