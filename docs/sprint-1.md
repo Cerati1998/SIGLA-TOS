@@ -34,7 +34,11 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [ ] **T14** · Rutas de intranet. Quién: Claude Code. 2 h.
 - [ ] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 5 h.
 
-**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T15 suman 16 h más y superan esa capacidad; el usuario decidió incluirlas.
+## Tareas agregadas el 2026-11-03
+- [ ] **T16** · Diseñar y aprobar en el lienzo la plantilla de los correos, con la identidad visual y el estilo de los layouts de acceso. Quién: Claude Code; aprueba el usuario. 1 h.
+- [ ] **T17** · Construir la plantilla de los correos del sistema desde el diseño aprobado y aplicarla al correo de recuperar contraseña. Quién: Claude Code. 2 h.
+
+**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T15 suman 16 h más y superan esa capacidad; el usuario decidió incluirlas. Las tareas T16 y T17 suman 3 h más, pedidas por el usuario el 2026-11-03 al revisar el correo de H03.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
