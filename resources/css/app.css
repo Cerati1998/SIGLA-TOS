@@ -237,3 +237,28 @@ select:focus[data-flux-control] {
 [form-wrapper] div[name='form.wrapper.header'] label {
     @apply text-sm leading-tight font-medium text-ink;
 }
+
+/* Avisos de Flux como los Toastr de la plantilla: fondo de color y letra blanca. */
+[data-flux-toast-dialog] > div {
+    @apply rounded-control border-0 bg-brand text-white shadow-lg;
+}
+
+[data-flux-toast-dialog][data-variant='success'] > div {
+    @apply bg-badge-success-ink;
+}
+
+[data-flux-toast-dialog][data-variant='warning'] > div {
+    @apply bg-highlight;
+}
+
+[data-flux-toast-dialog][data-variant='danger'] > div {
+    @apply bg-danger;
+}
+
+[data-flux-toast-dialog] > div :is(div, svg, button) {
+    color: inherit;
+}
+
+[data-flux-toast-dialog] > div button:hover {
+    @apply bg-white/15;
+}
