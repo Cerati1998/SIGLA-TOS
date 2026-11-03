@@ -3,7 +3,8 @@
 namespace Tests\Feature;
 
 use App\Livewire\Tables\UsersTable;
-use App\Livewire\Users\FormModal;
+use App\Livewire\Users\CreateModal;
+use App\Livewire\Users\EditModal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -78,9 +79,8 @@ class UsersManagementTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        $component = Livewire::test(FormModal::class)
-            ->dispatch('create-user')
-            ->assertSet('form.openModal', true)
+        $component = Livewire::test(CreateModal::class)
+            ->set('form.openModal', true)
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
             ->call('save')
@@ -114,8 +114,8 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin);
 
         foreach (['activo@example.com', 'inactivo@example.com'] as $email) {
-            Livewire::test(FormModal::class)
-                ->call('create')
+            Livewire::test(CreateModal::class)
+                ->set('form.openModal', true)
                 ->set('form.name', 'Otro Usuario')
                 ->set('form.email', $email)
                 ->call('save')
@@ -128,12 +128,30 @@ class UsersManagementTest extends TestCase
         $this->assertDatabaseCount('users', 3);
     }
 
+    public function test_the_new_button_opens_the_create_modal_in_the_browser(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->assertSeeHtml('x-on:click="$openModal(\'user-create\')"');
+    }
+
+    public function test_closing_the_create_modal_forgets_its_validation_errors(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(CreateModal::class)
+            ->call('save')
+            ->assertHasErrors(['form.name', 'form.email'])
+            ->call('clearErrors')
+            ->assertHasNoErrors();
+    }
+
     public function test_closing_the_password_window_forgets_the_password(): void
     {
         $this->actingAs($this->admin);
 
-        Livewire::test(FormModal::class)
-            ->call('create')
+        Livewire::test(CreateModal::class)
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
             ->call('save')
@@ -150,7 +168,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test(FormModal::class)
+        Livewire::test(EditModal::class)
             ->dispatch('edit-user', userId: $user->id)
             ->assertSet('form.openModal', true)
             ->assertSet('form.email', 'igual@example.com')
@@ -158,7 +176,6 @@ class UsersManagementTest extends TestCase
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
-            ->assertSet('generatedPassword', null)
             ->assertDispatched('refreshDatatable');
 
         $user->refresh();
@@ -175,7 +192,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test(FormModal::class)
+        Livewire::test(EditModal::class)
             ->call('edit', $user->id)
             ->set('form.email', 'ocupado@example.com')
             ->call('save')
@@ -188,7 +205,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test(FormModal::class)
+        Livewire::test(EditModal::class)
             ->call('edit', $user->id)
             ->assertSet('form.openModal', true)
             ->assertSet('form.name', 'Dora Desactivada');
