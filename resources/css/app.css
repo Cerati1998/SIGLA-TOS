@@ -7,6 +7,7 @@
 
 @source '../views';
 @source '../js';
+@source '../../vendor/rappasoft/laravel-livewire-tables/resources/views';
 @source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,TextField,Wrapper}/**/*.{php,blade.php}';
 @source inline('z-50');
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -79,6 +80,16 @@
     --color-accent: var(--color-brand);
     --color-accent-content: var(--color-brand);
     --color-accent-foreground: var(--color-white);
+
+    /* Rappasoft usa indigo: se enlaza al color de la marca. */
+    --color-indigo-100: color-mix(in oklab, var(--color-brand) 12%, white);
+    --color-indigo-200: color-mix(in oklab, var(--color-brand) 25%, white);
+    --color-indigo-300: color-mix(in oklab, var(--color-brand) 40%, white);
+    --color-indigo-400: color-mix(in oklab, var(--color-brand) 60%, white);
+    --color-indigo-500: var(--color-brand);
+    --color-indigo-600: var(--color-brand);
+    --color-indigo-800: var(--color-brand);
+    --color-indigo-900: var(--color-brand);
 
     /* WireUI con los tokens del tema. */
     --color-primary-500: var(--color-brand);

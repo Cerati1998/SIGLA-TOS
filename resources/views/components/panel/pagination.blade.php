@@ -13,7 +13,7 @@
         $window['last'],
     ]);
 
-    $linkClasses = 'flex h-9.5 min-w-9.5 items-center justify-center rounded-[2px] bg-white px-3.5 py-1.75 text-sm text-ink-muted max-md:h-11';
+    $linkClasses = 'flex h-9.5 min-w-9.5 items-center justify-center -ms-px rounded-[2px] border border-line bg-white px-3.5 py-1.75 text-sm text-ink-muted max-md:h-11';
 @endphp
 
 <span>Mostrando {{ $paginator->firstItem() ?? 0 }} a {{ $paginator->lastItem() ?? 0 }} de {{ $paginator->total() }} registros</span>

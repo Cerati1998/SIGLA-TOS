@@ -21,9 +21,10 @@ class UsersTable extends BaseTable
 
         $this->setDefaultSort('name')
             ->setAdditionalSelects(['users.id as id'])
+            ->setSearchPlaceholder('Nombre o correo')
             ->setEmptyMessage('No se encontraron usuarios.')
             ->setConfigurableAreas([
-                'before-tools' => 'pages.users.partials.filters',
+                'toolbar-right-end' => 'pages.users.partials.options',
                 'after-wrapper' => 'partials.panel.table-footer',
             ]);
     }
@@ -65,6 +66,7 @@ class UsersTable extends BaseTable
         return [
             SelectFilter::make('Estado', 'status')
                 ->options(['' => 'Todos', 'active' => 'Activo', 'inactive' => 'Inactivo'])
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
                 ->filter(fn (Builder $builder, string $value) => $value === 'active'
                     ? $builder->whereNull('deleted_at')
                     : $builder->whereNotNull('deleted_at')),
