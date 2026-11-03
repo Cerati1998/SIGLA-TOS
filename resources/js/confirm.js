@@ -14,7 +14,7 @@ window.confirmAction = (title, text, onConfirm) =>
         reverseButtons: true,
         buttonsStyling: false,
         customClass: {
-            popup: 'rounded-card!',
+            popup: 'rounded-card! bg-badge-warning!',
             title: 'font-heading! font-normal! text-h3! text-ink!',
             htmlContainer: 'text-base! text-ink-muted!',
             actions: 'gap-3',

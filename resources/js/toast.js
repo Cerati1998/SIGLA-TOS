@@ -1,9 +1,24 @@
 import Swal from 'sweetalert2';
 
-const iconColors = {
-    success: 'var(--color-status-green)',
-    warning: 'var(--color-highlight)',
-    error: 'var(--color-danger)',
+const toastStyles = {
+    success: {
+        iconColor: 'var(--color-status-green)',
+        popup: 'bg-badge-success! ring-status-green/40!',
+        title: 'text-badge-success-ink!',
+        timerProgressBar: 'bg-status-green!',
+    },
+    warning: {
+        iconColor: 'var(--color-highlight)',
+        popup: 'bg-badge-warning! ring-highlight/30!',
+        title: 'text-badge-warning-ink!',
+        timerProgressBar: 'bg-highlight!',
+    },
+    error: {
+        iconColor: 'var(--color-danger)',
+        popup: 'bg-badge-danger! ring-danger/30!',
+        title: 'text-badge-danger-ink!',
+        timerProgressBar: 'bg-danger!',
+    },
 };
 
 /**
@@ -14,16 +29,17 @@ window.addEventListener('toast', ({ detail }) =>
         toast: true,
         position: 'top-end',
         icon: detail.icon,
-        iconColor: iconColors[detail.icon],
+        iconColor: toastStyles[detail.icon]?.iconColor,
         titleText: detail.text,
         showConfirmButton: false,
         timer: 4000,
         timerProgressBar: true,
         returnFocus: false,
         customClass: {
-            popup: 'rounded-control! shadow-xl! ring-1! ring-line!',
-            title: 'text-sm! font-medium! text-ink!',
-            timerProgressBar: 'bg-brand!',
+            container: 'w-100! max-w-full!',
+            popup: `w-full! rounded-control! px-5! py-4! shadow-xl! ring-1! ${toastStyles[detail.icon]?.popup ?? 'ring-line!'}`,
+            title: `text-base! font-medium! ${toastStyles[detail.icon]?.title ?? 'text-ink!'}`,
+            timerProgressBar: toastStyles[detail.icon]?.timerProgressBar ?? 'bg-brand!',
         },
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
