@@ -94,8 +94,8 @@
     /* WireUI con los tokens del tema. */
     --color-primary-500: var(--color-brand);
     --color-primary-600: var(--color-brand);
-    --color-positive-500: var(--color-badge-success-ink);
-    --color-positive-600: var(--color-badge-success-ink);
+    --color-positive-500: var(--color-status-green);
+    --color-positive-600: var(--color-status-green);
     --color-secondary-200: var(--color-line);
     --color-secondary-300: var(--color-control);
     --color-secondary-400: var(--color-control);
