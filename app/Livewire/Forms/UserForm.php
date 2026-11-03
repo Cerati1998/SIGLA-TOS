@@ -12,6 +12,8 @@ class UserForm extends Form
 {
     use ProfileValidationRules;
 
+    public bool $openModal = false;
+
     #[Locked]
     public ?int $userId = null;
 
