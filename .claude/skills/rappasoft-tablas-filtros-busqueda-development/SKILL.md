@@ -1,6 +1,6 @@
 ---
 name: rappasoft-tablas-filtros-busqueda-development
-description: "Usa este skill siempre que agregues o cambies filtros (SelectFilter y otros) o la búsqueda de una tabla Rappasoft: barra de filtros con Flux en before-tools, enlace a search y filterComponents, cómo se compone filters() sobre el builder y qué cuidar en el SQL."
+description: "Usa este skill siempre que agregues o cambies filtros (SelectFilter y otros) o la búsqueda de una tabla Rappasoft: barra nativa con menú de filtros, estilos de los controles, cómo se compone filters() sobre el builder y qué cuidar en el SQL."
 ---
 
 # Filtros y búsqueda en tablas Rappasoft
@@ -12,44 +12,29 @@ La estructura de la tabla está en `rappasoft-tablas-listado-development`.
 Un filtro solo estrecha lo que devuelve `builder()`. Su closure recibe el `Builder` y le agrega condiciones; nunca empieza una
 consulta nueva con `Model::query()`.
 
-## Barra de filtros
+## Barra de búsqueda y filtros
 
-`BaseTable` quita la barra del paquete, así que los filtros se muestran en `pages/<recursos>/partials/filters.blade.php`,
-enlazado al área `before-tools` con `setConfigurableAreas`, con componentes de Flux y las medidas de la plantilla:
+La barra es la nativa del paquete. `BaseTable` le da los estilos, y cada tabla solo declara lo suyo:
 
-```blade
-<div class="flex flex-wrap items-end gap-3 border-b border-line p-5.25">
-    <flux:field class="min-w-60 flex-1">
-        <flux:label>Buscar</flux:label>
-        <flux:input wire:model.live.debounce.300ms="search" type="search" placeholder="Nombre o correo" />
-    </flux:field>
-
-    <flux:field class="w-full sm:w-50">
-        <flux:label>Estado</flux:label>
-        <flux:select wire:model.live="filterComponents.status">
-            <flux:select.option value="">Todos</flux:select.option>
-            <flux:select.option value="active">Activo</flux:select.option>
-        </flux:select>
-    </flux:field>
-</div>
-```
-
-- La búsqueda se enlaza a `search`.
-- Cada filtro se enlaza a `filterComponents.<clave>`, y la clave es el segundo argumento de `make()`.
-- El estado queda en la URL: `?table-search=...` y `?table-filters[status]=...`.
+- **Búsqueda:** se activa con `->searchable()` en alguna columna. El texto se define con `setSearchPlaceholder('...')`.
+- **Filtros:** el botón "Filtros" y su menú salen solos cuando `filters()` devuelve algo.
+- **Etiquetas de filtros aplicados:** son nativas, con el color de la marca.
+- **URL:** el estado queda en `?table-search=...` y `?table-filters[status]=...`.
 
 ## Filtro de selección
 
 ```php
 SelectFilter::make('Estado', 'status')
     ->options(['' => 'Todos', 'active' => 'Activo', 'inactive' => 'Inactivo'])
+    ->setInputAttributes(self::CONTROL_ATTRIBUTES)
     ->filter(fn (Builder $builder, string $value) => $value === 'active'
         ? $builder->whereNull('deleted_at')
         : $builder->whereNotNull('deleted_at')),
 ```
 
 - La primera opción es `'' => 'Todos'`.
-- Las opciones del `SelectFilter` y las de la vista deben coincidir: un valor que no está en `options` no se aplica.
+- `setInputAttributes(self::CONTROL_ATTRIBUTES)` en cada filtro, para que tenga el estilo y los 44 px en celular.
+- Un valor que no está en `options` no se aplica.
 - Las claves son valores en inglés (`active`) y las etiquetas, en español.
 - Un filtro por catálogo arma sus opciones desde el modelo:
   `['' => 'Todas'] + Category::query()->orderBy('name')->pluck('name', 'id')->all()`.
@@ -94,6 +79,6 @@ Livewire::test(UsersTable::class)
 ## Checklist
 
 - [ ] Cada filtro compone sobre el `$builder` recibido.
-- [ ] `options` y la vista tienen los mismos valores, con `''` para "Todos".
+- [ ] `options` empieza con `''` para "Todos", y el filtro usa `CONTROL_ATTRIBUTES`.
 - [ ] Toda búsqueda con closure usa `orWhere`, y el SQL crudo usa bindings.
 - [ ] Ningún dato personal queda en la URL.

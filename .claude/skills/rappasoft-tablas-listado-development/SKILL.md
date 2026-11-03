@@ -16,6 +16,7 @@ Filtros y búsqueda: `rappasoft-tablas-filtros-busqueda-development`. Botones y 
 - El JS y el CSS del núcleo se importan en `resources/js/app.js` desde
   `vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables`. Los de terceros (flatpickr) no se
   importan porque ninguna tabla los usa todavía.
+- En `resources/css/app.css`, `@source` escanea las vistas del paquete. Sin eso, sus clases no se generan.
 
 ## Dónde vive
 
@@ -25,15 +26,25 @@ Filtros y búsqueda: `rappasoft-tablas-filtros-busqueda-development`. Botones y 
 | Tabla | `app/Livewire/Tables/<Recurso>Table.php`, creada con `php artisan make:datatable Tables/<Recurso>Table <Modelo>` y luego cambiada para extender `BaseTable` |
 | Página que la monta | `resources/views/pages/<recursos>/⚡index.blade.php`, dentro de `<x-panel.list-card>`, con `<livewire:tables.<recurso>-table />` |
 | Botones de cada fila | `resources/views/pages/<recursos>/partials/actions.blade.php`, siempre con ese nombre |
-| Otras vistas de columna y filtros | `resources/views/pages/<recursos>/partials/` |
+| Botones de toda la tabla | `resources/views/pages/<recursos>/partials/options.blade.php` |
+| Otras vistas de columna | `resources/views/pages/<recursos>/partials/` |
 
 ## BaseTable
 
-Toda tabla extiende `BaseTable` y llama a `parent::configure()`. La base aplica la plantilla con los métodos de atributos y
-tokens del tema, quita la barra de herramientas del paquete y pone el pie `partials/panel/table-footer` en `after-wrapper`,
-con `x-panel.pagination`.
+Toda tabla extiende `BaseTable` y llama a `parent::configure()`. La base aplica el estilo del tema Tailwind de Rappasoft con
+los colores de la marca, como pide la rule:
 
-No se fuerzan estilos de la tabla por CSS y no se agregan variantes `dark:`: el proyecto solo tiene tema claro.
+| Parte | Cómo se logra |
+|---|---|
+| Encabezado en mayúsculas y filas alternadas | `setThAttributes` y `setTrAttributes`, con tokens (`bg-table-head`, `bg-surface`) |
+| Barra nativa: búsqueda, filtros y registros por página | `setToolsAttributes`, `setToolBarAttributes`, `setSearchFieldAttributes` y `setPerPageFieldAttributes` |
+| Controles | `BaseTable::CONTROL_ATTRIBUTES`, porque las vistas del paquete usan clases de Tailwind 3 (`ring-opacity-50`) que ya no existen |
+| Lo que sigue en `indigo` (etiquetas de filtros, foco) | `--color-indigo-*` enlazado a `--color-brand` en `@theme`, sin tocar las vistas |
+| Pie | Partial `partials/panel/table-footer` en `after-wrapper`, con `x-panel.pagination` |
+
+No edites `vendor` ni fuerces estilos de la tabla por CSS, y no agregues variantes `dark:`: el proyecto solo tiene tema claro.
+Los iconos del embudo de "Filtros" y de la X de la búsqueda son Heroicons del paquete. Para cambiarlos habría que publicar sus
+vistas: consúltalo antes.
 
 ## configure()
 
@@ -44,9 +55,10 @@ public function configure(): void
 
     $this->setDefaultSort('name')
         ->setAdditionalSelects(['users.id as id'])
+        ->setSearchPlaceholder('Nombre o correo')
         ->setEmptyMessage('No se encontraron usuarios.')
         ->setConfigurableAreas([
-            'before-tools' => 'pages.users.partials.filters',
+            'toolbar-right-end' => 'pages.users.partials.options',
             'after-wrapper' => 'partials.panel.table-footer',
         ]);
 }
@@ -57,7 +69,8 @@ public function configure(): void
   `$user->is($model)` da un resultado equivocado.
 - También va ahí todo campo que una vista lee y que no es una columna.
 - Las áreas se declaran completas en la tabla, incluida `after-wrapper`: `setConfigurableAreas` reemplaza las anteriores.
-- Lo que es de toda la tabla (filtros, botón "Nuevo") va en un partial enlazado con `setConfigurableAreas`. Un área se
+- Los botones de toda la tabla (como "Nuevo") van en `pages/<recursos>/partials/options.blade.php`, enlazado a
+  `toolbar-right-end` con `setConfigurableAreas`. Un área se
   renderiza una sola vez y no recibe la fila, así que los botones de fila van en `actions.blade.php`, desde la columna.
 - Si una página monta más de una tabla, cada una llama a `setTableName('<nombre>')`. Con el nombre por defecto `table`
   comparten `?page`; con nombre propio la página va en `?<nombre>Page`.

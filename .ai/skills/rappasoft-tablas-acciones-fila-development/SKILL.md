@@ -17,7 +17,7 @@ Column::make('Acciones')
 ```
 
 `setConfigurableAreas` no sirve para estos botones: un área se renderiza una vez por tabla y no recibe la fila. Úsala para lo
-que es de toda la tabla, como el botón "Nuevo".
+que es de toda la tabla: el botón "Nuevo" va en `partials/options.blade.php`, enlazado a `toolbar-right-end`.
 
 ```blade
 <div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">

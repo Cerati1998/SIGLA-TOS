@@ -22,6 +22,8 @@ Bootstrap 5 no se usa en el proyecto: cada clase, propiedad y estilo de la plant
 
 Las tablas de listas usan Rappasoft Livewire Tables. Los modales, sus inputs y los botones de fila usan WireUI. El resto de la interfaz usa Flux. Todos con los tokens del tema, siempre que se pueda replicar la plantilla; si el componente no existe o no se puede ajustar, se arma un componente Blade a partir de la plantilla. Se mantienen: controles de al menos 44 px en celular, tablas con desplazamiento horizontal y solo tema claro.
 
+Excepción: las tablas de listas siguen el estilo del tema Tailwind de Rappasoft (encabezado en mayúsculas, filas alternadas y barra nativa de búsqueda y filtros), con los colores de la marca y los tokens del tema.
+
 ## Acciones de fila
 Los botones de cada fila de una tabla van en un partial llamado `actions.blade.php`, dentro de `resources/views/pages/<recursos>/partials/`. Son botones `x-wire-button` de tamaño `xs`, solo con icono Feather, con `title` y `aria-label`. Razón: que todas las tablas tengan sus opciones en el mismo sitio y con el mismo aspecto.
 
