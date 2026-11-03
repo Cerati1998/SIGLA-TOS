@@ -12,7 +12,7 @@ class PanelBreadcrumbsTest extends TestCase
 
     public function test_a_single_breadcrumb_only_shows_the_title(): void
     {
-        $response = $this->actingAs(User::factory()->create())->get(route('dashboard'));
+        $response = $this->actingAs(User::factory()->create())->get(route('intranet.dashboard'));
 
         $response->assertOk()
             ->assertSee('font-heading', false)
@@ -38,14 +38,14 @@ class PanelBreadcrumbsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('profile.edit'))
+        $this->actingAs($user)->get(route('intranet.profile.edit'))
             ->assertOk()
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Perfil']);
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('security.edit'))
+            ->get(route('intranet.security.edit'))
             ->assertOk()
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Seguridad']);

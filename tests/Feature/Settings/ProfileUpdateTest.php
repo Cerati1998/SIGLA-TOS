@@ -15,7 +15,7 @@ class ProfileUpdateTest extends TestCase
     {
         $this->actingAs($user = User::factory()->create());
 
-        $this->get(route('profile.edit'))->assertOk();
+        $this->get(route('intranet.profile.edit'))->assertOk();
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -58,7 +58,7 @@ class ProfileUpdateTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $this->get(route('profile.edit'))
+        $this->get(route('intranet.profile.edit'))
             ->assertOk()
             ->assertDontSee('delete-user', false)
             ->assertDontSeeText('Delete account');
@@ -68,7 +68,7 @@ class ProfileUpdateTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $this->get(route('profile.edit'))
+        $this->get(route('intranet.profile.edit'))
             ->assertOk()
             ->assertSeeText('Actualiza tu nombre y tu correo electrónico')
             ->assertSeeText('Guardar')

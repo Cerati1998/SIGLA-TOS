@@ -23,7 +23,7 @@ class ProfilePhotoTest extends TestCase
 
     public function test_user_without_photo_sees_the_default_image_in_the_user_menu(): void
     {
-        $response = $this->actingAs(User::factory()->create())->get(route('dashboard'));
+        $response = $this->actingAs(User::factory()->create())->get(route('intranet.dashboard'));
 
         $response->assertOk()->assertSee(asset('images/default-avatar.svg'));
     }
@@ -37,14 +37,14 @@ class ProfilePhotoTest extends TestCase
         Livewire::test('pages::settings.profile-photo')
             ->set('photo', UploadedFile::fake()->image('foto.jpg'))
             ->assertHasNoErrors()
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('intranet.profile.edit'));
 
         $path = $user->refresh()->profile_photo_path;
 
         $this->assertNotNull($path);
         Storage::disk('public')->assertExists($path);
 
-        $this->get(route('dashboard'))->assertSee(asset('storage/'.$path));
+        $this->get(route('intranet.dashboard'))->assertSee(asset('storage/'.$path));
     }
 
     public function test_uploading_a_new_photo_deletes_the_previous_one(): void

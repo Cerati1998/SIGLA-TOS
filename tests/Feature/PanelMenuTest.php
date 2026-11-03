@@ -64,7 +64,7 @@ class PanelMenuTest extends TestCase
 
     public function test_the_panel_shows_the_home_link_as_active(): void
     {
-        $response = $this->actingAs(User::factory()->create())->get(route('dashboard'));
+        $response = $this->actingAs(User::factory()->create())->get(route('intranet.dashboard'));
 
         $response->assertOk()->assertSee('aria-current="page"', false)->assertSeeText('Inicio');
     }

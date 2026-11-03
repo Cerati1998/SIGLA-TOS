@@ -34,7 +34,7 @@
                 {{ __('Confirm') }}
             </flux:button>
 
-            <flux:button variant="outline" :href="route('dashboard')" wire:navigate class="w-full" data-test="cancel-confirm-password-button">
+            <flux:button variant="outline" :href="route('intranet.dashboard')" wire:navigate class="w-full" data-test="cancel-confirm-password-button">
                 {{ __('Cancel') }}
             </flux:button>
         </form>

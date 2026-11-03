@@ -27,6 +27,6 @@ class PasswordConfirmationTest extends TestCase
 
         $response->assertOk()
             ->assertSeeText('Cancelar')
-            ->assertSee('href="'.route('dashboard').'"', false);
+            ->assertSee('href="'.route('intranet.dashboard').'"', false);
     }
 }
