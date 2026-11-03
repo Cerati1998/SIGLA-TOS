@@ -76,6 +76,8 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 - El texto de SweetAlert2 se pasa con `text`, nunca con `html`, porque puede traer datos del usuario.
 - No uses `wire:confirm` ni `confirm()` del navegador.
 - Los avisos salen arriba a la derecha: `position="top end"` en los dos layouts.
+- Su aspecto viene de los Toastr de la plantilla, definido en `resources/css/app.css`: fondo de color y letra blanca. `success` es
+  verde oscuro, `warning` naranja de acento, `danger` rojo y sin variante, azul.
 
 ## Una acción de fila, en este orden
 

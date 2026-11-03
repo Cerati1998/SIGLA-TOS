@@ -27,6 +27,9 @@ Excepción: las tablas de listas siguen el estilo del tema Tailwind de Rappasoft
 ## Acciones de fila
 Los botones de cada fila de una tabla van en un partial llamado `actions.blade.php`, dentro de `resources/views/pages/<recursos>/partials/`. Son botones `x-wire-button` de tamaño `xs`, solo con icono Feather, con `title` y `aria-label`. Razón: que todas las tablas tengan sus opciones en el mismo sitio y con el mismo aspecto.
 
+## Colores de botones en tablas
+El botón de creación usa `x-panel.create-button`, en el naranja de acento. En las filas, editar va en verde, eliminar o desactivar en rojo y las demás acciones en azul. Razón: que cada acción se reconozca igual en todas las tablas.
+
 ## Menú lateral
 Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
 
