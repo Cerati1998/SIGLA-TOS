@@ -24,7 +24,7 @@ Filtros y búsqueda: `rappasoft-tablas-filtros-busqueda-development`. Botones y 
 |---|---|
 | Base común | `app/Livewire/Tables/BaseTable.php` |
 | Tabla | `app/Livewire/Tables/<Recurso>Table.php`, creada con `php artisan make:datatable Tables/<Recurso>Table <Modelo>` y luego cambiada para extender `BaseTable` |
-| Página que la monta | `app/Livewire/<Recursos>/Index.php`, con su vista `resources/views/pages/<recursos>/index.blade.php`, dentro de `<x-panel.list-card>`, con `<livewire:tables.<recurso>-table />` |
+| Página que la monta | `resources/views/pages/<recursos>/index.blade.php`, con `Route::view`, el título y las migas en `<x-layouts::app>`, dentro de `<x-panel.list-card>`, con `<livewire:tables.<recurso>-table />` |
 | Botones de cada fila | `resources/views/pages/<recursos>/partials/actions.blade.php`, siempre con ese nombre |
 | Botones de toda la tabla | `resources/views/pages/<recursos>/partials/options.blade.php` |
 | Otras vistas de columna | `resources/views/pages/<recursos>/partials/` |
