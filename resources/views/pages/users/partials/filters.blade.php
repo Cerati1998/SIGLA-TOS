@@ -13,5 +13,8 @@
         </flux:select>
     </flux:field>
 
-    <flux:button variant="primary" x-on:click="$dispatch('create-user')">Nuevo</flux:button>
+    <flux:button variant="primary" x-on:click="$dispatch('create-user')">
+        <x-feather name="plus" class="size-4" />
+        Nuevo
+    </flux:button>
 </div>

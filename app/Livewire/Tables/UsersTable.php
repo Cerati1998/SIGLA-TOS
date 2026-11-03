@@ -23,7 +23,7 @@ class UsersTable extends BaseTable
             ->setAdditionalSelects(['users.id as id'])
             ->setEmptyMessage('No se encontraron usuarios.')
             ->setConfigurableAreas([
-                'before-tools' => 'pages.users.table-filters',
+                'before-tools' => 'pages.users.partials.filters',
                 'after-wrapper' => 'partials.panel.table-footer',
             ]);
     }
@@ -49,9 +49,9 @@ class UsersTable extends BaseTable
             Column::make('Nombre', 'name')->searchable(),
             Column::make('Correo electrónico', 'email')->searchable(),
             Column::make('Estado', 'deleted_at')
-                ->format(fn ($value, User $row): View => view('pages.users.table-status', ['user' => $row])),
+                ->format(fn ($value, User $row): View => view('pages.users.partials.status', ['user' => $row])),
             Column::make('Acciones')
-                ->label(fn (User $row): View => view('pages.users.table-actions', ['user' => $row])),
+                ->label(fn (User $row): View => view('pages.users.partials.actions', ['user' => $row])),
         ];
     }
 

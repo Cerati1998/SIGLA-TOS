@@ -70,7 +70,7 @@ class UsersManagementTest extends TestCase
 
         Livewire::test(UsersTable::class)
             ->assertSeeHtml('x-data="{ id: '.$user->id.', name: ')
-            ->assertSeeText('Desactivar');
+            ->assertSeeHtml('title="Desactivar"');
     }
 
     public function test_a_user_is_created_with_a_random_password_that_is_shown_and_lets_them_log_in(): void
@@ -260,7 +260,7 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin);
 
         Livewire::test(UsersTable::class)
-            ->assertDontSeeText('Desactivar')
+            ->assertDontSeeHtml('title="Desactivar"')
             ->call('deactivate', $this->admin->id)
             ->assertForbidden();
 

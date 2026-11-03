@@ -7,7 +7,7 @@
 
 @source '../views';
 @source '../js';
-@source '../../vendor/wireui/wireui/src/Components/{Card,Label,Modal,TextField,Wrapper}/**/*.{php,blade.php}';
+@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,TextField,Wrapper}/**/*.{php,blade.php}';
 @source inline('z-50');
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
@@ -81,7 +81,10 @@
     --color-accent-foreground: var(--color-white);
 
     /* WireUI con los tokens del tema. */
+    --color-primary-500: var(--color-brand);
     --color-primary-600: var(--color-brand);
+    --color-positive-500: var(--color-badge-success-ink);
+    --color-positive-600: var(--color-badge-success-ink);
     --color-secondary-200: var(--color-line);
     --color-secondary-300: var(--color-control);
     --color-secondary-400: var(--color-control);
