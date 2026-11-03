@@ -77,3 +77,6 @@ Cada tipo de acceso tiene su archivo de rutas, su prefijo de URL y su prefijo de
 
 ## Roles hasta culminar E6
 Hasta culminar E6 no se validan roles; las pantallas solo exigen sesión iniciada. Razón: los roles se definen con todo el panorama armado.
+
+## Enlaces en los correos
+Todo enlace de un correo va en un botón; la URL no se escribe de forma explícita en el cuerpo, ni siquiera en la versión de texto plano. Razón: evitar enlaces largos en el cuerpo del correo.

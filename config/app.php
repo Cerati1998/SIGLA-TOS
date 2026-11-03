@@ -69,6 +69,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Display Timezone
+    |--------------------------------------------------------------------------
+    |
+    | The timezone used to show a date to the user where the application timezone
+    | does not apply, such as the body of an email. It changes nothing about how
+    | dates are stored or calculated.
+    |
+    */
+
+    'display_timezone' => 'America/Lima',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
