@@ -58,4 +58,16 @@ class User extends Authenticatable implements PasskeyUser
             ? 'storage/'.$this->profile_photo_path
             : 'images/default-avatar.svg');
     }
+
+    /**
+     * Send the password reset link, only if the account is active.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        if ($this->is_active) {
+            parent::sendPasswordResetNotification($token);
+        }
+    }
 }
