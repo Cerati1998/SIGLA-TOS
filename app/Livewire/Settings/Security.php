@@ -13,10 +13,8 @@ use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Actions\DeletePasskey;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Seguridad')]
 class Security extends Component
 {
     use PasswordValidationRules;
@@ -188,13 +186,10 @@ class Security extends Component
     /* @end-chisel-2fa */
 
     /**
-     * Render the component and pass the breadcrumbs to the layout.
+     * Render the component.
      */
     public function render(): View
     {
-        return view('pages.settings.security')->layoutData(['breadcrumbs' => [
-            ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
-            ['name' => 'Seguridad'],
-        ]]);
+        return view('pages.settings.security-content');
     }
 }

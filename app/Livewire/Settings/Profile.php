@@ -11,10 +11,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Perfil')]
 class Profile extends Component
 {
     use ProfileValidationRules;
@@ -80,13 +78,10 @@ class Profile extends Component
     /* @end-chisel-email-verification */
 
     /**
-     * Render the component and pass the breadcrumbs to the layout.
+     * Render the component.
      */
     public function render(): View
     {
-        return view('pages.settings.profile')->layoutData(['breadcrumbs' => [
-            ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
-            ['name' => 'Perfil'],
-        ]]);
+        return view('pages.settings.profile-content');
     }
 }
