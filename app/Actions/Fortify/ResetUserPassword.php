@@ -4,7 +4,6 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Models\User;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
@@ -22,10 +21,6 @@ class ResetUserPassword implements ResetsUserPasswords
      */
     public function reset(User $user, array $input): void
     {
-        if (! $user->is_active) {
-            throw ValidationException::withMessages(['email' => __(Password::INVALID_TOKEN)]);
-        }
-
         Validator::make($input, [
             'password' => $this->passwordRules(),
         ])->validate();

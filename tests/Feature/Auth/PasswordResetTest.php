@@ -163,7 +163,7 @@ class PasswordResetTest extends TestCase
         Notification::fake();
         $this->app->setLocale('es');
 
-        $user = User::factory()->create(['is_active' => false]);
+        $user = User::factory()->trashed()->create();
 
         $this->requestResetLink($user->email)->assertSessionHas('status', self::LINK_REQUESTED_MESSAGE)->assertSessionHasNoErrors();
 
@@ -177,7 +177,7 @@ class PasswordResetTest extends TestCase
         $user = User::factory()->create();
         $token = Password::broker()->createToken($user);
 
-        $user->forceFill(['is_active' => false])->save();
+        $user->delete();
 
         $this->resetPassword($user->email, $token)->assertSessionHasErrors(['email' => self::INVALID_LINK_MESSAGE]);
 
