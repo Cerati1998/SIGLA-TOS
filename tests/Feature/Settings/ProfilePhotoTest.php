@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Livewire\Settings\ProfilePhoto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -34,7 +35,7 @@ class ProfilePhotoTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::settings.profile-photo')
+        Livewire::test(ProfilePhoto::class)
             ->set('photo', UploadedFile::fake()->image('foto.jpg'))
             ->assertHasNoErrors()
             ->assertRedirect(route('profile.edit'));
@@ -53,11 +54,11 @@ class ProfilePhotoTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::settings.profile-photo')->set('photo', UploadedFile::fake()->image('primera.jpg'));
+        Livewire::test(ProfilePhoto::class)->set('photo', UploadedFile::fake()->image('primera.jpg'));
 
         $previousPath = $user->refresh()->profile_photo_path;
 
-        Livewire::test('pages::settings.profile-photo')->set('photo', UploadedFile::fake()->image('segunda.jpg'));
+        Livewire::test(ProfilePhoto::class)->set('photo', UploadedFile::fake()->image('segunda.jpg'));
 
         Storage::disk('public')->assertMissing((string) $previousPath);
         Storage::disk('public')->assertExists((string) $user->refresh()->profile_photo_path);
@@ -82,7 +83,7 @@ class ProfilePhotoTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::settings.profile-photo')
+        Livewire::test(ProfilePhoto::class)
             ->set('photo', UploadedFile::fake()->create($fileName, $kilobytes))
             ->assertHasErrors('photo');
 

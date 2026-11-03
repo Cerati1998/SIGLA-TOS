@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Tables\UsersTable;
+use App\Livewire\Users\FormModal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -77,7 +78,7 @@ class UsersManagementTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        $component = Livewire::test('pages::users.form-modal')
+        $component = Livewire::test(FormModal::class)
             ->dispatch('create-user')
             ->assertSet('form.openModal', true)
             ->set('form.name', 'Nuevo Usuario')
@@ -113,7 +114,7 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin);
 
         foreach (['activo@example.com', 'inactivo@example.com'] as $email) {
-            Livewire::test('pages::users.form-modal')
+            Livewire::test(FormModal::class)
                 ->call('create')
                 ->set('form.name', 'Otro Usuario')
                 ->set('form.email', $email)
@@ -131,7 +132,7 @@ class UsersManagementTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.form-modal')
+        Livewire::test(FormModal::class)
             ->call('create')
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
@@ -149,7 +150,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.form-modal')
+        Livewire::test(FormModal::class)
             ->dispatch('edit-user', userId: $user->id)
             ->assertSet('form.openModal', true)
             ->assertSet('form.email', 'igual@example.com')
@@ -174,7 +175,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.form-modal')
+        Livewire::test(FormModal::class)
             ->call('edit', $user->id)
             ->set('form.email', 'ocupado@example.com')
             ->call('save')
@@ -187,7 +188,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.form-modal')
+        Livewire::test(FormModal::class)
             ->call('edit', $user->id)
             ->assertSet('form.openModal', true)
             ->assertSet('form.name', 'Dora Desactivada');
