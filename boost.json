@@ -15,6 +15,12 @@
         "fluxui-development",
         "livewire-development",
         "tailwindcss-development",
-        "echo-development"
+        "echo-development",
+        "livewire-forms-modal-development",
+        "livewire-forms-pantalla-development",
+        "rappasoft-tablas-acciones-fila-development",
+        "rappasoft-tablas-filtros-busqueda-development",
+        "rappasoft-tablas-listado-development",
+        "wireui-modales-inputs-development"
     ]
 }

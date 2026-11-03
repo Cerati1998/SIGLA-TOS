@@ -55,7 +55,8 @@ https://claude.ai/artifact/3zgDe8hgTDesp32V3Shhca
 1. Trabaja en una rama propia por historia, por ejemplo
    `feature/H01-iniciar-sesion`. Nunca trabajes directo en `main`.
 2. Usa lo que ya trae el proyecto: Laravel 13, Livewire 4, Flux
-   (versión gratuita), Tailwind 4 y Fortify. No agregues paquetes
+   (versión gratuita), Rappasoft Livewire Tables, WireUI, SweetAlert2,
+   Tailwind 4 y Fortify. No agregues paquetes
    nuevos sin preguntar al usuario.
 3. Usa las herramientas de Laravel Boost (documentación, base de
    datos, skills) en vez de recordar de memoria cómo funciona algo.
