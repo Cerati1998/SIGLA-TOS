@@ -46,7 +46,7 @@ class AuthenticationTest extends TestCase
     {
         $this->app->setLocale('es');
 
-        User::factory()->create(['email' => 'user@example.com', 'is_active' => $isActive]);
+        User::factory()->create(['email' => 'user@example.com', 'deleted_at' => $isActive ? null : now()]);
 
         $response = $this->from(route('login'))->post(route('login.store'), [
             'email' => $email,
@@ -58,17 +58,6 @@ class AuthenticationTest extends TestCase
             ->assertSessionHasErrors(['email' => 'El correo o la contraseña no son correctos, o la cuenta no está activa.']);
 
         $this->assertGuest();
-    }
-
-    public function test_new_users_are_active_by_default(): void
-    {
-        $user = User::query()->create([
-            'name' => 'Nuevo usuario',
-            'email' => 'nuevo@example.com',
-            'password' => 'password',
-        ]);
-
-        $this->assertTrue($user->fresh()?->is_active);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void

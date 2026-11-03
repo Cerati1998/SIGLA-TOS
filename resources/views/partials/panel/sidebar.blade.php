@@ -6,6 +6,13 @@
             'route' => route('intranet.dashboard'),
             'active' => request()->routeIs('intranet.dashboard'),
         ],
+        ['header' => 'Administración'],
+        [
+            'name' => 'Usuarios',
+            'icon' => 'users',
+            'route' => route('intranet.users.index'),
+            'active' => request()->routeIs('intranet.users.*'),
+        ],
     ];
 @endphp
 

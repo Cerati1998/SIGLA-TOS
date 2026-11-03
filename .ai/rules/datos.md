@@ -22,3 +22,6 @@ Lo que escribe en varias tablas se guarda todo o nada.
 
 ## Datos personales
 El DNI y el brevete solo los ven los roles que los necesitan. Nunca en URLs ni en logs.
+
+## Desactivar con Soft Deletes
+Desactivar en datos maestros se hace con Soft Deletes (`deleted_at`), no con una columna de estado. Razón: un solo dato indica si el registro está activo.

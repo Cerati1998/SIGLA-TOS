@@ -51,3 +51,6 @@ Todos los correos del sistema, sea cual sea su propósito, usan por defecto un m
 
 ## Rutas por tipo de acceso
 Cada tipo de acceso tiene su archivo de rutas, su prefijo de URL y su prefijo de nombre (`intranet/` e `intranet.`, `extranet/` y `extranet.`). Lo común a ambos, como el login, la recuperación de contraseña y el perfil, va fuera de esos grupos. Razón: que sus rutas no se mezclen ni choquen.
+
+## Roles hasta culminar E6
+Hasta culminar E6 no se validan roles; las pantallas solo exigen sesión iniciada. Razón: los roles se definen con todo el panorama armado.
