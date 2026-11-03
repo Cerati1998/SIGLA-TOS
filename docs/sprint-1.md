@@ -31,7 +31,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #6.)
 - [x] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 0.5 h. (Hecho el 2026-11-02, PR #7.)
 - [x] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 1 h. (Hecho el 2026-11-03, PR #15.)
-- [ ] **T14** · Rutas de intranet. Quién: Claude Code. 1 h.
+- [x] **T14** · Rutas de intranet. Quién: Claude Code. 1 h. (Hecho el 2026-11-03, PR #16.)
 - [ ] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 2.75 h.
 
 ## Tareas agregadas el 2026-11-03
