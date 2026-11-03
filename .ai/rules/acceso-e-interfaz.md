@@ -30,6 +30,9 @@ Los botones de cada fila de una tabla van en un partial llamado `actions.blade.p
 ## Colores de botones en tablas
 El botón de creación usa `x-panel.create-button`, en el naranja de acento. En las filas, editar va en verde, eliminar o desactivar en rojo y las demás acciones en azul. Razón: que cada acción se reconozca igual en todas las tablas.
 
+## Botones que llaman al componente
+Todo botón que ejecuta un método de un componente Livewire, con `wire:click`, `$wire` o `form="..."` fuera del `<form>`, lleva `wire:loading.attr="disabled"` y `wire:target` con ese método, para que quede desactivado mientras se ejecuta. Un botón de envío dentro del `<form>` no lo necesita, porque `wire:submit` ya lo desactiva. Razón: que varios clics no repitan la acción.
+
 ## Menú lateral
 Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
 

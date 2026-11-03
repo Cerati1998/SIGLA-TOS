@@ -34,6 +34,8 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
         <x-wire-button
             negative
             x-on:click="confirmAction('¿Desactivar a ' + name + '?', 'Ya no podrá iniciar sesión.', () => $wire.deactivate(id))"
+            wire:loading.attr="disabled"
+            wire:target="deactivate"
             title="Desactivar"
             aria-label="Desactivar"
             xs
@@ -57,6 +59,11 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 
   Esos colores están enlazados a los tokens del tema. Otro color (`green`, `blue`, `red`) usa la paleta de Tailwind y no los
   tokens.
+- **Mientras se ejecuta:** el botón que llama a un método lleva `wire:loading.attr="disabled"` y `wire:target` con ese método, también
+  si lo llama con `$wire`. Así se desactiva en todas las filas. El que solo emite un evento, como editar, no lo necesita: el
+  método es de otro componente y `wire:loading` no lo ve.
+- **Botones que se alternan en el mismo lugar**, como desactivar y reactivar: los dos llevan `wire:target="deactivate,reactivate"`.
+  Livewire lee el target una sola vez y lo conserva cuando reutiliza el botón.
 - **Celular:** `[&_button]:max-md:size-11` en el contenedor, para que midan 44 px.
 - **Datos de la fila:** van en el `x-data`, con `@js()` para los textos, porque escapa comillas y apóstrofos (`O'Brien`).
 - No uses comillas dobles dentro de un atributo de un componente: por ejemplo, `{{ Js::from("...") }}` corta el atributo y deja
@@ -131,6 +138,7 @@ Cubre el camino normal, la policy y el estado que no procede (`assertDispatched(
 ## Checklist
 
 - [ ] Los botones están en `partials/actions.blade.php`, como `x-wire-button` `xs` con icono Feather, `title` y `aria-label`.
+- [ ] Los botones que llaman a un método tienen `wire:loading.attr="disabled"` y `wire:target`.
 - [ ] Los datos de la fila van por `x-data`, con `@js()` para los textos.
 - [ ] Las acciones destructivas usan `confirmAction`.
 - [ ] El método recibe `int $id` y resuelve con `$this->builder()`.

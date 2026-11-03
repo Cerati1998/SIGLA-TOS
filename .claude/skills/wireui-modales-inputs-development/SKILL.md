@@ -33,13 +33,15 @@ del pie del modal. Los botones de fila están en `rappasoft-tablas-acciones-fila
     <x-slot:footer>
         <div class="flex justify-end gap-3">
             <flux:button type="button" x-on:click="close">Cancelar</flux:button>
-            <flux:button variant="primary" type="submit" form="user-form">Guardar</flux:button>
+            <flux:button variant="primary" type="submit" form="user-form" wire:loading.attr="disabled" wire:target="save">Guardar</flux:button>
         </div>
     </x-slot:footer>
 </x-wire-modal-card>
 ```
 
 - El pie queda fuera del `<form>`: el botón de envío se enlaza con `form="<id>"`.
+- `wire:submit` solo desactiva los botones que están dentro del `<form>`. El del pie necesita `wire:loading.attr="disabled"` y
+  `wire:target`, o se puede pulsar varias veces. Flux muestra el indicador de carga al desactivarse.
 - `x-on:click="close"` cierra el modal desde dentro, sin ir al servidor.
 - Un mismo componente puede tener varios modales, cada uno con su `wire:model`.
 
@@ -76,6 +78,7 @@ encabezado y el menú lateral.
 ## Checklist
 
 - [ ] Usa `x-wire-*` y botones de Flux.
+- [ ] Los botones del pie que llaman a un método se desactivan mientras se ejecuta.
 - [ ] El texto, el título y los errores están en español.
 - [ ] Revisado en el navegador a 390 px, con controles de 44 px.
 - [ ] Sin errores en la consola, también al llegar con `wire:navigate`.
