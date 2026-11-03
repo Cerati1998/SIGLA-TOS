@@ -45,3 +45,6 @@ No deben tener lógica de negocio, esta se debe llevar a un action o services.
 
 ## Escaneo
 El dato escaneado se guarda solo, de forma asíncrona, y la pantalla muestra qué se guardó y qué falló, con reintento.
+
+## Correos
+Todos los correos del sistema, sea cual sea su propósito, usan por defecto un mismo layout o partials de correo con la identidad del lienzo y de la marca. Si ya existe un layout, se adapta en vez de crear otro. Razón: que todos los correos se vean como la aplicación.
