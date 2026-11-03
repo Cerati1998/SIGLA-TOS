@@ -21,7 +21,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Inicio de sesión con correo y contraseña para todos los usuarios.
 - Se usa el starter kit oficial de Livewire con Fortify (sesión, cierre de sesión, recuperación de contraseña), sin Jetstream (decisión del 2026-10-29). Sin registro público de cuentas: los usuarios los crea el admin.
 - Hay dos tipos de acceso: INTRANET (personal de la empresa: operaciones, patio, inspecciones, checkpoint, backoffice y futuros módulos del DT aduanero) y EXTRANET (usuarios que pertenecen a un operador; un operador puede tener n usuarios). En esta primera versión solo se construye la intranet; el sistema deja preparada la separación de rutas (grupos `/intranet` y `/extranet`, cada uno con su archivo de rutas; el de extranet todavía no tiene rutas; el login, la recuperación de contraseña y el perfil son comunes y van fuera de esos grupos). El tipo de acceso (columna `scope` en `users`) se agrega cuando llegue la extranet (decisión del usuario del 2026-11-02).
-- Un rol por usuario (suposición por confirmar antes de construir).
+- Los roles y permisos se agregan al final, al culminar E6, con `laravel-permission` (decisión del usuario del 2026-11-03). Hasta entonces, cualquier usuario con sesión puede usar todas las pantallas de la intranet. Ver H24.
+- Un rol por usuario (suposición por confirmar antes de construir H24).
 - Regla común de escaneo: todo se escanea (dispositivos y kits tienen código propio; el kit lleva funda con código de barras). Hoy el escáner llena el campo activo y el dato se guarda solo, de forma asíncrona, sin botón de guardar. SIGLA 2.0 debe tener esa misma capacidad. La pantalla muestra qué escaneos se guardaron y cuáles fallaron, para poder reintentar (suposición por confirmar: el escáner funciona como teclado).
 - Puente con SIGLA 1.0 (decisión revisada el 2026-10-27): al iniciar una certificación se consulta SIGLA 1.0 una sola vez y SIGLA 2.0 guarda en la certificación una copia permanente de los datos de la solicitud (cliente, producto, booking, naviera y contenedor) más la referencia al despacho (`source` = api mientras dependa de SIGLA 1.0; `web` cuando SIGLA 2.0 tenga su módulo de solicitudes y despachos y apunte directo a su tabla de solicitudes u operaciones). Así la certificación y cualquier PDF futuro no dependen de que SIGLA 1.0 siga existiendo. Los datos llegan validados desde una operación real, casi al final del despacho.
 - Transportista, conductor y vehículos (remolcador y semirremolque) tienen catálogos propios (E9) y son independientes entre sí: un conductor o vehículo no depende de un transportista (pueden cambiar de transportista o tercerizar). La relación entre ellos se guarda en cada certificación. Al iniciar la certificación se hace un findOrCreate: si ya existen se enlazan; si no, se crean. Se reconocen por RUC (transportista), DNI (conductor) y placa (vehículo). El número de documento y de brevete no cambian.
@@ -62,7 +63,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Con correo y contraseña correctos, el usuario entra al sistema.
   2. Con datos incorrectos, ve un mensaje de error que no dice si falló el correo o la contraseña.
-  3. Un usuario desactivado no puede entrar (confirmado el 2026-11-02: columna `is_active` en `users`, activa por defecto; la pantalla para desactivar llega en H04).
+  3. Un usuario desactivado no puede entrar (cambiado el 2026-11-03 en H04: se desactiva con Soft Deletes, columna `deleted_at` en `users`, en vez de `is_active`; la pantalla para desactivar está en H04).
   4. La pantalla se puede usar bien desde el celular.
 
 **H02 · Cerrar sesión**
@@ -83,16 +84,24 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Riesgo técnico: el envío de correo saliente del servidor; revisar entregabilidad en la tarea de Construcción.
 
 **H04 · Gestionar usuarios intranet**
-- Como admin, quiero crear, editar y desactivar usuarios intranet y asignarles un rol, para controlar quién entra al sistema y qué puede hacer.
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar usuarios intranet, para controlar quién entra al sistema. (Cambiado el 2026-11-03: la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. El admin crea un usuario con nombre, correo y rol (admin, supervisor, usuario de bodega, inspector certificado, inspector checkpoint).
-  2. No se pueden crear dos usuarios con el mismo correo.
-  3. El admin edita los datos de un usuario y cambia su rol.
-  4. El admin desactiva un usuario en vez de borrarlo, para conservar el historial (por confirmar). Un usuario desactivado no puede iniciar sesión.
-  5. Un usuario creado no entra hasta definir su contraseña, por ejemplo con un enlace enviado a su correo (por confirmar).
-  6. Solo el admin ve y usa esta pantalla.
+  1. Se crea un usuario con nombre y correo.
+  2. No se pueden crear dos usuarios con el mismo correo, aunque uno esté desactivado.
+  3. Se editan los datos de un usuario.
+  4. Un usuario se desactiva en vez de borrarlo, con Soft Deletes, para conservar el historial (confirmado el 2026-11-03). Un usuario desactivado no puede iniciar sesión y su sesión abierta se cierra en su siguiente petición. Se reactiva desde la lista. Nadie puede desactivarse ni reactivarse a sí mismo.
+  5. Al crear un usuario se genera una contraseña aleatoria, que se muestra para copiarla y entregársela. No se vuelve a mostrar y no se envía por correo (confirmado el 2026-11-03).
+  6. Por ahora, cualquier usuario con sesión usa esta pantalla. "Solo el admin" pasa a H24.
   7. No existe registro público.
   8. La pantalla se puede usar bien desde el celular.
+
+**H24 · Roles y permisos** (propuesta del 2026-11-03, sin aprobar; se construye al culminar E6)
+- Como admin, quiero asignar un rol a cada usuario, para que cada persona vea y use solo lo que le corresponde.
+- Criterios de aceptación:
+  1. El admin asigna y cambia el rol de un usuario (admin, supervisor, usuario de bodega, inspector certificado, inspector checkpoint).
+  2. Solo el admin ve y usa la pantalla de usuarios.
+  3. Cada pantalla y cada acción validan el rol en el servidor.
+- Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
 ### E7 · Puente con SIGLA 1.0
