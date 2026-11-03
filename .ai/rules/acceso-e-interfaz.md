@@ -16,7 +16,7 @@ Cada pantalla y cada acción de Livewire valida el rol en el servidor, no solo o
 ## Origen de los componentes
 Se crean a partir de la plantilla `documentation/TEMPLATE/html/main` (carpeta ignorada por git, solo referencia local), tomando solo lo necesario.
 
-El lienzo de Claude Design da la idea general de la identidad de la aplicación: colores, tipografías (Rubik e IBM Plex Sans), escala de texto y disposición de las pantallas, usados como tokens del tema y sin colores hex sueltos. El detalle sale de la plantilla: tamaños, espaciados, bordes, sombras, iconos (Feather), menús, tablas, filtros, formularios, comportamiento y responsividad. Si chocan, el lienzo manda en colores, tipografía y disposición; la plantilla manda en todo lo demás.
+El lienzo de Claude Design da la idea general de la identidad de la aplicación: colores, tipografías (Rubik e IBM Plex Sans), escala de texto y disposición de las pantallas, usados como tokens del tema y sin colores hex sueltos. El detalle sale de la plantilla: tamaños, espaciados, bordes, sombras, iconos (Feather, salvo en los botones, que usan Font Awesome), menús, tablas, filtros, formularios, comportamiento y responsividad. Si chocan, el lienzo manda en colores, tipografía y disposición; la plantilla manda en todo lo demás.
 
 Bootstrap 5 no se usa en el proyecto: cada clase, propiedad y estilo de la plantilla se pasa a Tailwind para respetar el stack TALL. Tampoco se copian su CSS, su jQuery ni sus plugins.
 
@@ -25,13 +25,16 @@ Las tablas de listas usan Rappasoft Livewire Tables. Los modales, sus inputs y l
 Excepción: las tablas de listas siguen el estilo del tema Tailwind de Rappasoft (encabezado en mayúsculas, filas alternadas y barra nativa de búsqueda y filtros), con los colores de la marca y los tokens del tema.
 
 ## Acciones de fila
-Los botones de cada fila de una tabla van en un partial llamado `actions.blade.php`, dentro de `resources/views/pages/<recursos>/partials/`. Son botones `x-wire-button` de tamaño `xs`, solo con icono Feather, con `title` y `aria-label`. Razón: que todas las tablas tengan sus opciones en el mismo sitio y con el mismo aspecto.
+Los botones de cada fila de una tabla van en un partial llamado `actions.blade.php`, dentro de `resources/views/pages/<recursos>/partials/`. Son botones `x-wire-button` de tamaño `xs`, solo con icono Font Awesome (solid), con `title` y `aria-label`. Razón: que todas las tablas tengan sus opciones en el mismo sitio y con el mismo aspecto.
 
 ## Colores de botones en tablas
 El botón de creación usa `x-panel.create-button`, en el naranja de acento. En las filas, editar va en verde, eliminar o desactivar en rojo y las demás acciones en azul. Razón: que cada acción se reconozca igual en todas las tablas.
 
 ## Botones que llaman al componente
 Todo botón que ejecuta un método de un componente Livewire, con `wire:click`, `$wire` o `form="..."` fuera del `<form>`, lleva `wire:loading.attr="disabled"` y `wire:target` con ese método, para que quede desactivado mientras se ejecuta. Un botón de envío dentro del `<form>` no lo necesita, porque `wire:submit` ya lo desactiva. Razón: que varios clics no repitan la acción.
+
+## Avisos y confirmaciones
+Los avisos son toasts de SweetAlert2, con el evento `toast`, y las confirmaciones usan `confirmAction`. Razón: que todos los avisos y confirmaciones se vean igual.
 
 ## Menú lateral
 Se arma desde el arreglo `$links` de `partials/panel/sidebar.blade.php`. Cada enlace lleva `name`, `icon` (Feather), `route`, `active` y `can`; los grupos usan `header` y los desplegables `submenu`. No se escriben enlaces sueltos en el HTML. Ocultar un enlace no reemplaza validar el permiso en el servidor.
