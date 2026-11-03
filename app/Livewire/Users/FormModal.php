@@ -4,7 +4,6 @@ namespace App\Livewire\Users;
 
 use App\Livewire\Forms\UserForm;
 use App\Models\User;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -54,7 +53,7 @@ class FormModal extends Component
         } else {
             $this->form->update(User::withTrashed()->findOrFail($this->form->userId));
 
-            Flux::toast(variant: 'success', text: 'Usuario actualizado.');
+            $this->dispatch('toast', icon: 'success', text: 'Usuario actualizado.');
         }
 
         $this->form->openModal = false;

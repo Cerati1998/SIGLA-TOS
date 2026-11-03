@@ -6,4 +6,5 @@
 
 import './echo';
 import './confirm';
+import './toast';
 import '../../vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables';

@@ -1,4 +1,4 @@
 <flux:button variant="primary" :attributes="$attributes->class('[--color-accent:var(--color-highlight)] max-md:w-full')">
-    <x-feather name="plus" class="size-4" />
+    <i class="fa-solid fa-plus text-sm" aria-hidden="true"></i>
     {{ $slot }}
 </flux:button>

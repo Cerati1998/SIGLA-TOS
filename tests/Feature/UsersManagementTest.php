@@ -251,7 +251,7 @@ class UsersManagementTest extends TestCase
         Livewire::test(UsersTable::class)
             ->call('deactivate', $user->id)
             ->assertOk()
-            ->assertDispatched('toast-show');
+            ->assertDispatched('toast', icon: 'warning');
 
         $this->assertEquals($deletedAt, $user->fresh()->deleted_at);
     }

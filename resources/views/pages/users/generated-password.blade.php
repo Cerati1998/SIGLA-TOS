@@ -27,11 +27,11 @@
 
     <flux:button type="button" x-on:click="copy()">
         <span class="flex items-center gap-2" x-show="! copied">
-            <x-feather name="copy" class="size-4" />
+            <i class="fa-solid fa-copy text-sm" aria-hidden="true"></i>
             Copiar
         </span>
         <span class="flex items-center gap-2" x-show="copied" x-cloak>
-            <x-feather name="check" class="size-4" />
+            <i class="fa-solid fa-check text-sm" aria-hidden="true"></i>
             Copiada
         </span>
     </flux:button>

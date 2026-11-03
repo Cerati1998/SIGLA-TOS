@@ -3,7 +3,6 @@
 namespace App\Livewire\Tables;
 
 use App\Models\User;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\Views\Column;
@@ -83,14 +82,14 @@ class UsersTable extends BaseTable
         $this->authorize('delete', $user);
 
         if ($user->trashed()) {
-            Flux::toast(variant: 'warning', text: 'Este usuario ya está desactivado.');
+            $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está desactivado.');
 
             return;
         }
 
         $user->delete();
 
-        Flux::toast(variant: 'success', text: 'Usuario desactivado.');
+        $this->dispatch('toast', icon: 'success', text: 'Usuario desactivado.');
     }
 
     /**
@@ -103,13 +102,13 @@ class UsersTable extends BaseTable
         $this->authorize('restore', $user);
 
         if (! $user->trashed()) {
-            Flux::toast(variant: 'warning', text: 'Este usuario ya está activo.');
+            $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está activo.');
 
             return;
         }
 
         $user->restore();
 
-        Flux::toast(variant: 'success', text: 'Usuario reactivado.');
+        $this->dispatch('toast', icon: 'success', text: 'Usuario reactivado.');
     }
 }

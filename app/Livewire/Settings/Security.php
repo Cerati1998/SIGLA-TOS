@@ -3,7 +3,6 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\PasswordValidationRules;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -101,7 +100,7 @@ class Security extends Component
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Password updated.'));
+        $this->dispatch('toast', icon: 'success', text: __('Password updated.'));
     }
 
     /* @chisel-passkeys */
