@@ -14,12 +14,6 @@
             <span class="text-center text-sm text-white">SIGLA 2.0 · Acceso solo para personal autorizado</span>
         </div>
 
-        @persist('toast')
-            <flux:toast.group>
-                <flux:toast />
-            </flux:toast.group>
-        @endpersist
-
         @fluxScripts
     </body>
 </html>

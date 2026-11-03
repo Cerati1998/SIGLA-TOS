@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Livewire\Settings\Security;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -85,7 +86,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Livewire::test('pages::settings.security');
+        $component = Livewire::test(Security::class);
 
         $component->assertSet('twoFactorEnabled', false);
 
@@ -104,7 +105,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.security')
+        $response = Livewire::test(Security::class)
             ->set('current_password', 'password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
@@ -123,7 +124,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.security')
+        $response = Livewire::test(Security::class)
             ->set('current_password', 'wrong-password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Tables\UsersTable;
+use App\Livewire\Users\FormModal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +24,9 @@ class UsersManagementTest extends TestCase
         $this->admin = User::factory()->create();
     }
 
-    public function test_guests_cannot_enter_the_users_screens(): void
+    public function test_guests_cannot_enter_the_users_screen(): void
     {
-        $user = User::factory()->create();
-
         $this->get(route('intranet.users.index'))->assertRedirect(route('login'));
-        $this->get(route('intranet.users.create'))->assertRedirect(route('login'));
-        $this->get(route('intranet.users.edit', $user))->assertRedirect(route('login'));
     }
 
     public function test_the_list_shows_active_and_deactivated_users_with_their_status(): void
@@ -52,28 +50,44 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.index')
+        Livewire::test(UsersTable::class)
             ->set('search', 'dora@')
             ->assertSeeText('Dora Desactivada')
             ->assertDontSeeText('Ana Activa')
             ->set('search', '')
-            ->set('status', 'active')
+            ->set('filterComponents.status', 'active')
             ->assertSeeText('Ana Activa')
             ->assertDontSeeText('Dora Desactivada')
-            ->set('status', 'inactive')
+            ->set('filterComponents.status', 'inactive')
             ->assertSeeText('Dora Desactivada')
             ->assertDontSeeText('Ana Activa');
+    }
+
+    public function test_each_row_passes_its_user_to_the_actions(): void
+    {
+        $user = User::factory()->create(['name' => "Ana O'Brien"]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->assertSeeHtml('x-data="{ id: '.$user->id.', name: ')
+            ->assertSeeHtml('title="Desactivar"');
     }
 
     public function test_a_user_is_created_with_a_random_password_that_is_shown_and_lets_them_log_in(): void
     {
         $this->actingAs($this->admin);
 
-        $component = Livewire::test('pages::users.create')
+        $component = Livewire::test(FormModal::class)
+            ->dispatch('create-user')
+            ->assertSet('form.openModal', true)
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
             ->call('save')
             ->assertHasNoErrors()
+            ->assertSet('form.openModal', false)
+            ->assertSet('showPassword', true)
+            ->assertDispatched('refreshDatatable')
             ->assertSeeText('No se volverá a mostrar');
 
         $password = $component->get('generatedPassword');
@@ -100,16 +114,33 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin);
 
         foreach (['activo@example.com', 'inactivo@example.com'] as $email) {
-            Livewire::test('pages::users.create')
+            Livewire::test(FormModal::class)
+                ->call('create')
                 ->set('form.name', 'Otro Usuario')
                 ->set('form.email', $email)
                 ->call('save')
                 ->assertHasErrors(['form.email' => 'unique'])
                 ->assertSeeText('El valor de correo electrónico ya está en uso.')
+                ->assertSet('form.openModal', true)
                 ->assertSet('generatedPassword', null);
         }
 
         $this->assertDatabaseCount('users', 3);
+    }
+
+    public function test_closing_the_password_window_forgets_the_password(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(FormModal::class)
+            ->call('create')
+            ->set('form.name', 'Nuevo Usuario')
+            ->set('form.email', 'nuevo@example.com')
+            ->call('save')
+            ->call('closePassword')
+            ->assertSet('showPassword', false)
+            ->assertSet('generatedPassword', null)
+            ->assertDontSeeText('No se volverá a mostrar');
     }
 
     public function test_a_user_can_be_edited_keeping_their_own_email(): void
@@ -119,12 +150,16 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.edit', ['user' => $user])
+        Livewire::test(FormModal::class)
+            ->dispatch('edit-user', userId: $user->id)
+            ->assertSet('form.openModal', true)
             ->assertSet('form.email', 'igual@example.com')
             ->set('form.name', 'Nombre Editado')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect(route('intranet.users.index'));
+            ->assertSet('form.openModal', false)
+            ->assertSet('generatedPassword', null)
+            ->assertDispatched('refreshDatatable');
 
         $user->refresh();
 
@@ -140,7 +175,8 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.edit', ['user' => $user])
+        Livewire::test(FormModal::class)
+            ->call('edit', $user->id)
             ->set('form.email', 'ocupado@example.com')
             ->call('save')
             ->assertHasErrors(['form.email' => 'unique']);
@@ -148,11 +184,14 @@ class UsersManagementTest extends TestCase
 
     public function test_a_deactivated_user_can_still_be_opened_for_editing(): void
     {
-        $user = User::factory()->trashed()->create();
+        $user = User::factory()->trashed()->create(['name' => 'Dora Desactivada']);
 
-        $this->actingAs($this->admin)
-            ->get(route('intranet.users.edit', $user))
-            ->assertOk();
+        $this->actingAs($this->admin);
+
+        Livewire::test(FormModal::class)
+            ->call('edit', $user->id)
+            ->assertSet('form.openModal', true)
+            ->assertSet('form.name', 'Dora Desactivada');
     }
 
     public function test_deactivating_keeps_the_record_and_blocks_the_login(): void
@@ -161,7 +200,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.index')->call('deactivate', $user->id)->assertOk();
+        Livewire::test(UsersTable::class)->call('deactivate', $user->id)->assertOk();
 
         $this->assertSoftDeleted($user);
 
@@ -191,7 +230,7 @@ class UsersManagementTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.index')->call('reactivate', $user->id)->assertOk();
+        Livewire::test(UsersTable::class)->call('reactivate', $user->id)->assertOk();
 
         $this->assertNotSoftDeleted($user);
 
@@ -202,12 +241,27 @@ class UsersManagementTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_deactivating_an_already_deactivated_user_only_warns(): void
+    {
+        $user = User::factory()->trashed()->create();
+        $deletedAt = $user->deleted_at;
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->call('deactivate', $user->id)
+            ->assertOk()
+            ->assertDispatched('toast', icon: 'warning');
+
+        $this->assertEquals($deletedAt, $user->fresh()->deleted_at);
+    }
+
     public function test_users_cannot_deactivate_themselves(): void
     {
         $this->actingAs($this->admin);
 
-        Livewire::test('pages::users.index')
-            ->assertDontSeeHtml('wire:click="deactivate('.$this->admin->id.')"')
+        Livewire::test(UsersTable::class)
+            ->assertDontSeeHtml('title="Desactivar"')
             ->call('deactivate', $this->admin->id)
             ->assertForbidden();
 
@@ -219,7 +273,7 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin);
         $this->admin->delete();
 
-        Livewire::test('pages::users.index')
+        Livewire::test(UsersTable::class)
             ->call('reactivate', $this->admin->id)
             ->assertForbidden();
 

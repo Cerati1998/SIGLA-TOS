@@ -34,19 +34,27 @@ class PanelBreadcrumbsTest extends TestCase
             ->assertDontSee('href="/kits"', false);
     }
 
-    public function test_livewire_pages_pass_their_breadcrumbs_to_the_layout(): void
+    public function test_pages_pass_their_title_and_breadcrumbs_to_the_layout(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)->get(route('profile.edit'))
             ->assertOk()
+            ->assertSee('Perfil - '.config('app.name'))
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Perfil']);
+
+        $this->actingAs($user)->get(route('intranet.users.index'))
+            ->assertOk()
+            ->assertSee('Usuarios - '.config('app.name'))
+            ->assertSee('data-flux-breadcrumbs-item', false)
+            ->assertSeeInOrder(['Inicio', 'Usuarios']);
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
+            ->assertSee('Seguridad - '.config('app.name'))
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Seguridad']);
     }

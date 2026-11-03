@@ -1,29 +1,3 @@
-<?php
-
-use App\Actions\Profile\UpdateProfilePhoto;
-use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
-
-new class extends Component {
-    use WithFileUploads;
-
-    public ?TemporaryUploadedFile $photo = null;
-
-    /**
-     * Save the photo as soon as the user picks it.
-     */
-    public function updatedPhoto(): void
-    {
-        $this->validate(['photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
-
-        (new UpdateProfilePhoto)->handle(Auth::user(), $this->photo);
-
-        $this->redirect(route('profile.edit'), navigate: true);
-    }
-}; ?>
-
 <div class="mt-6 flex flex-wrap items-center gap-4">
     <img src="{{ Auth::user()->profilePhotoUrl() }}" alt="Foto de perfil" class="size-16 rounded-card bg-brand/10 object-cover">
 

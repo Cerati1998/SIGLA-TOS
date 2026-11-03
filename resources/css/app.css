@@ -1,7 +1,17 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import '../../vendor/wireui/wireui/ts/tailwindcss/plugins/soft-scrollbar.css';
+@import '../../vendor/wireui/wireui/ts/tailwindcss/plugins/hide-scrollbar.css';
+@import '../../vendor/wireui/wireui/ts/tailwindcss/plugins/form/validation.css';
+@import '../../vendor/wireui/wireui/ts/tailwindcss/plugins/form/input-state.css';
+@import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+@import '@fortawesome/fontawesome-free/css/solid.min.css';
 
 @source '../views';
+@source '../js';
+@source '../../vendor/rappasoft/laravel-livewire-tables/resources/views';
+@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,TextField,Wrapper}/**/*.{php,blade.php}';
+@source inline('z-50');
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
@@ -72,6 +82,33 @@
     --color-accent: var(--color-brand);
     --color-accent-content: var(--color-brand);
     --color-accent-foreground: var(--color-white);
+
+    /* Rappasoft usa indigo: se enlaza al color de la marca. */
+    --color-indigo-100: color-mix(in oklab, var(--color-brand) 12%, white);
+    --color-indigo-200: color-mix(in oklab, var(--color-brand) 25%, white);
+    --color-indigo-300: color-mix(in oklab, var(--color-brand) 40%, white);
+    --color-indigo-400: color-mix(in oklab, var(--color-brand) 60%, white);
+    --color-indigo-500: var(--color-brand);
+    --color-indigo-600: var(--color-brand);
+    --color-indigo-800: var(--color-brand);
+    --color-indigo-900: var(--color-brand);
+
+    /* WireUI con los tokens del tema. */
+    --color-primary-500: var(--color-brand);
+    --color-primary-600: var(--color-brand);
+    --color-positive-500: var(--color-status-green);
+    --color-positive-600: var(--color-status-green);
+    --color-secondary-200: var(--color-line);
+    --color-secondary-300: var(--color-control);
+    --color-secondary-400: var(--color-control);
+    --color-secondary-500: var(--color-control);
+    --color-secondary-600: var(--color-ink-muted);
+    --color-secondary-700: var(--color-ink);
+    --color-negative-50: var(--color-white);
+    --color-negative-500: var(--color-danger);
+    --color-negative-600: var(--color-danger);
+    --color-negative-800: var(--color-danger);
+    --color-background-white: var(--color-white);
 }
 
 @layer base {
@@ -184,4 +221,21 @@ select:focus[data-flux-control] {
 [data-flux-column]:last-child,
 [data-flux-cell]:last-child {
     @apply pe-5.25;
+}
+
+/* WireUI con las medidas de la plantilla, igual que Flux. */
+[form-wrapper] label[data-name='form.wrapper.container'] {
+    @apply h-8.5 rounded-control px-[10.5px] py-[5.25px] ring-control focus-within:ring-brand max-md:h-11;
+}
+
+[form-wrapper] label[data-name='form.wrapper.container'] input {
+    @apply text-base text-ink;
+}
+
+[form-wrapper] div[name='form.wrapper.header'] {
+    @apply mb-1.75;
+}
+
+[form-wrapper] div[name='form.wrapper.header'] label {
+    @apply text-sm leading-tight font-medium text-ink;
 }
