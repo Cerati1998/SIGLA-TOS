@@ -17,12 +17,17 @@ Column::make('Acciones')
 ```
 
 `setConfigurableAreas` no sirve para estos botones: un área se renderiza una vez por tabla y no recibe la fila. Úsala para lo
-que es de toda la tabla: el botón "Nuevo" va en `partials/options.blade.php`, enlazado a `toolbar-right-end`.
+que es de toda la tabla: el botón de creación va en `partials/options.blade.php`, enlazado a `toolbar-right-end`, siempre con
+`x-panel.create-button`, que lo muestra en el naranja de acento de la marca (`highlight`) y con el icono `plus`:
+
+```blade
+<x-panel.create-button x-on:click="$dispatch('create-user')">Nuevo</x-panel.create-button>
+```
 
 ```blade
 <div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
-    <x-wire-button primary x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
-        <x-feather name="edit-2" class="size-4" />
+    <x-wire-button positive x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
+        <x-feather name="edit-2" class="size-4 text-ink" />
     </x-wire-button>
 
     @can('delete', $user)
@@ -42,9 +47,16 @@ que es de toda la tabla: el botón "Nuevo" va en `partials/options.blade.php`, e
 - **Botón:** `x-wire-button` con `xs`, solo con icono. Lleva `title` y `aria-label` en español, porque no tiene texto visible.
 - **Icono:** Feather con `x-feather`, de `public/images/feather-sprite.svg`, en `size-4`. Comprueba que el nombre exista en el
   sprite. No agregues otra librería de iconos.
-- **Color por significado:** `primary` para abrir o editar, `positive` para una acción que activa y `negative` para una acción
-  destructiva. Esos colores están enlazados a los tokens del tema. Otro color (`green`, `blue`, `red`) usa la paleta de Tailwind
-  y no los tokens.
+- **Color por acción, siempre igual:**
+
+  | Acción | Botón | Color |
+  |---|---|---|
+  | Editar | `positive` con icono `text-ink` | Verde SIGLA (`status-green`). Lleva icono oscuro porque el blanco no contrasta sobre ese verde |
+  | Eliminar o desactivar | `negative` | Rojo de error (`danger`) |
+  | Otras, como reactivar | `primary` | Azul Macromar (`brand`) |
+
+  Esos colores están enlazados a los tokens del tema. Otro color (`green`, `blue`, `red`) usa la paleta de Tailwind y no los
+  tokens.
 - **Celular:** `[&_button]:max-md:size-11` en el contenedor, para que midan 44 px.
 - **Datos de la fila:** van en el `x-data`, con `@js()` para los textos, porque escapa comillas y apóstrofos (`O'Brien`).
 - No uses comillas dobles dentro de un atributo de un componente: por ejemplo, `{{ Js::from("...") }}` corta el atributo y deja

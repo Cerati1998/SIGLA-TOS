@@ -69,8 +69,8 @@ public function configure(): void
   `$user->is($model)` da un resultado equivocado.
 - También va ahí todo campo que una vista lee y que no es una columna.
 - Las áreas se declaran completas en la tabla, incluida `after-wrapper`: `setConfigurableAreas` reemplaza las anteriores.
-- Los botones de toda la tabla (como "Nuevo") van en `pages/<recursos>/partials/options.blade.php`, enlazado a
-  `toolbar-right-end` con `setConfigurableAreas`. Un área se
+- Los botones de toda la tabla van en `pages/<recursos>/partials/options.blade.php`, enlazado a `toolbar-right-end` con
+  `setConfigurableAreas`. El de creación usa `x-panel.create-button`, en naranja. Un área se
   renderiza una sola vez y no recibe la fila, así que los botones de fila van en `actions.blade.php`, desde la columna.
 - Si una página monta más de una tabla, cada una llama a `setTableName('<nombre>')`. Con el nombre por defecto `table`
   comparten `?page`; con nombre propio la página va en `?<nombre>Page`.
