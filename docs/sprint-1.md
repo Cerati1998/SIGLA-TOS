@@ -15,26 +15,30 @@ H01 · Iniciar sesión, H02 · Cerrar sesión, H03 · Recuperar contraseña y H0
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
 
-- [x] **T01** · Registrar las rules base en `.ai/rules/` (Claude Code, con `record-rule`, sin preguntar). Solo se puede ejecutar cuando T03 haya instalado el proyecto con Boost. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #4. Archivos escritos a mano e índice generado con `boost:index-rules`: el MCP de Boost no estaba conectado y `record-rule` no agrupa por tema.)
-- [x] **T02** · Crear el repositorio vacío en GitHub. Quién: Scrum Master. 0.5 h.
-- [x] **T03** · Instalar Laravel 13, el starter kit Livewire (TALL), Reverb y Boost desde cero, con el prompt de instalación. Quién: Claude Code. 3 h. (Hecho el 2026-10-29 en la rama `chore/instalacion-base`; PR #1 mergeado a `main` el 2026-10-30.)
-- [x] **T04** · Revisar lo instalado en el repo y confirmarlo con el usuario. 1 h. (Aprobado por el usuario el 2026-10-29.)
-- [x] **T05** · Crear el lienzo de Claude Design con su organización por páginas. Quién: Scrum Master. 0.5 h. (Creado el 2026-10-29 con páginas de identidad visual, plantillas base y una por épica E1 a E9; aprobado por el usuario.)
-- [x] **T06** · Armar y aprobar la identidad visual (colores, tipografías, logos y estilo). 3 h. (Aprobada por el usuario el 2026-10-29; está en la página "Identidad visual" del lienzo.)
-- [x] **T07** · Diseñar y aprobar las plantillas base (acceso y panel de administración, por ahora). 4 h. (Aprobadas por el usuario el 2026-10-29, con versión móvil y colores de insignias de Flowbite; están en la página "Plantillas base" del lienzo.)
-- [x] **T08** · Escribir la guideline `.ai/guidelines/flujo-de-trabajo.md` (flujo de Scrum con Claude Code, ligado a los IDs del backlog). 2.5 h. (Aprobada por el usuario el 2026-10-30, las seis partes. Se sube al repo en T09.)
-- [x] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 1 h. (Hecho el 2026-10-30: PR #2 mergeado a `main` con `docs/` y la guideline; `boost:update` agregó el flujo de trabajo a `CLAUDE.md`, sin skills nuevas.)
+- [x] **T01** · Registrar las rules base en `.ai/rules/` (Claude Code, con `record-rule`, sin preguntar). Solo se puede ejecutar cuando T03 haya instalado el proyecto con Boost. Quién: Claude Code. 0.5 h. (Hecho el 2026-11-02, PR #4. Archivos escritos a mano e índice generado con `boost:index-rules`: el MCP de Boost no estaba conectado y `record-rule` no agrupa por tema.)
+- [x] **T02** · Crear el repositorio vacío en GitHub. Quién: Scrum Master. 0.25 h.
+- [x] **T03** · Instalar Laravel 13, el starter kit Livewire (TALL), Reverb y Boost desde cero, con el prompt de instalación. Quién: Claude Code. 1.5 h. (Hecho el 2026-10-29 en la rama `chore/instalacion-base`; PR #1 mergeado a `main` el 2026-10-30.)
+- [x] **T04** · Revisar lo instalado en el repo y confirmarlo con el usuario. 0.5 h. (Aprobado por el usuario el 2026-10-29.)
+- [x] **T05** · Crear el lienzo de Claude Design con su organización por páginas. Quién: Scrum Master. 0.25 h. (Creado el 2026-10-29 con páginas de identidad visual, plantillas base y una por épica E1 a E9; aprobado por el usuario.)
+- [x] **T06** · Armar y aprobar la identidad visual (colores, tipografías, logos y estilo). 1.5 h. (Aprobada por el usuario el 2026-10-29; está en la página "Identidad visual" del lienzo.)
+- [x] **T07** · Diseñar y aprobar las plantillas base (acceso y panel de administración, por ahora). 2 h. (Aprobadas por el usuario el 2026-10-29, con versión móvil y colores de insignias de Flowbite; están en la página "Plantillas base" del lienzo.)
+- [x] **T08** · Escribir la guideline `.ai/guidelines/flujo-de-trabajo.md` (flujo de Scrum con Claude Code, ligado a los IDs del backlog). 1.25 h. (Aprobada por el usuario el 2026-10-30, las seis partes. Se sube al repo en T09.)
+- [x] **T09** · Subir `docs/` y la guideline con un PR, hacer el merge y correr `php artisan boost:update`. 0.5 h. (Hecho el 2026-10-30: PR #2 mergeado a `main` con `docs/` y la guideline; `boost:update` agregó el flujo de trabajo a `CLAUDE.md`, sin skills nuevas.)
 
 
 ## Tareas agregadas el 2026-11-02
-- [x] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 4 h. (Hecho el 2026-11-02, PR #5.)
-- [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 2 h. (Hecho el 2026-11-02, PR #6.)
-- [x] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #7.)
-- [ ] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 2 h.
-- [ ] **T14** · Rutas de intranet. Quién: Claude Code. 2 h.
-- [ ] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 5 h.
+- [x] **T10** · Plantilla base: tema, layouts y componentes del lienzo y la plantilla. Quién: Claude Code. 2 h. (Hecho el 2026-11-02, PR #5.)
+- [x] **T11** · H01 · Iniciar sesión. Quién: Claude Code. 1 h. (Hecho el 2026-11-02, PR #6.)
+- [x] **T12** · H02 · Cerrar sesión. Quién: Claude Code. 0.5 h. (Hecho el 2026-11-02, PR #7.)
+- [x] **T13** · H03 · Recuperar contraseña. Quién: Claude Code. 1 h. (Hecho el 2026-11-03, PR #15.)
+- [ ] **T14** · Rutas de intranet. Quién: Claude Code. 1 h.
+- [ ] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 2.75 h.
 
-**Total estimado:** 16.5 h de la preparación base para unas 18 disponibles (margen de 1.5 h). Las tareas T10 a T15 suman 16 h más y superan esa capacidad; el usuario decidió incluirlas.
+## Tareas agregadas el 2026-11-03
+- [ ] **T16** · Diseñar y aprobar en el lienzo el layout de los correos, con la identidad visual, el logo de SIGLA y sin enlaces largos en el cuerpo. Quién: Claude Code; aprueba el usuario. 0.5 h.
+- [ ] **T17** · Adaptar el layout de los correos desde el diseño aprobado (uno solo para todos los correos, sea cual sea su propósito) y aplicarlo al correo de recuperar contraseña. Quién: Claude Code. 1 h.
+
+**Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.

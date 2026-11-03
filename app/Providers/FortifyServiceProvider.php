@@ -7,19 +7,27 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Responses\SuccessfulPasswordResetLinkRequestResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
+     *
+     * A failed reset link request answers like a successful one, so the screen never reveals whether an email is registered.
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            FailedPasswordResetLinkRequestResponse::class,
+            fn (): SuccessfulPasswordResetLinkRequestResponse => new SuccessfulPasswordResetLinkRequestResponse(Password::RESET_LINK_SENT),
+        );
     }
 
     /**

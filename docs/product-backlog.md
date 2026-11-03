@@ -77,8 +77,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   1. Desde el inicio de sesión, el usuario pide recuperar su contraseña con su correo.
   2. Si el correo existe, recibe un enlace para crear una contraseña nueva.
   3. Si el correo no existe, ve el mismo mensaje que si existiera.
-  4. El enlace vence y solo se puede usar una vez (por confirmar).
-  5. Un usuario desactivado no puede recuperar acceso.
+  4. El enlace vence a los 60 minutos y solo se puede usar una vez (confirmado el 2026-11-03).
+  5. Un usuario desactivado no puede recuperar acceso: no recibe el enlace, y uno pedido antes de la desactivación deja de servir.
   6. Solo funciona para usuarios intranet por ahora (todos los usuarios lo son; no hace falta un filtro hasta que llegue la extranet).
 - Riesgo técnico: el envío de correo saliente del servidor; revisar entregabilidad en la tarea de Construcción.
 
