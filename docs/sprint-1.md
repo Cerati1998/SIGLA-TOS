@@ -35,8 +35,8 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T15** · H04 · Gestionar usuarios intranet. Quién: Claude Code. 2.75 h. (Hecho el 2026-11-03, PR #19.)
 
 ## Tareas agregadas el 2026-11-03
-- [ ] **T16** · Diseñar y aprobar en el lienzo el layout de los correos, con la identidad visual, el logo de SIGLA y sin enlaces largos en el cuerpo. Quién: Claude Code; aprueba el usuario. 0.5 h.
-- [ ] **T17** · Adaptar el layout de los correos desde el diseño aprobado (uno solo para todos los correos, sea cual sea su propósito) y aplicarlo al correo de recuperar contraseña. Quién: Claude Code. 1 h.
+- [x] **T16** · Diseñar y aprobar en el lienzo el layout de los correos, con la identidad visual, el logo de SIGLA y sin enlaces largos en el cuerpo. Quién: Claude Code; aprueba el usuario. 0.5 h. (Aprobado por el usuario el 2026-11-03, PR #21.)
+- [x] **T17** · Adaptar el layout de los correos desde el diseño aprobado (uno solo para todos los correos, sea cual sea su propósito) y aplicarlo al correo de recuperar contraseña. Quién: Claude Code. 1 h. (Hecho el 2026-11-03, PR #21.)
 
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
