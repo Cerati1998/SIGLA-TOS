@@ -1,6 +1,6 @@
 ---
 name: rappasoft-tablas-acciones-fila-development
-description: "Usa este skill siempre que agregues o cambies botones o acciones de fila en una tabla Rappasoft: partial actions.blade.php, botones x-wire-button con icono Feather, confirmación con confirmAction (SweetAlert2), avisos con Flux::toast, orden de una acción de fila y cómo abrir un modal desde la tabla."
+description: "Usa este skill siempre que agregues o cambies botones o acciones de fila en una tabla Rappasoft: partial actions.blade.php, botones x-wire-button con icono Font Awesome, confirmación con confirmAction y avisos con toast (SweetAlert2), orden de una acción de fila y cómo abrir un modal desde la tabla."
 ---
 
 # Acciones de fila en tablas Rappasoft
@@ -27,7 +27,7 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 ```blade
 <div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
     <x-wire-button positive x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
-        <x-feather name="edit-2" class="size-4 text-ink" />
+        <i class="fa-solid fa-pen text-sm text-ink" aria-hidden="true"></i>
     </x-wire-button>
 
     @can('delete', $user)
@@ -40,15 +40,15 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
             aria-label="Desactivar"
             xs
         >
-            <x-feather name="user-x" class="size-4" />
+            <i class="fa-solid fa-user-xmark text-sm" aria-hidden="true"></i>
         </x-wire-button>
     @endcan
 </div>
 ```
 
 - **Botón:** `x-wire-button` con `xs`, solo con icono. Lleva `title` y `aria-label` en español, porque no tiene texto visible.
-- **Icono:** Feather con `x-feather`, de `public/images/feather-sprite.svg`, en `size-4`. Comprueba que el nombre exista en el
-  sprite. No agregues otra librería de iconos.
+- **Icono:** Font Awesome solid, `<i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>`. Solo se carga el estilo solid: las
+  clases `fa-regular` y `fa-brands` no se ven. El menú, la barra superior y los campos siguen con Feather (`x-feather`).
 - **Color por acción, siempre igual:**
 
   | Acción | Botón | Color |
@@ -77,14 +77,14 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 | Qué | Con qué |
 |---|---|
 | Confirmar una acción | `confirmAction(titulo, texto, callback)`, de `resources/js/confirm.js`, con SweetAlert2 |
-| Avisar el resultado | `Flux::toast(variant: 'success', text: '...')` |
-| Avisar que no procede | `Flux::toast(variant: 'warning', text: '...')` |
+| Avisar el resultado | `$this->dispatch('toast', icon: 'success', text: '...')`, de `resources/js/toast.js`, con SweetAlert2 |
+| Avisar que no procede | `$this->dispatch('toast', icon: 'warning', text: '...')` |
 
-- El texto de SweetAlert2 se pasa con `text`, nunca con `html`, porque puede traer datos del usuario.
+- El texto de SweetAlert2 se pasa con `titleText` y `text`, nunca con `title` ni `html`: esos dos interpretan HTML y pueden traer
+  datos del usuario.
 - No uses `wire:confirm` ni `confirm()` del navegador.
-- Los avisos salen arriba a la derecha: `position="top end"` en los dos layouts.
-- Su aspecto viene de los Toastr de la plantilla, definido en `resources/css/app.css`: fondo de color y letra blanca. `success` es
-  verde oscuro, `warning` naranja de acento, `danger` rojo y sin variante, azul.
+- Los avisos salen arriba a la derecha, con fondo blanco, sombra marcada e icono de color. `icon` acepta `success`, `warning` y
+  `error`. SweetAlert2 muestra uno a la vez: un aviso nuevo reemplaza al anterior.
 
 ## Una acción de fila, en este orden
 
@@ -96,14 +96,14 @@ public function deactivate(int $id): void
     $this->authorize('delete', $user);
 
     if ($user->trashed()) {
-        Flux::toast(variant: 'warning', text: 'Este usuario ya está desactivado.');
+        $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está desactivado.');
 
         return;
     }
 
     $user->delete();
 
-    Flux::toast(variant: 'success', text: 'Usuario desactivado.');
+    $this->dispatch('toast', icon: 'success', text: 'Usuario desactivado.');
 }
 ```
 
@@ -111,7 +111,7 @@ public function deactivate(int $id): void
 2. **Autorizar.** La policy necesita el registro, por eso va después de resolver.
 3. **Verificar el estado.** Si no procede, aviso `warning` y `return`.
 4. **Ejecutar.** La lógica de negocio con más de un paso va en un Action o Service.
-5. **Avisar** con `Flux::toast`.
+5. **Avisar** con el evento `toast`.
 
 - El método recibe `int $id`, no el modelo.
 - Hasta culminar E6 no se validan roles, pero sí las reglas de la policy (por ejemplo, nadie se desactiva a sí mismo).
@@ -133,11 +133,11 @@ Livewire::test(UsersTable::class)
     ->assertForbidden();
 ```
 
-Cubre el camino normal, la policy y el estado que no procede (`assertDispatched('toast-show')`).
+Cubre el camino normal, la policy y el estado que no procede (`assertDispatched('toast', icon: 'warning')`).
 
 ## Checklist
 
-- [ ] Los botones están en `partials/actions.blade.php`, como `x-wire-button` `xs` con icono Feather, `title` y `aria-label`.
+- [ ] Los botones están en `partials/actions.blade.php`, como `x-wire-button` `xs` con icono Font Awesome, `title` y `aria-label`.
 - [ ] Los botones que llaman a un método tienen `wire:loading.attr="disabled"` y `wire:target`.
 - [ ] Los datos de la fila van por `x-data`, con `@js()` para los textos.
 - [ ] Las acciones destructivas usan `confirmAction`.
