@@ -83,7 +83,7 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 - El texto de SweetAlert2 se pasa con `titleText` y `text`, nunca con `title` ni `html`: esos dos interpretan HTML y pueden traer
   datos del usuario.
 - No uses `wire:confirm` ni `confirm()` del navegador.
-- Los avisos salen arriba a la derecha, con sombra marcada, icono de color y fondo y texto suaves según el tipo (tokens `badge-*`). `icon` acepta `success`, `warning` y
+- Los avisos salen arriba a la derecha, con sombra marcada, icono de color y fondo y texto suaves según el tipo (tokens `toast-success` y `badge-*`). `icon` acepta `success`, `warning` y
   `error`. SweetAlert2 muestra uno a la vez: un aviso nuevo reemplaza al anterior.
 
 ## Una acción de fila, en este orden

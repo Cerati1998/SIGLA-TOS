@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 const toastStyles = {
     success: {
         iconColor: 'var(--color-status-green)',
-        popup: 'bg-badge-success! ring-status-green/40!',
+        popup: 'bg-toast-success! ring-status-green/40!',
         title: 'text-badge-success-ink!',
         timerProgressBar: 'bg-status-green!',
     },
