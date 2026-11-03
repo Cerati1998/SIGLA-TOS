@@ -250,6 +250,8 @@ new #[Title('Seguridad')] class extends Component {
                                 <flux:button
                                     variant="danger"
                                     wire:click="disable"
+                                    wire:loading.attr="disabled"
+                                    wire:target="disable"
                                 >
                                     {{ __('Disable 2FA') }}
                                 </flux:button>
@@ -317,6 +319,8 @@ new #[Title('Seguridad')] class extends Component {
                                     icon="trash"
                                     icon:variant="outline"
                                     wire:click="confirmDelete({{ $passkey['id'] }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="confirmDelete"
                                     class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
                                 />
                             </div>
@@ -357,12 +361,16 @@ new #[Title('Seguridad')] class extends Component {
                 <flux:button
                     variant="outline"
                     wire:click="closeDeleteModal"
+                    wire:loading.attr="disabled"
+                    wire:target="closeDeleteModal"
                 >
                     {{ __('Cancel') }}
                 </flux:button>
                 <flux:button
                     variant="danger"
                     wire:click="deletePasskey"
+                    wire:loading.attr="disabled"
+                    wire:target="deletePasskey"
                 >
                     {{ __('Remove passkey') }}
                 </flux:button>

@@ -77,7 +77,7 @@ new class extends Component {
         <x-slot:footer>
             <div class="flex justify-end gap-3">
                 <flux:button type="button" x-on:click="close">Cancelar</flux:button>
-                <flux:button variant="primary" type="submit" form="user-form">Guardar</flux:button>
+                <flux:button variant="primary" type="submit" form="user-form" wire:loading.attr="disabled" wire:target="save">Guardar</flux:button>
             </div>
         </x-slot:footer>
     </x-wire-modal-card>
@@ -97,8 +97,8 @@ new class extends Component {
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
-                <flux:button type="button" wire:click="create">Crear otro</flux:button>
-                <flux:button variant="primary" type="button" wire:click="closePassword">Cerrar</flux:button>
+                <flux:button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create">Crear otro</flux:button>
+                <flux:button variant="primary" type="button" wire:click="closePassword" wire:loading.attr="disabled" wire:target="closePassword">Cerrar</flux:button>
             </div>
         </x-slot:footer>
     </x-wire-modal-card>

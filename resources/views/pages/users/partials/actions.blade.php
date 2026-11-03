@@ -5,13 +5,13 @@
 
     @if ($user->trashed())
         @can('restore', $user)
-            <x-wire-button primary x-on:click="$wire.reactivate(id)" title="Reactivar" aria-label="Reactivar" xs>
+            <x-wire-button primary x-on:click="$wire.reactivate(id)" wire:loading.attr="disabled" wire:target="deactivate,reactivate" title="Reactivar" aria-label="Reactivar" xs>
                 <x-feather name="user-check" class="size-4" />
             </x-wire-button>
         @endcan
     @else
         @can('delete', $user)
-            <x-wire-button negative x-on:click="confirmAction('¿Desactivar a ' + name + '?', 'Ya no podrá iniciar sesión.', () => $wire.deactivate(id))" title="Desactivar" aria-label="Desactivar" xs>
+            <x-wire-button negative x-on:click="confirmAction('¿Desactivar a ' + name + '?', 'Ya no podrá iniciar sesión.', () => $wire.deactivate(id))" wire:loading.attr="disabled" wire:target="deactivate,reactivate" title="Desactivar" aria-label="Desactivar" xs>
                 <x-feather name="user-x" class="size-4" />
             </x-wire-button>
         @endcan

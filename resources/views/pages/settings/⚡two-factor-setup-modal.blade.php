@@ -205,6 +205,8 @@ new class extends Component {
                             variant="outline"
                             class="flex-1"
                             wire:click="resetVerification"
+                            wire:loading.attr="disabled"
+                            wire:target="resetVerification"
                         >
                             {{ __('Back') }}
                         </flux:button>
@@ -213,6 +215,8 @@ new class extends Component {
                             variant="primary"
                             class="flex-1"
                             wire:click="confirmTwoFactor"
+                            wire:loading.attr="disabled"
+                            wire:target="confirmTwoFactor"
                             x-bind:disabled="$wire.code.length < 6"
                         >
                             {{ __('Confirm') }}
@@ -249,6 +253,8 @@ new class extends Component {
                         variant="primary"
                         class="w-full"
                         wire:click="showVerificationIfNecessary"
+                        wire:loading.attr="disabled"
+                        wire:target="showVerificationIfNecessary"
                     >
                         {{ $this->modalConfig['buttonText'] }}
                     </flux:button>
