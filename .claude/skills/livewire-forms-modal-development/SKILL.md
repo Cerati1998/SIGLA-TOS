@@ -22,7 +22,7 @@ coordina la ventana.
 | En el componente | `public UserForm $form;` |
 | En la vista | `wire:model="form.name"`, `wire:model="form.openModal"` |
 
-Un form por ventana. Crear y editar pueden compartirlo si validan lo mismo (ver `UserForm`).
+Crear y editar son modales distintos, y pueden compartir el form si validan lo mismo (ver `UserForm`).
 
 ## Qué lleva
 
@@ -73,8 +73,9 @@ public function edit(int $userId): void
 }
 ```
 
-- Al abrir: `reset()` y `resetValidation()`, para no heredar datos ni errores de la vez anterior.
-- `reset()` también borra `#[Locked]`, así que crear queda sin id aunque antes se haya editado.
+- Al abrir para editar: `reset()` y `resetValidation()`, para no heredar datos ni errores de la vez anterior.
+- El modal de creación no pasa por el servidor al abrir: nunca fija el id, y limpia sus datos y errores como indica
+  `wireui-modales-inputs-development`.
 - Si la validación falla, la excepción corta `save()` antes de cerrar y el modal queda abierto con sus errores.
 - Un dato sensible que se muestra una sola vez, como una contraseña generada, se borra del componente al cerrar: vive en el
   snapshot de Livewire mientras exista.
@@ -88,6 +89,6 @@ Si empieza a mantener arreglos de ítems, a calcular importes o crece a muchos c
 
 - [ ] Propiedades con tipo y reglas en `rules()`.
 - [ ] El id del registro afectado es `#[Locked]`.
-- [ ] Al abrir se limpian los datos y los errores.
+- [ ] Se limpian los datos y los errores de la vez anterior.
 - [ ] Los errores salen en español con el nombre correcto del campo.
 - [ ] La lógica de negocio con más de un paso está en un Action o Service.
