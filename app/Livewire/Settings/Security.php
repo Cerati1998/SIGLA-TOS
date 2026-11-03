@@ -100,7 +100,7 @@ class Security extends Component
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        $this->dispatch('toast', icon: 'success', text: __('Password updated.'));
+        $this->dispatch('toast', icon: 'success', title: 'Contraseña actualizada', text: 'Tu contraseña se cambió correctamente.');
     }
 
     /* @chisel-passkeys */

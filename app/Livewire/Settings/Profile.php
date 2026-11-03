@@ -46,7 +46,7 @@ class Profile extends Component
 
         $user->save();
 
-        $this->dispatch('toast', icon: 'success', text: __('Profile updated.'));
+        $this->dispatch('toast', icon: 'success', title: 'Perfil actualizado', text: 'Tus datos se guardaron correctamente.');
     }
 
     /* @chisel-email-verification */

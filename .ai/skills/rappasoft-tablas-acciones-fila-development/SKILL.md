@@ -77,13 +77,13 @@ que es de toda la tabla: el botón de creación va en `partials/options.blade.ph
 | Qué | Con qué |
 |---|---|
 | Confirmar una acción | `confirmAction(titulo, texto, callback)`, de `resources/js/confirm.js`, con SweetAlert2 |
-| Avisar el resultado | `$this->dispatch('toast', icon: 'success', text: '...')`, de `resources/js/toast.js`, con SweetAlert2 |
-| Avisar que no procede | `$this->dispatch('toast', icon: 'warning', text: '...')` |
+| Avisar el resultado | `$this->dispatch('toast', icon: 'success', title: '...', text: '...')`, de `resources/js/toast.js`, con SweetAlert2 |
+| Avisar que no procede | `$this->dispatch('toast', icon: 'warning', title: '...', text: '...')` |
 
 - El texto de SweetAlert2 se pasa con `titleText` y `text`, nunca con `title` ni `html`: esos dos interpretan HTML y pueden traer
   datos del usuario.
 - No uses `wire:confirm` ni `confirm()` del navegador.
-- Los avisos salen arriba a la derecha, con sombra marcada, icono de color y fondo y texto suaves según el tipo (tokens `toast-success` y `badge-*`). `icon` acepta `success`, `warning` y
+- Todo aviso lleva `title` y `text`. Salen arriba a la derecha, con sombra marcada, icono de color y fondo y texto suaves según el tipo (tokens `toast-success` y `badge-*`). `icon` acepta `success`, `warning` y
   `error`. SweetAlert2 muestra uno a la vez: un aviso nuevo reemplaza al anterior.
 
 ## Una acción de fila, en este orden
@@ -96,14 +96,14 @@ public function deactivate(int $id): void
     $this->authorize('delete', $user);
 
     if ($user->trashed()) {
-        $this->dispatch('toast', icon: 'warning', text: 'Este usuario ya está desactivado.');
+        $this->dispatch('toast', icon: 'warning', title: 'Usuario ya desactivado', text: 'Este usuario ya está desactivado.');
 
         return;
     }
 
     $user->delete();
 
-    $this->dispatch('toast', icon: 'success', text: 'Usuario desactivado.');
+    $this->dispatch('toast', icon: 'success', title: 'Usuario desactivado', text: 'El usuario se desactivó correctamente.');
 }
 ```
 

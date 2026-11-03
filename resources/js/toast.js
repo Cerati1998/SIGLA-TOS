@@ -30,7 +30,8 @@ window.addEventListener('toast', ({ detail }) =>
         position: 'top-end',
         icon: detail.icon,
         iconColor: toastStyles[detail.icon]?.iconColor,
-        titleText: detail.text,
+        titleText: detail.title,
+        text: detail.text,
         showConfirmButton: false,
         timer: 4000,
         timerProgressBar: true,
@@ -38,7 +39,8 @@ window.addEventListener('toast', ({ detail }) =>
         customClass: {
             container: 'w-100! max-w-full!',
             popup: `w-full! rounded-control! px-5! py-4! shadow-xl! ring-1! ${toastStyles[detail.icon]?.popup ?? 'ring-line!'}`,
-            title: `text-base! font-medium! ${toastStyles[detail.icon]?.title ?? 'text-ink!'}`,
+            title: `text-base! font-semibold! ${toastStyles[detail.icon]?.title ?? 'text-ink!'}`,
+            htmlContainer: `text-sm! ${toastStyles[detail.icon]?.title ?? 'text-ink!'}`,
             timerProgressBar: toastStyles[detail.icon]?.timerProgressBar ?? 'bg-brand!',
         },
         didOpen: (toast) => {

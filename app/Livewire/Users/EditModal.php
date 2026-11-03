@@ -32,7 +32,7 @@ class EditModal extends Component
         $this->form->update(User::withTrashed()->findOrFail($this->form->userId));
         $this->form->openModal = false;
 
-        $this->dispatch('toast', icon: 'success', text: 'Usuario actualizado.');
+        $this->dispatch('toast', icon: 'success', title: 'Usuario actualizado', text: 'Los datos del usuario se guardaron correctamente.');
         $this->dispatch('refreshDatatable');
     }
 
