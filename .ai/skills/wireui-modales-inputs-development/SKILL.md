@@ -63,11 +63,11 @@ contraseña que no se vuelve a mostrar, y deja un botón explícito para cerrar.
 
 ## Componente y pruebas
 
-- El modal es un componente propio: `resources/views/pages/<recursos>/⚡form-modal.blade.php`, montado en la página.
+- El modal es un componente propio: `app/Livewire/<Recursos>/FormModal.php`, con su vista `resources/views/pages/<recursos>/form-modal.blade.php`, montado en la página.
 - Se abre con `#[On('...')]`.
 
 ```php
-Livewire::test('pages::users.form-modal')
+Livewire::test(FormModal::class)
     ->dispatch('edit-user', userId: $user->id)
     ->assertSet('form.openModal', true);
 ```
