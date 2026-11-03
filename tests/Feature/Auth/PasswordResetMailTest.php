@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Mail\Markdown;
 use Tests\TestCase;
 
 class PasswordResetMailTest extends TestCase
@@ -35,6 +36,17 @@ class PasswordResetMailTest extends TestCase
         $this->assertMatchesRegularExpression('/<a href="'.preg_quote($url, '/').'"[^>]*>\s*Restablecer contraseña\s*<\/a>/u', $html);
         $this->assertSame(1, substr_count($html, $url));
         $this->assertStringNotContainsString('Si tienes problemas', $html);
+    }
+
+    public function test_plain_text_version_does_not_print_the_url(): void
+    {
+        $user = $this->makeUser();
+        $message = (new ResetPassword(self::TOKEN))->toMail($user);
+
+        $text = (string) app(Markdown::class)->renderText($message->markdown, $message->data());
+
+        $this->assertStringNotContainsString('reset-password', $text);
+        $this->assertStringContainsString('Restablecer contraseña: abre este correo en una aplicación que muestre HTML', $text);
     }
 
     public function test_panel_shows_the_account_the_lima_request_time_and_the_configured_expiry(): void
