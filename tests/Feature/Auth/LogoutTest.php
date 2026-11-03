@@ -38,7 +38,7 @@ class LogoutTest extends TestCase
     {
         return [
             'dashboard' => ['intranet.dashboard'],
-            'profile' => ['intranet.profile.edit'],
+            'profile' => ['profile.edit'],
         ];
     }
 

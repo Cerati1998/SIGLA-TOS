@@ -38,14 +38,14 @@ class PanelBreadcrumbsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('intranet.profile.edit'))
+        $this->actingAs($user)->get(route('profile.edit'))
             ->assertOk()
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Perfil']);
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('intranet.security.edit'))
+            ->get(route('security.edit'))
             ->assertOk()
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Seguridad']);

@@ -20,7 +20,7 @@ new class extends Component {
 
         (new UpdateProfilePhoto)->handle(Auth::user(), $this->photo);
 
-        $this->redirect(route('intranet.profile.edit'), navigate: true);
+        $this->redirect(route('profile.edit'), navigate: true);
     }
 }; ?>
 

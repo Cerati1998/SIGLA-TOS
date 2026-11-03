@@ -29,7 +29,7 @@
 
                 <flux:menu.separator />
 
-                <flux:menu.item :href="route('intranet.profile.edit')" wire:navigate>
+                <flux:menu.item :href="route('profile.edit')" wire:navigate>
                     <x-feather name="user" class="me-2 size-4" />
                     Perfil
                 </flux:menu.item>

@@ -37,7 +37,7 @@ class ProfilePhotoTest extends TestCase
         Livewire::test('pages::settings.profile-photo')
             ->set('photo', UploadedFile::fake()->image('foto.jpg'))
             ->assertHasNoErrors()
-            ->assertRedirect(route('intranet.profile.edit'));
+            ->assertRedirect(route('profile.edit'));
 
         $path = $user->refresh()->profile_photo_path;
 

@@ -35,7 +35,7 @@ class SecurityTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('intranet.security.edit'));
+            ->get(route('security.edit'));
 
         $response->assertOk();
 
@@ -50,7 +50,7 @@ class SecurityTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->get(route('intranet.security.edit'));
+            ->get(route('security.edit'));
 
         $response->assertRedirect(route('password.confirm'));
     }
@@ -63,7 +63,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('intranet.security.edit'))
+            ->get(route('security.edit'))
             ->assertOk()
             ->assertSee('Actualizar contraseña')
             ->assertDontSee('Administra tus llaves de acceso para entrar sin contraseña')
