@@ -1,35 +1,57 @@
 ---
 name: rappasoft-tablas-acciones-fila-development
-description: "Usa este skill siempre que agregues o cambies botones o acciones de fila en una tabla Rappasoft: vista por columna con x-data, confirmación con confirmAction (SweetAlert2), avisos con Flux::toast, orden de una acción de fila y cómo abrir un modal desde la tabla."
+description: "Usa este skill siempre que agregues o cambies botones o acciones de fila en una tabla Rappasoft: partial actions.blade.php, botones x-wire-button con icono Feather, confirmación con confirmAction (SweetAlert2), avisos con Flux::toast, orden de una acción de fila y cómo abrir un modal desde la tabla."
 ---
 
 # Acciones de fila en tablas Rappasoft
 
 La estructura de la tabla está en `rappasoft-tablas-listado-development`. Los modales, en `wireui-modales-inputs-development`.
 
-## Vista de la columna
+## El partial `actions.blade.php`
 
-Los datos de la fila van en un `x-data` sobre un contenedor HTML normal, y los botones de Flux los usan desde Alpine:
+Los botones de cada fila van siempre en `resources/views/pages/<recursos>/partials/actions.blade.php`, enlazado desde la columna:
+
+```php
+Column::make('Acciones')
+    ->label(fn (User $row): View => view('pages.users.partials.actions', ['user' => $row])),
+```
+
+`setConfigurableAreas` no sirve para estos botones: un área se renderiza una vez por tabla y no recibe la fila. Úsala para lo
+que es de toda la tabla, como el botón "Nuevo".
 
 ```blade
-<div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1">
-    <flux:button variant="ghost" x-on:click="$dispatch('edit-user', { userId: id })">Editar</flux:button>
+<div x-data="{ id: {{ $user->id }}, name: @js($user->name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
+    <x-wire-button primary x-on:click="$dispatch('edit-user', { userId: id })" title="Editar" aria-label="Editar" xs>
+        <x-feather name="edit-2" class="size-4" />
+    </x-wire-button>
 
     @can('delete', $user)
-        <flux:button
-            variant="ghost"
+        <x-wire-button
+            negative
             x-on:click="confirmAction('¿Desactivar a ' + name + '?', 'Ya no podrá iniciar sesión.', () => $wire.deactivate(id))"
-        >Desactivar</flux:button>
+            title="Desactivar"
+            aria-label="Desactivar"
+            xs
+        >
+            <x-feather name="user-x" class="size-4" />
+        </x-wire-button>
     @endcan
 </div>
 ```
 
-- `@js()` para los textos: escapa comillas y apóstrofos (`O'Brien`).
-- No uses comillas dobles dentro de un atributo de un componente `<flux:*>`: por ejemplo, `{{ Js::from("...") }}` corta el
-  atributo y deja una expresión rota en Alpine.
+- **Botón:** `x-wire-button` con `xs`, solo con icono. Lleva `title` y `aria-label` en español, porque no tiene texto visible.
+- **Icono:** Feather con `x-feather`, de `public/images/feather-sprite.svg`, en `size-4`. Comprueba que el nombre exista en el
+  sprite. No agregues otra librería de iconos.
+- **Color por significado:** `primary` para abrir o editar, `positive` para una acción que activa y `negative` para una acción
+  destructiva. Esos colores están enlazados a los tokens del tema. Otro color (`green`, `blue`, `red`) usa la paleta de Tailwind
+  y no los tokens.
+- **Celular:** `[&_button]:max-md:size-11` en el contenedor, para que midan 44 px.
+- **Datos de la fila:** van en el `x-data`, con `@js()` para los textos, porque escapa comillas y apóstrofos (`O'Brien`).
+- No uses comillas dobles dentro de un atributo de un componente: por ejemplo, `{{ Js::from("...") }}` corta el atributo y deja
+  una expresión rota en Alpine.
 - El `id` debe estar seleccionado (`setAdditionalSelects`). Si la expresión queda como `{ id: , ...`, falta ese select.
-- Los iconos son Feather (`x-feather`). Los Heroicons solo aparecen dentro de los componentes de WireUI o del paquete.
 - `@can` solo oculta el botón. La autorización real está en el método.
+- Las pruebas buscan el botón por su `title`, porque no tiene texto: `assertSeeHtml('title="Desactivar"')`.
 
 ## Confirmar y avisar
 
@@ -94,7 +116,8 @@ Cubre el camino normal, la policy y el estado que no procede (`assertDispatched(
 
 ## Checklist
 
-- [ ] La vista recibe los datos por `x-data`, con `@js()` para los textos.
+- [ ] Los botones están en `partials/actions.blade.php`, como `x-wire-button` `xs` con icono Feather, `title` y `aria-label`.
+- [ ] Los datos de la fila van por `x-data`, con `@js()` para los textos.
 - [ ] Las acciones destructivas usan `confirmAction`.
 - [ ] El método recibe `int $id` y resuelve con `$this->builder()`.
 - [ ] Autoriza en el método, no solo con `@can`.

@@ -5,8 +5,8 @@ description: "Usa este skill siempre que crees o cambies un modal o los inputs d
 
 # Modales e inputs con WireUI
 
-Los modales y los inputs dentro de ellos usan WireUI. El resto de la interfaz usa Flux, incluidos los botones del pie del
-modal. El form object está en `livewire-forms-modal-development`.
+Los modales, sus inputs y los botones de fila de las tablas usan WireUI. El resto de la interfaz usa Flux, incluidos los botones
+del pie del modal. Los botones de fila están en `rappasoft-tablas-acciones-fila-development`. El form object está en `livewire-forms-modal-development`.
 
 ## Instalación en este proyecto
 
@@ -16,7 +16,7 @@ modal. El form object está en `livewire-forms-modal-development`.
   el paquete npm `@tailwindcss/forms`. Solo se importan sus cuatro archivos de plugins.
 - Sin `@tailwindcss/forms`, `x-wire-checkbox` y `x-wire-radio` no tienen estilos propios. Antes de usarlos, pruébalos y avisa
   al usuario. `x-wire-input` y el modal no lo necesitan.
-- El escaneo de Tailwind está acotado a `src/Components/{Card,Label,Modal,TextField,Wrapper}` más
+- El escaneo de Tailwind está acotado a `src/Components/{Button,Card,Label,Modal,TextField,Wrapper}` más
   `@source inline('z-50')`, porque el `z-50` del modal se define en `src/WireUiConfig.php`. Si usas otro componente de WireUI,
   agrega su carpeta a `@source`.
 - Sus colores (`primary`, `secondary`, `negative`, `background`) están enlazados a los tokens del tema en `@theme`. Si falta

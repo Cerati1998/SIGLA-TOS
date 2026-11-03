@@ -14,8 +14,8 @@ consulta nueva con `Model::query()`.
 
 ## Barra de filtros
 
-`BaseTable` quita la barra del paquete, así que los filtros se muestran en una vista propia, en el área `before-tools`, con
-componentes de Flux y las medidas de la plantilla:
+`BaseTable` quita la barra del paquete, así que los filtros se muestran en `pages/<recursos>/partials/filters.blade.php`,
+enlazado al área `before-tools` con `setConfigurableAreas`, con componentes de Flux y las medidas de la plantilla:
 
 ```blade
 <div class="flex flex-wrap items-end gap-3 border-b border-line p-5.25">

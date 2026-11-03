@@ -24,7 +24,8 @@ Filtros y búsqueda: `rappasoft-tablas-filtros-busqueda-development`. Botones y 
 | Base común | `app/Livewire/Tables/BaseTable.php` |
 | Tabla | `app/Livewire/Tables/<Recurso>Table.php`, creada con `php artisan make:datatable Tables/<Recurso>Table <Modelo>` y luego cambiada para extender `BaseTable` |
 | Página que la monta | `resources/views/pages/<recursos>/⚡index.blade.php`, dentro de `<x-panel.list-card>`, con `<livewire:tables.<recurso>-table />` |
-| Vistas de columna y filtros | `resources/views/pages/<recursos>/table-*.blade.php` |
+| Botones de cada fila | `resources/views/pages/<recursos>/partials/actions.blade.php`, siempre con ese nombre |
+| Otras vistas de columna y filtros | `resources/views/pages/<recursos>/partials/` |
 
 ## BaseTable
 
@@ -45,7 +46,7 @@ public function configure(): void
         ->setAdditionalSelects(['users.id as id'])
         ->setEmptyMessage('No se encontraron usuarios.')
         ->setConfigurableAreas([
-            'before-tools' => 'pages.users.table-filters',
+            'before-tools' => 'pages.users.partials.filters',
             'after-wrapper' => 'partials.panel.table-footer',
         ]);
 }
@@ -55,7 +56,9 @@ public function configure(): void
   `setPrimaryKey('id')` no agrega el `id`. Sin él, `$row->id` llega `null`: los botones quedan sin id y una policy con
   `$user->is($model)` da un resultado equivocado.
 - También va ahí todo campo que una vista lee y que no es una columna.
-- Las áreas se declaran completas en la tabla, incluida `after-wrapper`.
+- Las áreas se declaran completas en la tabla, incluida `after-wrapper`: `setConfigurableAreas` reemplaza las anteriores.
+- Lo que es de toda la tabla (filtros, botón "Nuevo") va en un partial enlazado con `setConfigurableAreas`. Un área se
+  renderiza una sola vez y no recibe la fila, así que los botones de fila van en `actions.blade.php`, desde la columna.
 - Si una página monta más de una tabla, cada una llama a `setTableName('<nombre>')`. Con el nombre por defecto `table`
   comparten `?page`; con nombre propio la página va en `?<nombre>Page`.
 
@@ -77,9 +80,9 @@ public function builder(): Builder
 ```php
 Column::make('Nombre', 'name')->searchable(),
 Column::make('Estado', 'deleted_at')
-    ->format(fn ($value, User $row): View => view('pages.users.table-status', ['user' => $row])),
+    ->format(fn ($value, User $row): View => view('pages.users.partials.status', ['user' => $row])),
 Column::make('Acciones')
-    ->label(fn (User $row): View => view('pages.users.table-actions', ['user' => $row])),
+    ->label(fn (User $row): View => view('pages.users.partials.actions', ['user' => $row])),
 ```
 
 - Con campo: `Column::make('Título', 'campo')`. Sin campo: `Column::make('Título')->label(...)`.
