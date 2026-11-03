@@ -32,11 +32,12 @@
         </div>
 
         @persist('toast')
-            <flux:toast.group>
+            <flux:toast.group position="top end">
                 <flux:toast />
             </flux:toast.group>
         @endpersist
 
+        @wireUiScripts
         @fluxScripts
     </body>
 </html>
