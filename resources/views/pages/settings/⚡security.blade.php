@@ -31,7 +31,7 @@ new #[Title('Seguridad')] class extends Component {
     public function rendering(View $view): void
     {
         $view->layoutData(['breadcrumbs' => [
-            ['name' => 'Inicio', 'route' => route('dashboard')],
+            ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
             ['name' => 'Seguridad'],
         ]]);
     }

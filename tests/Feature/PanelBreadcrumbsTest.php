@@ -12,7 +12,7 @@ class PanelBreadcrumbsTest extends TestCase
 
     public function test_a_single_breadcrumb_only_shows_the_title(): void
     {
-        $response = $this->actingAs(User::factory()->create())->get(route('dashboard'));
+        $response = $this->actingAs(User::factory()->create())->get(route('intranet.dashboard'));
 
         $response->assertOk()
             ->assertSee('font-heading', false)

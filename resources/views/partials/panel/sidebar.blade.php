@@ -3,8 +3,8 @@
         [
             'name' => 'Inicio',
             'icon' => 'home',
-            'route' => route('dashboard'),
-            'active' => request()->routeIs('dashboard'),
+            'route' => route('intranet.dashboard'),
+            'active' => request()->routeIs('intranet.dashboard'),
         ],
     ];
 @endphp

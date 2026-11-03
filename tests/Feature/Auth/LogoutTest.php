@@ -28,7 +28,7 @@ class LogoutTest extends TestCase
 
         $this->actingAs($user)->post(route('logout'));
 
-        $this->get(route('dashboard'))->assertRedirect(route('login'));
+        $this->get(route('intranet.dashboard'))->assertRedirect(route('login'));
     }
 
     /**
@@ -37,7 +37,7 @@ class LogoutTest extends TestCase
     public static function internalScreens(): array
     {
         return [
-            'dashboard' => ['dashboard'],
+            'dashboard' => ['intranet.dashboard'],
             'profile' => ['profile.edit'],
         ];
     }

@@ -24,7 +24,7 @@ new #[Title('Perfil')] class extends Component {
     public function rendering(View $view): void
     {
         $view->layoutData(['breadcrumbs' => [
-            ['name' => 'Inicio', 'route' => route('dashboard')],
+            ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
             ['name' => 'Perfil'],
         ]]);
     }
@@ -67,7 +67,7 @@ new #[Title('Perfil')] class extends Component {
         $user = Auth::user();
 
         if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
+            $this->redirectIntended(default: route('intranet.dashboard', absolute: false));
 
             return;
         }

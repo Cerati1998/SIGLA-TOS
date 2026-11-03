@@ -1,6 +1,6 @@
 <header class="fixed inset-x-0 top-0 z-30 flex h-header bg-white max-md:items-center max-md:gap-3 max-md:px-5.25">
     <a
-        href="{{ route('dashboard') }}"
+        href="{{ route('intranet.dashboard') }}"
         wire:navigate
         class="flex flex-none items-center justify-center transition-[width] duration-300 ease-in-out max-md:order-2 md:w-sidebar md:group-data-collapsed/panel:w-sidebar-mini"
     >

@@ -48,3 +48,6 @@ El dato escaneado se guarda solo, de forma asíncrona, y la pantalla muestra qu�
 
 ## Correos
 Todos los correos del sistema, sea cual sea su propósito, usan por defecto un mismo layout o partials de correo con la identidad del lienzo y de la marca. Si ya existe un layout, se adapta en vez de crear otro. Razón: que todos los correos se vean como la aplicación.
+
+## Rutas por tipo de acceso
+Cada tipo de acceso tiene su archivo de rutas, su prefijo de URL y su prefijo de nombre (`intranet/` e `intranet.`, `extranet/` y `extranet.`). Lo común a ambos, como el login, la recuperación de contraseña y el perfil, va fuera de esos grupos. Razón: que sus rutas no se mezclen ni choquen.
