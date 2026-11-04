@@ -53,6 +53,21 @@ class IdentitiesAndBranchesTest extends TestCase
         $this->assertSame(2, Branch::query()->where('company_id', $company->id)->count());
     }
 
+    public function test_the_branch_seeder_keeps_what_was_managed_on_the_screen(): void
+    {
+        $this->seed([CompanySeeder::class, BranchSeeder::class]);
+
+        $main = Branch::query()->where('code', BranchSeeder::MAIN_BRANCH_CODE)->firstOrFail();
+        $main->update(['name' => 'Editada en pantalla']);
+        Branch::query()->where('code', '0001')->firstOrFail()->delete();
+
+        $this->seed(BranchSeeder::class);
+
+        $this->assertSame('Editada en pantalla', $main->refresh()->name);
+        $this->assertSame(1, Branch::query()->count());
+        $this->assertSame(2, Branch::withTrashed()->count());
+    }
+
     public function test_the_main_seeder_creates_the_first_user_with_a_dni_and_the_main_branch(): void
     {
         $this->seed(DatabaseSeeder::class);
