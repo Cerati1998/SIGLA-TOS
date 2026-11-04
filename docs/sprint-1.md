@@ -7,7 +7,7 @@
 **Lienzo de Claude Design:** https://claude.ai/artifact/3zgDe8hgTDesp32V3Shhca
 
 ## Sprint Goal
-Dejar lista la base del proyecto: stack TALL instalado, identidad visual y plantillas aprobadas, guideline y rules base en el repo.
+Dejar lista la base del proyecto (stack TALL instalado, identidad visual y plantillas aprobadas, guideline y rules base en el repo) y tener construidas las listas maestras hasta tipos de dispositivos de seguridad: usuarios, líneas navieras, proveedores y tipos de dispositivo. (Ampliado por el usuario el 2026-11-04.)
 
 ## Historias del sprint
 H01 · Iniciar sesión, H02 · Cerrar sesión, H03 · Recuperar contraseña y H04 · Gestionar usuarios intranet, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10) y las rutas de intranet (T14). La extranet no entra en este sprint. Antes: ninguna (opción A).
@@ -56,7 +56,7 @@ Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 son el compro
 
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
-**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 12 h de compromiso (T18 a T25) = 30 h para unas 18 disponibles. Quedan 12 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario decide qué tareas se mantienen, cuáles pasan al Sprint 2 o si se acepta el exceso. No se cambió la capacidad ni el Sprint Goal.
+**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 12 h de compromiso (T18 a T25) = 30 h para unas 18 disponibles. Quedan 12 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario amplió el Sprint Goal el 2026-11-04 para incluir estas listas, así que T18 a T25 se mantienen. La capacidad no se cambió.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
