@@ -174,11 +174,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   4. Un proveedor se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista (confirmado el 2026-11-04).
   5. Hay una lista que se puede buscar por razón social o número de documento.
   6. La pantalla se puede usar bien desde el celular.
-  7. Al escribir un RUC o un DNI, el sistema consulta un servicio externo y completa los datos que encuentre. El usuario puede corregirlos antes de guardar.
+  7. Al completar los dígitos de un RUC (11) o un DNI (8), o al pulsar el botón de la lupa, el sistema consulta un servicio externo y completa los datos que encuentre. El usuario puede corregirlos antes de guardar.
   8. Si el servicio no responde o no encuentra el documento, el usuario puede llenar a mano y guardar igual.
   9. Si el documento tiene un formato incorrecto, se avisa antes de consultar.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
-- Diseño: necesita uno aprobado en el lienzo antes de construir, por los estados de la consulta de RUC y DNI, que la plantilla no cubre (decisión del usuario del 2026-11-04).
+- Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
+- Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
 - Decisiones técnicas para la Construcción: qué servicio de terceros para la consulta de RUC/DNI y su costo (el proyecto nace para dejar de pagar por registro). La consulta podría servir luego en otros formularios.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
 
