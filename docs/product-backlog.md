@@ -106,6 +106,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   2. Solo el admin ve y usa la pantalla de usuarios.
   3. Cada pantalla y cada acción validan el rol en el servidor.
   4. Las pantallas de empresa y sucursales (H27) se protegen con un permiso de acceso (indicado por el usuario el 2026-11-04).
+  5. Las pantallas de líneas navieras y proveedores (H09, H10) quedan solo para el admin. La de tipos de dispositivo (H06) queda para el admin y el usuario de bodega, y solo el admin desactiva (T21, 2026-11-04).
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
@@ -152,30 +153,33 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Depende de: E1. La necesitan E2 y E4.
 
 **H09 · Gestionar líneas navieras**
-- Como admin, quiero crear, editar y desactivar líneas navieras, para elegirlas al ingresar lotes y armar kits.
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar líneas navieras, para elegirlas al ingresar lotes y armar kits. (Cambiado el 2026-11-04 en T21: la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. El admin crea una línea naviera con código y nombre.
-  2. No se pueden crear dos líneas con el mismo código.
-  3. El admin edita el código y el nombre de una línea.
-  4. El admin desactiva una línea en vez de borrarla. Una línea desactivada no aparece al ingresar lotes ni armar kits, pero se conserva en lo que ya existe (por confirmar).
+  1. Se crea una línea naviera con código y nombre.
+  2. No se pueden crear dos líneas con el mismo código, aunque una esté desactivada.
+  3. Se editan el código y el nombre de una línea.
+  4. Una línea se desactiva en vez de borrarla, con Soft Deletes, y se reactiva desde la lista. Una línea desactivada no aparece al ingresar lotes ni armar kits, pero se conserva en lo que ya existe (confirmado el 2026-11-04).
   5. Hay una lista de líneas que se puede buscar por código o nombre.
   6. La pantalla se puede usar bien desde el celular.
-- Quién la usa: solo el admin (por confirmar).
-- Si SIGLA 1.0 ya tiene las navieras, pasarlas a SIGLA 2.0 es una tarea de Construcción.
+- Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
+- Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
+- Pasar las navieras de SIGLA 1.0 a SIGLA 2.0 queda fuera de esta historia: es una tarea aparte, sin fecha todavía. Hasta entonces, las líneas se crean a mano (decisión del usuario del 2026-11-04).
 
 **H10 · Gestionar proveedores**
-- Como admin, quiero crear, editar y desactivar proveedores, para elegirlos al ingresar lotes de dispositivos.
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar proveedores, para elegirlos al ingresar lotes de dispositivos. (Cambiado el 2026-11-04 en T21: la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. El admin crea un proveedor con tipo y número de documento, razón social, dirección, correo y teléfono. Cuáles son obligatorios se confirma antes de construir.
-  2. No se pueden crear dos proveedores con el mismo tipo y número de documento.
-  3. El admin edita los datos de un proveedor.
-  4. El admin desactiva un proveedor en vez de borrarlo (por confirmar).
+  1. Se crea un proveedor con tipo y número de documento, razón social, dirección, correo y teléfono. Son obligatorios el tipo y el número de documento y la razón social; dirección, correo y teléfono son opcionales (confirmado el 2026-11-04).
+  2. No se pueden crear dos proveedores con el mismo tipo y número de documento, aunque uno esté desactivado.
+  3. Se editan los datos de un proveedor.
+  4. Un proveedor se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista (confirmado el 2026-11-04).
   5. Hay una lista que se puede buscar por razón social o número de documento.
   6. La pantalla se puede usar bien desde el celular.
-  7. Al escribir un RUC o un DNI, el sistema consulta un servicio externo y completa los datos que encuentre. El usuario puede corregirlos antes de guardar.
+  7. Al completar los dígitos de un RUC (11) o un DNI (8), o al pulsar el botón de la lupa, el sistema consulta un servicio externo y completa los datos que encuentre. El usuario puede corregirlos antes de guardar.
   8. Si el servicio no responde o no encuentra el documento, el usuario puede llenar a mano y guardar igual.
   9. Si el documento tiene un formato incorrecto, se avisa antes de consultar.
-- Quién la usa: solo el admin (por confirmar).
+- Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
+- Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
+- Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
 - Decisiones técnicas para la Construcción: qué servicio de terceros para la consulta de RUC/DNI y su costo (el proyecto nace para dejar de pagar por registro). La consulta podría servir luego en otros formularios.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
 
@@ -186,15 +190,16 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Cada dispositivo es único. Un segundo lote con la misma serie tiene otro rango.
 
 **H06 · Gestionar tipos de dispositivo**
-- Como admin o usuario de bodega, quiero crear y editar tipos de dispositivo de seguridad, y como admin, quiero además desactivarlos o eliminarlos, para que el sistema sepa qué dispositivos existen y se puedan registrar.
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar tipos de dispositivo de seguridad, para que el sistema sepa qué dispositivos existen y se puedan registrar. (Cambiado el 2026-11-04 en T21: la parte de roles pasa a H24 y los tipos ya no se eliminan.)
 - Criterios de aceptación:
-  1. El admin y el usuario de bodega crean un tipo con nombre y tipo (sello, precinto, cinta u otro).
-  2. No se pueden crear dos tipos con el mismo nombre.
-  3. El admin y el usuario de bodega editan el nombre de un tipo.
-  4. Solo el admin desactiva un tipo. Un tipo desactivado no aparece al registrar lotes ni armar kits, pero se conserva en lo que ya existe.
-  5. Si un tipo ya se usó en lotes o kits, no se puede eliminar, solo desactivar (por confirmar).
-  6. Los demás roles no ven esta pantalla.
+  1. Se crea un tipo con nombre y tipo (sello, precinto, cinta u otro).
+  2. No se pueden crear dos tipos con el mismo nombre, aunque uno esté desactivado.
+  3. Se edita el nombre de un tipo.
+  4. Un tipo se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. Un tipo desactivado no aparece al registrar lotes ni armar kits, pero se conserva en lo que ya existe.
+  5. Los tipos no se eliminan, aunque no se hayan usado: solo se desactivan (confirmado el 2026-11-04).
+  6. Por ahora, cualquier usuario con sesión usa esta pantalla. Que solo el admin y el usuario de bodega la vean, y que solo el admin desactive, pasa a H24 (confirmado el 2026-11-04).
   7. La pantalla se puede usar bien desde el celular.
+- Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
 
 **H07 · Ingresar un lote de dispositivos**
