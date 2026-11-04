@@ -98,6 +98,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. La pantalla se puede usar bien desde el celular.
   9. No se pueden crear dos usuarios con el mismo tipo y número de documento, aunque uno esté desactivado (T19).
   10. Un usuario pertenece a una sola sucursal (T19).
+  11. La lista muestra la sucursal de cada usuario y se filtra por ella, también por una desactivada (pedido por el usuario el 2026-11-04).
 
 **H24 · Roles y permisos** (propuesta del 2026-11-03, sin aprobar; se construye al culminar E6)
 - Como admin, quiero asignar un rol a cada usuario, para que cada persona vea y use solo lo que le corresponde.
