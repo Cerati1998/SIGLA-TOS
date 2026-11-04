@@ -13,6 +13,12 @@
             'route' => route('intranet.users.index'),
             'active' => request()->routeIs('intranet.users.*'),
         ],
+        [
+            'name' => 'Empresa',
+            'icon' => 'briefcase',
+            'route' => route('intranet.company.edit'),
+            'active' => request()->routeIs('intranet.company.*'),
+        ],
     ];
 @endphp
 
