@@ -12,4 +12,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('branches', 'pages.branches.index')->name('branches.index');
 
     Route::view('shipping-lines', 'pages.shipping-lines.index')->name('shipping-lines.index');
+
+    Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 });
