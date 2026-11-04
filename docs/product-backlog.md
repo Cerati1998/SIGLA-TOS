@@ -98,6 +98,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. La pantalla se puede usar bien desde el celular.
   9. No se pueden crear dos usuarios con el mismo tipo y número de documento, aunque uno esté desactivado (T19).
   10. Un usuario pertenece a una sola sucursal (T19).
+  11. La lista muestra la sucursal de cada usuario y se filtra por ella, también por una desactivada (pedido por el usuario el 2026-11-04).
+  12. Al crear un usuario con DNI, el sistema consulta el servicio externo como en H10 (al completar los 8 dígitos o con el botón de la lupa) y completa el nombre. Se puede corregir y, si el servicio falla, se llena a mano. No se consulta al editar ni con otros tipos de documento (decidido por el usuario el 2026-11-04). Se construye después de H10 y todavía no tiene tarea en el sprint.
 
 **H24 · Roles y permisos** (propuesta del 2026-11-03, sin aprobar; se construye al culminar E6)
 - Como admin, quiero asignar un rol a cada usuario, para que cada persona vea y use solo lo que le corresponde.

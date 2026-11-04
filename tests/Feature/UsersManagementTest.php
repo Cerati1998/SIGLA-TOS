@@ -67,6 +67,55 @@ class UsersManagementTest extends TestCase
             ->assertDontSeeText('Ana Activa');
     }
 
+    public function test_the_list_shows_the_branch_of_each_user_even_if_it_was_deactivated(): void
+    {
+        $activeBranch = Branch::factory()->create(['name' => 'Sucursal Activa']);
+        $deactivatedBranch = Branch::factory()->trashed()->create(['name' => 'Sucursal Cerrada']);
+        User::factory()->create(['name' => 'Ana Activa', 'branch_id' => $activeBranch->id]);
+        User::factory()->trashed()->create(['name' => 'Dora Desactivada', 'branch_id' => $deactivatedBranch->id]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->set('search', 'Ana')
+            ->assertSeeHtmlInOrder(['Ana Activa', 'Sucursal Activa'])
+            ->set('search', 'Dora')
+            ->assertSeeHtmlInOrder(['Dora Desactivada', 'Sucursal Cerrada']);
+    }
+
+    public function test_the_list_filters_by_branch_even_if_it_was_deactivated(): void
+    {
+        $activeBranch = Branch::factory()->create();
+        $deactivatedBranch = Branch::factory()->trashed()->create();
+        User::factory()->create(['name' => 'Ana Activa', 'branch_id' => $activeBranch->id]);
+        User::factory()->trashed()->create(['name' => 'Dora Desactivada', 'branch_id' => $deactivatedBranch->id]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->set('filterComponents.branch', (string) $activeBranch->id)
+            ->assertSeeText('Ana Activa')
+            ->assertDontSeeText('Dora Desactivada')
+            ->set('filterComponents.branch', (string) $deactivatedBranch->id)
+            ->assertSeeText('Dora Desactivada')
+            ->assertDontSeeText('Ana Activa');
+    }
+
+    public function test_the_status_and_branch_filters_work_together(): void
+    {
+        $branch = Branch::factory()->create();
+        User::factory()->create(['name' => 'Ana Activa', 'branch_id' => $branch->id]);
+        User::factory()->trashed()->create(['name' => 'Dora Desactivada', 'branch_id' => $branch->id]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->set('filterComponents.branch', (string) $branch->id)
+            ->set('filterComponents.status', 'active')
+            ->assertSeeText('Ana Activa')
+            ->assertDontSeeText('Dora Desactivada');
+    }
+
     public function test_each_row_passes_its_user_to_the_actions(): void
     {
         $user = User::factory()->create(['name' => "Ana O'Brien"]);
