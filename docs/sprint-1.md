@@ -53,11 +53,11 @@ Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 y T29 son el 
 - [ ] **T26** · (Adelanto opcional) Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h.
 - [ ] **T27** · (Adelanto opcional) Preparar H07 y H08: cerrar los criterios pendientes de anuncio y lote, y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
 - [ ] **T28** · (Adelanto opcional) Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Separada de T19 por pedido del usuario el 2026-11-04. Quién: Claude Code. 1 h.
-- [ ] **T29** · H27 · Modificar los datos de la empresa. Quién: Claude Code. 1.5 h.
+- [ ] **T29** · H27 · Modificar los datos de la empresa, con los de facturación electrónica. Quién: Claude Code. 3 h.
 
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
-**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 13.5 h de compromiso (T18 a T25 y T29) = 31.5 h para unas 18 disponibles. Quedan 13.5 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario amplió el Sprint Goal el 2026-11-04 para incluir estas listas, así que T18 a T25 se mantienen, y pidió sumar T29. La capacidad no se cambió.
+**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 15 h de compromiso (T18 a T25 y T29) = 33 h para unas 18 disponibles. Quedan 15 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario amplió el Sprint Goal el 2026-11-04 para incluir estas listas, así que T18 a T25 se mantienen, y pidió sumar T29. La capacidad no se cambió.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
