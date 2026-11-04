@@ -56,11 +56,11 @@ class SunatService
             return $this->unavailable($source, 'connection failed');
         }
 
-        if (in_array($response->status(), [404, 422], true)) {
+        $payload = $response->json();
+
+        if (in_array($response->status(), [404, 422], true) || $this->rejectsDocument($payload, $source)) {
             return new SunatLookupResult(SunatLookupStatus::NotFound);
         }
-
-        $payload = $response->json();
 
         if (! $response->successful() || ! is_array($payload) || $this->text($payload, $requiredField) === null) {
             return $this->unavailable($source, "unexpected response with status {$response->status()}");
@@ -70,6 +70,16 @@ class SunatService
             SunatLookupStatus::Found,
             array_map(fn (string $field): ?string => $this->text($payload, $field), $fields),
         );
+    }
+
+    /**
+     * Check for the exact message the service sends for a wrong document, such as `ruc no valido`,
+     * so that a message about something else, such as the token, still counts as a failure.
+     */
+    private function rejectsDocument(mixed $payload, string $source): bool
+    {
+        return is_array($payload)
+            && mb_strtolower((string) $this->text($payload, 'message')) === "{$source} no valido";
     }
 
     /**

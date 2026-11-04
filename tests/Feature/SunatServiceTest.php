@@ -103,6 +103,36 @@ class SunatServiceTest extends TestCase
         $this->assertSame([], $result->data);
     }
 
+    public function test_returns_not_found_when_the_service_says_the_ruc_is_not_valid(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([self::RUC_URL.'*' => Http::response(['message' => 'ruc no valido'], 400)]);
+
+        $result = (new SunatService)->lookupRuc('20000000001');
+
+        $this->assertSame(SunatLookupStatus::NotFound, $result->status);
+    }
+
+    public function test_returns_not_found_when_the_service_says_the_dni_is_not_valid(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([self::DNI_URL.'*' => Http::response(['message' => 'dni no valido'], 400)]);
+
+        $result = (new SunatService)->lookupDni('00000001');
+
+        $this->assertSame(SunatLookupStatus::NotFound, $result->status);
+    }
+
+    public function test_returns_unavailable_when_the_message_is_about_something_other_than_the_document(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([self::RUC_URL.'*' => Http::response(['message' => 'token no valido'], 400)]);
+
+        $result = (new SunatService)->lookupRuc('20000000001');
+
+        $this->assertSame(SunatLookupStatus::Unavailable, $result->status);
+    }
+
     /**
      * @return array<string, array{int}>
      */
