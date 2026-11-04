@@ -73,13 +73,15 @@ class PasswordResetMailTest extends TestCase
     }
 
     /**
-     * @param  array<string, string>  $attributes
+     * @param  array<string, int|string>  $attributes
      */
     private function makeUser(array $attributes = []): User
     {
         return User::factory()->make([
             'name' => 'María Torres',
             'email' => 'maria.torres@empresa.com',
+            'identity_id' => '1',
+            'branch_id' => 1,
             ...$attributes,
         ]);
     }
