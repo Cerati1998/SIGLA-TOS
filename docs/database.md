@@ -100,13 +100,11 @@ erDiagram
 ```mermaid
 erDiagram
   identities ||--o{ providers : "tipo de documento"
-  users ||--o{ shipping_lines : "created_by"
 
   shipping_lines {
     bigint id PK
     string code UK
     string name
-    bigint created_by FK
     datetime deleted_at
   }
   providers {
@@ -211,7 +209,6 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `id` | bigint PK | |
 | `code` | varchar(20) | UK (criterio 2). |
 | `name` | varchar(100) | |
-| `created_by` | bigint FK → `users` | Ver P7. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
 ### 5.7 `providers` · `planeada (H10)`
@@ -224,7 +221,7 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `identity_id` | varchar(50) FK | Tipo de documento (RUC o DNI, según H10). |
 | `document_number` | varchar(15) | UK compuesta con `identity_id` (criterio 2). |
 | `business_name` | varchar(255) | ER: `razon_social`. |
-| `address`, `email`, `phone` | varchar | Obligatoriedad por confirmar antes de construir (H10, criterio 1); hasta entonces, null. |
+| `address`, `email`, `phone` | varchar (null) | Opcionales (H10, criterio 1). |
 | `timestamps`, `deleted_at` | | |
 
 ### 5.8 `security_device_types` · `planeada (H06)`
@@ -234,13 +231,13 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). |
 | `kind` | varchar(20) | Enum de PHP, lista fija: `seal` (sello), `bolt` (precinto; nombre por confirmar en T20), `tape` (cinta), `other` (otro). ER: `type`. |
-| `timestamps`, `deleted_at` | | Solo el admin desactiva (criterio 4). |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
 - Tablas descartadas: `branches_has_users`.
-- Columnas descartadas: `users.current_team_id`, `branches.dt_code`, `providers.branch_id`, `providers.cuenta_cte`, `providers.detalle_servicio`.
+- Columnas descartadas: `users.current_team_id`, `branches.dt_code`, `providers.branch_id`, `providers.cuenta_cte`, `providers.detalle_servicio`, `shipping_lines.created_by` (decisión del usuario del 2026-11-04).
 - Nuevas: `users.identity_id/document_number/branch_id`, tabla `identities`.
 - De la empresa, los datos de facturación electrónica entran vacíos con H27, y las credenciales se cargan desde la pantalla: nunca en texto plano ni en seeders.
 - Renombres: `razon_social` → `business_name`, `type` → `kind` en tipos de dispositivo.
@@ -283,5 +280,3 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
 | P5 | Glosario (T20) | Nombres en inglés de precinto/sello/cinta, funda, gate out, remolcador y semirremolque. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
-| P7 | `created_by` y seeders | Las filas cargadas por seeder o migradas de SIGLA 1.0 no tienen usuario autor: definir si `created_by` admite null o se siembra un usuario del sistema. Afecta a `shipping_lines` en este sprint. |
-| P8 | Obligatoriedad en proveedores | Qué datos de H10 son obligatorios (H10, criterio 1). |
