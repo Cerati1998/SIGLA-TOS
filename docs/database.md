@@ -47,7 +47,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `identities` | E1 · T19 | `en código` | (nueva; catálogo SUNAT 06) |
 | `companies` | E1 · T19 y H27 | `en código` | `company` |
 | `branches` | E1 · T19 | `en código` | `branches` |
-| `shipping_lines` | E8 · H09 | `planeada (H09)` | `shipping_lines` |
+| `shipping_lines` | E8 · H09 | `en código` | `shipping_lines` |
 | `providers` | E8 · H10 | `planeada (H10)` | `providers` |
 | `security_device_types` | E2 · H06 | `planeada (H06)` | `security_device_types` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
@@ -202,12 +202,12 @@ Por ahora hay **una sola empresa** (MACROMAR LOGISTICS). El seeder solo la crea 
 
 Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún proceso los usa (decisión del usuario del 2026-11-04). Las credenciales no van en seeders, no se devuelven al navegador ni se serializan. Si se cambia `APP_KEY`, hay que declarar la anterior en `APP_PREVIOUS_KEYS`; si se pierde, hay que volver a cargarlas.
 
-### 5.6 `shipping_lines` · `planeada (H09)`
+### 5.6 `shipping_lines` · `en código`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `code` | varchar(20) | UK (criterio 2). |
+| `code` | varchar(20) | UK (criterio 2). Se guarda sin espacios a los lados y en mayúsculas. |
 | `name` | varchar(100) | |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
