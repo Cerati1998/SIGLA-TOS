@@ -35,6 +35,7 @@ class SunatService
     /**
      * Query the external service. The document number and the exception message never reach the log,
      * because a DNI is personal data and the message of a failed request includes its URL.
+     * The service only takes the number in its URL: the user accepted this exception on 2026-11-04.
      *
      * @param  array<string, string>  $fields  The result field for each field of the service.
      */
