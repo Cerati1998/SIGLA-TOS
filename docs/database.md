@@ -49,7 +49,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `branches` | E1 · T19 | `en código` | `branches` |
 | `shipping_lines` | E8 · H09 | `en código` | `shipping_lines` |
 | `providers` | E8 · H10 | `planeada (H10)` | `providers` |
-| `security_device_types` | E2 · H06 | `planeada (H06)` | `security_device_types` |
+| `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -224,13 +224,13 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `address`, `email`, `phone` | varchar (null) | Opcionales (H10, criterio 1). |
 | `timestamps`, `deleted_at` | | |
 
-### 5.8 `security_device_types` · `planeada (H06)`
+### 5.8 `security_device_types` · `en código`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `name` | varchar(100) | UK (criterio 2). |
-| `kind` | varchar(20) | Enum de PHP, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. |
+| `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
+| `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
 ## 6. Cambios del ER original que ya aplican

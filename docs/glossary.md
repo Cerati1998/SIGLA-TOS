@@ -12,3 +12,4 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Remolcador | `tractor` | Unidad que jala el semirremolque (H23). |
 | Semirremolque | `semi_trailer` | Unidad que lleva la carga (H23). |
 | Tipo de documento | `identity` | Tabla `identities` y columna `identity_id`, catálogo SUNAT 06. |
+| Tipo de dispositivo de seguridad | `security_device_type` | Tabla `security_device_types` (H06). Su clase (sello, precinto, cinta u otro) es la columna `kind`. |

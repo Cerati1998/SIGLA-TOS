@@ -26,6 +26,12 @@
             'route' => route('intranet.shipping-lines.index'),
             'active' => request()->routeIs('intranet.shipping-lines.*'),
         ],
+        [
+            'name' => 'Tipos de dispositivo',
+            'icon' => 'shield',
+            'route' => route('intranet.security-device-types.index'),
+            'active' => request()->routeIs('intranet.security-device-types.*'),
+        ],
         ['header' => 'Configuración'],
         [
             'name' => 'Empresa',

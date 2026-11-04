@@ -198,11 +198,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Se crea un tipo con nombre y tipo (sello, precinto, cinta u otro).
   2. No se pueden crear dos tipos con el mismo nombre, aunque uno esté desactivado.
-  3. Se edita el nombre de un tipo.
+  3. Se edita el nombre de un tipo. El tipo (sello, precinto, cinta u otro) se elige al crear y no se cambia después (confirmado por el usuario el 2026-11-04).
   4. Un tipo se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. Un tipo desactivado no aparece al registrar lotes ni armar kits, pero se conserva en lo que ya existe.
   5. Los tipos no se eliminan, aunque no se hayan usado: solo se desactivan (confirmado el 2026-11-04).
   6. Por ahora, cualquier usuario con sesión usa esta pantalla. Que solo el admin y el usuario de bodega la vean, y que solo el admin desactive, pasa a H24 (confirmado el 2026-11-04).
   7. La pantalla se puede usar bien desde el celular.
+  8. Hay una lista de tipos, ordenada por nombre, que se puede buscar por nombre y filtrar por estado (confirmado por el usuario el 2026-11-04).
+- En el menú va en el grupo "Maestros", debajo de "Líneas navieras" (decisión del usuario del 2026-11-04).
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
 
