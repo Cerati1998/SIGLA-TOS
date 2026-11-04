@@ -3,10 +3,12 @@
         title="Nueva sucursal"
         name="branch-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.code = ''; $wire.form.name = ''; $wire.form.ubigeo = ''; $wire.form.address = ''; $wire.form.phone = ''; $wire.form.email = ''; $wire.form.website = ''"
+        x-on:open="$wire.form.name = ''; $wire.form.ubigeo = ''; $wire.form.address = ''; $wire.form.phone = ''; $wire.form.email = ''; $wire.form.website = ''"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="branch-create-form" wire:submit="save" class="grid gap-4">
+            <span class="text-sm text-ink-muted">El código se asigna solo al guardar.</span>
+
             <x-pages::branches.fields id-prefix="branch-create" />
         </form>
 

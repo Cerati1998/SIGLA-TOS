@@ -1,6 +1,8 @@
 <div>
     <x-wire-modal-card title="Editar sucursal" wire:model="form.openModal">
         <form id="branch-edit-form" wire:submit="save" class="grid gap-4">
+            <x-wire-input id="branch-edit-code" label="Código" type="text" :value="$form->code" readonly />
+
             <x-pages::branches.fields id-prefix="branch-edit" />
         </form>
 

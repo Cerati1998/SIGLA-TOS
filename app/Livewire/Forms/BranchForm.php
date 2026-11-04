@@ -2,9 +2,8 @@
 
 namespace App\Livewire\Forms;
 
+use App\Actions\Branches\CreateBranch;
 use App\Models\Branch;
-use App\Models\Company;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Form;
 
@@ -15,6 +14,7 @@ class BranchForm extends Form
     #[Locked]
     public ?int $branchId = null;
 
+    #[Locked]
     public string $code = '';
 
     public string $name = '';
@@ -52,7 +52,6 @@ class BranchForm extends Form
     protected function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:20', Rule::unique(Branch::class, 'code')->ignore($this->branchId)],
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -70,7 +69,6 @@ class BranchForm extends Form
     protected function validationAttributes(): array
     {
         return [
-            'code' => 'código',
             'name' => 'nombre',
             'phone' => 'teléfono',
             'email' => 'correo electrónico',
@@ -81,13 +79,13 @@ class BranchForm extends Form
     }
 
     /**
-     * Create the branch in the only company of the system.
+     * Create the branch and return it, with the code it was given.
      */
-    public function store(): void
+    public function store(): Branch
     {
         $this->validate();
 
-        Branch::query()->create([...$this->branchAttributes(), 'company_id' => Company::query()->firstOrFail()->id]);
+        return (new CreateBranch)->handle($this->branchAttributes());
     }
 
     /**
@@ -108,7 +106,6 @@ class BranchForm extends Form
     private function branchAttributes(): array
     {
         return [
-            'code' => $this->code,
             'name' => $this->name,
             'phone' => $this->phone ?: null,
             'email' => $this->email ?: null,

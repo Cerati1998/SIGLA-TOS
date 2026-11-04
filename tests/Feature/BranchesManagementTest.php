@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -61,19 +62,19 @@ class BranchesManagementTest extends TestCase
 
     public function test_the_list_is_ordered_by_code(): void
     {
-        Branch::factory()->recycle($this->company)->create(['code' => '7002', 'name' => 'Segunda Sede']);
-        Branch::factory()->recycle($this->company)->create(['code' => '7001', 'name' => 'Primera Sede']);
+        Branch::factory()->recycle($this->company)->create(['code' => '70002', 'name' => 'Segunda Sede']);
+        Branch::factory()->recycle($this->company)->create(['code' => '70001', 'name' => 'Primera Sede']);
 
         Livewire::test(BranchesTable::class)->assertSeeInOrder(['Primera Sede', 'Segunda Sede']);
     }
 
     public function test_the_list_filters_by_search_and_status(): void
     {
-        Branch::factory()->recycle($this->company)->create(['code' => '7001', 'name' => 'Sede Activa']);
-        Branch::factory()->recycle($this->company)->trashed()->create(['code' => '7002', 'name' => 'Sede Cerrada']);
+        Branch::factory()->recycle($this->company)->create(['code' => '70001', 'name' => 'Sede Activa']);
+        Branch::factory()->recycle($this->company)->trashed()->create(['code' => '70002', 'name' => 'Sede Cerrada']);
 
         Livewire::test(BranchesTable::class)
-            ->set('search', '7002')
+            ->set('search', '70002')
             ->assertSeeText('Sede Cerrada')
             ->assertDontSeeText('Sede Activa');
 
@@ -87,7 +88,6 @@ class BranchesManagementTest extends TestCase
     {
         Livewire::test(CreateModal::class)
             ->set('form.openModal', true)
-            ->set('form.code', '0002')
             ->set('form.name', 'Depot Callao')
             ->set('form.ubigeo', '070101')
             ->set('form.address', 'Av. Faucett 100')
@@ -101,7 +101,6 @@ class BranchesManagementTest extends TestCase
 
         $this->assertDatabaseHas('branches', [
             'company_id' => $this->company->id,
-            'code' => '0002',
             'name' => 'Depot Callao',
             'ubigeo' => '070101',
             'address' => 'Av. Faucett 100',
@@ -119,7 +118,6 @@ class BranchesManagementTest extends TestCase
             ->set('form.email', 'no-es-un-correo')
             ->call('save')
             ->assertHasErrors([
-                'form.code' => 'required',
                 'form.name' => 'required',
                 'form.ubigeo' => 'digits',
                 'form.address' => 'required',
@@ -129,32 +127,35 @@ class BranchesManagementTest extends TestCase
             ->assertNotDispatched('toast');
     }
 
-    public function test_two_branches_cannot_share_a_code_even_if_one_is_deactivated(): void
+    public function test_the_code_follows_the_highest_one_even_if_it_is_deactivated(): void
     {
-        Branch::factory()->recycle($this->company)->create(['code' => '7001']);
-        Branch::factory()->recycle($this->company)->trashed()->create(['code' => '7002']);
+        Branch::factory()->recycle($this->company)->create(['code' => '70001']);
+        Branch::factory()->recycle($this->company)->trashed()->create(['code' => '70005']);
+        Branch::factory()->recycle($this->company)->create(['code' => 'SIN-NUMERO']);
 
-        foreach (['7001', '7002'] as $code) {
-            Livewire::test(CreateModal::class)
-                ->set('form.code', $code)
-                ->set('form.name', 'Otra Sede')
-                ->set('form.ubigeo', '070101')
-                ->set('form.address', 'Av. Faucett 100')
-                ->call('save')
-                ->assertHasErrors(['form.code' => 'unique']);
-        }
+        $this->createBranch('Otra Sede')->assertHasNoErrors();
 
-        $this->assertDatabaseMissing('branches', ['name' => 'Otra Sede']);
+        $this->assertDatabaseHas('branches', ['name' => 'Otra Sede', 'code' => '70006']);
+    }
+
+    public function test_the_code_keeps_four_digits(): void
+    {
+        Branch::factory()->recycle($this->company)->create(['code' => '0002']);
+        Branch::query()->where('code', '!=', '0002')->update(['code' => '0000']);
+
+        $this->createBranch('Otra Sede')->assertDispatched('toast', text: 'La sucursal se creó con el código 0003.');
+
+        $this->assertDatabaseHas('branches', ['name' => 'Otra Sede', 'code' => '0003']);
     }
 
     public function test_a_branch_can_be_edited_and_keep_its_code(): void
     {
-        $branch = Branch::factory()->recycle($this->company)->create(['code' => '7001', 'name' => 'Nombre Anterior']);
+        $branch = Branch::factory()->recycle($this->company)->create(['code' => '70001', 'name' => 'Nombre Anterior']);
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-branch', branchId: $branch->id)
             ->assertSet('form.openModal', true)
-            ->assertSet('form.code', '7001')
+            ->assertSet('form.code', '70001')
             ->assertSet('form.name', 'Nombre Anterior')
             ->set('form.name', 'Nombre Nuevo')
             ->set('form.website', 'macromar.pe')
@@ -166,23 +167,9 @@ class BranchesManagementTest extends TestCase
 
         $branch->refresh();
 
-        $this->assertSame('7001', $branch->code);
+        $this->assertSame('70001', $branch->code);
         $this->assertSame('Nombre Nuevo', $branch->name);
         $this->assertSame('macromar.pe', $branch->website);
-    }
-
-    public function test_editing_cannot_take_the_code_of_another_branch(): void
-    {
-        Branch::factory()->recycle($this->company)->create(['code' => '7001']);
-        $branch = Branch::factory()->recycle($this->company)->create(['code' => '7002']);
-
-        Livewire::test(EditModal::class)
-            ->dispatch('edit-branch', branchId: $branch->id)
-            ->set('form.code', '7001')
-            ->call('save')
-            ->assertHasErrors(['form.code' => 'unique']);
-
-        $this->assertSame('7002', $branch->refresh()->code);
     }
 
     public function test_a_deactivated_branch_can_still_be_edited(): void
@@ -267,5 +254,17 @@ class BranchesManagementTest extends TestCase
         Livewire::test(BranchesTable::class)
             ->call('reactivate', $branch->id)
             ->assertDispatched('toast', icon: 'warning', title: 'Sucursal ya activa');
+    }
+
+    /**
+     * Save a new branch with valid values.
+     */
+    private function createBranch(string $name): Testable
+    {
+        return Livewire::test(CreateModal::class)
+            ->set('form.name', $name)
+            ->set('form.ubigeo', '070101')
+            ->set('form.address', 'Av. Faucett 100')
+            ->call('save');
     }
 }

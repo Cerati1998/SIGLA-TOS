@@ -2,8 +2,7 @@
     'idPrefix',
 ])
 
-<x-wire-input id="{{ $idPrefix }}-code" wire:model="form.code" label="Código" type="text" maxlength="20" required autofocus autocomplete="off" />
-<x-wire-input id="{{ $idPrefix }}-name" wire:model="form.name" label="Nombre" type="text" required autocomplete="off" />
+<x-wire-input id="{{ $idPrefix }}-name" wire:model="form.name" label="Nombre" type="text" required autofocus autocomplete="off" />
 <x-wire-input id="{{ $idPrefix }}-ubigeo" wire:model="form.ubigeo" label="Ubigeo" type="text" inputmode="numeric" maxlength="6" required autocomplete="off" />
 <x-wire-input id="{{ $idPrefix }}-address" wire:model="form.address" label="Dirección" type="text" required autocomplete="off" />
 <x-wire-input id="{{ $idPrefix }}-phone" wire:model="form.phone" label="Teléfono (opcional)" type="tel" autocomplete="off" />

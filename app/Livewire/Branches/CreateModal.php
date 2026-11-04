@@ -15,10 +15,10 @@ class CreateModal extends Component
      */
     public function save(): void
     {
-        $this->form->store();
+        $branch = $this->form->store();
         $this->form->openModal = false;
 
-        $this->dispatch('toast', icon: 'success', title: 'Sucursal creada', text: 'La sucursal se creó correctamente.');
+        $this->dispatch('toast', icon: 'success', title: 'Sucursal creada', text: "La sucursal se creó con el código {$branch->code}.");
         $this->dispatch('refreshDatatable');
     }
 
