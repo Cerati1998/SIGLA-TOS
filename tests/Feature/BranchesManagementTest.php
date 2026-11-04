@@ -45,7 +45,7 @@ class BranchesManagementTest extends TestCase
 
         $this->get(route('intranet.branches.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Configuración', 'Empresa', 'Sucursales'])
+            ->assertSeeInOrder(['Administración', 'Usuarios', 'Sucursales', 'Maestros'])
             ->assertSee(route('intranet.branches.index'))
             ->assertSeeText('Sede Activa')
             ->assertSeeText('Sede Cerrada')
