@@ -13,6 +13,7 @@
             'route' => route('intranet.users.index'),
             'active' => request()->routeIs('intranet.users.*'),
         ],
+        ['header' => 'Configuración'],
         [
             'name' => 'Empresa',
             'icon' => 'briefcase',

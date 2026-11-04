@@ -48,6 +48,7 @@ class CompanyManagementTest extends TestCase
         $this->get(route('intranet.company.edit'))
             ->assertOk()
             ->assertSee(route('intranet.company.edit'))
+            ->assertSeeInOrder(['Administración', 'Usuarios', 'Configuración', 'Empresa'])
             ->assertSee('Empresa Original')
             ->assertSee('20474360955');
     }
