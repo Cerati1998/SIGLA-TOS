@@ -173,7 +173,7 @@ El seeder carga las primeras si no hay ninguna: `0000` Sede Principal y `0001` D
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `company_id` | bigint FK → `companies.id` | Obligatoria. |
-| `code` | varchar(20) | UK. |
+| `code` | varchar(20) | UK. Se asigna solo: el número más alto + 1, con 4 dígitos, contando las desactivadas. No se edita. |
 | `name` | varchar(255) | |
 | `phone`, `email`, `website` | varchar | null. |
 | `ubigeo`, `address` | varchar | Ubigeo de 6 dígitos. |

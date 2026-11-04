@@ -122,8 +122,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Por ahora, cualquier usuario con sesión usa esta pantalla, incluso para reemplazar las credenciales: el usuario aceptó ese riesgo el 2026-11-04. En H24 se protege con un permiso de acceso.
   9. La pantalla se puede usar bien desde el celular.
   10. Hay una lista de sucursales en Configuración, con búsqueda por código o nombre y filtro por estado.
-  11. Se crea y se edita una sucursal con código, nombre, ubigeo de 6 dígitos y dirección, y con teléfono, correo y sitio web opcionales. Pertenece a la única empresa.
-  12. No se pueden crear dos sucursales con el mismo código, aunque una esté desactivada.
+  11. Se crea y se edita una sucursal con nombre, ubigeo de 6 dígitos y dirección, y con teléfono, correo y sitio web opcionales. Pertenece a la única empresa.
+  12. El código se asigna solo al crear: si ya existe 0002, sigue 0003, contando también las desactivadas (indicado por el usuario el 2026-11-04). No se escribe ni se edita.
   13. Una sucursal se desactiva con Soft Deletes y se puede reactivar. Una desactivada ya no se ofrece al crear o editar un usuario.
   14. No se puede desactivar una sucursal con usuarios activos: el aviso dice cuántos son (decisión del usuario del 2026-11-04). Tampoco la última sucursal activa.
   15. Un usuario desactivado cuya sucursal está desactivada no se puede reactivar hasta asignarle una activa.
