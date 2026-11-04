@@ -36,7 +36,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
-- Por ahora hay una sola empresa (`companies`), cargada por seeder y sin pantalla, y cada sucursal pertenece a ella. Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
+- Por ahora hay una sola empresa (`companies`), cargada por seeder y modificable en su pantalla (H27), y cada sucursal pertenece a ella. Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
 ## Notas para la Construcción (desde el ER del usuario)
@@ -105,6 +105,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   1. El admin asigna y cambia el rol de un usuario (admin, supervisor, usuario de bodega, inspector certificado, inspector checkpoint).
   2. Solo el admin ve y usa la pantalla de usuarios.
   3. Cada pantalla y cada acción validan el rol en el servidor.
+  4. La pantalla de la empresa (H27) se protege con un permiso de acceso (indicado por el usuario el 2026-11-04).
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
@@ -112,13 +113,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como admin, quiero modificar los datos de la empresa, incluidos los de facturación electrónica, para mantenerlos correctos y tenerlos listos si el producto llega a facturar.
 - Criterios de aceptación:
   1. Hay una pantalla con los datos de la única empresa. No se crea ni se elimina desde aquí.
-  2. Se editan los datos de identificación: RUC, razón social, nombre comercial (opcional), dirección y ubigeo. El RUC debe tener 11 dígitos, y la razón social, la dirección y el ubigeo son obligatorios.
-  3. Se puede subir o cambiar el logo, en formato png o jpg.
-  4. Se editan los datos de facturación electrónica, todos opcionales: cuenta de detracción, encabezado y pie de factura, usuario y clave SOL, client id y client secret, certificado y modo de producción (apagado por defecto).
-  5. La clave SOL, el client secret y el certificado se guardan cifrados y no se vuelven a mostrar: la pantalla indica si ya están cargados, y dejarlos vacíos conserva el valor guardado (suposición por confirmar).
+  2. Se editan los datos de identificación: RUC, razón social, nombre comercial (opcional), dirección y ubigeo. El RUC debe tener 11 dígitos y el ubigeo 6, y la razón social y la dirección son obligatorias.
+  3. Se puede subir o cambiar el logo, en formato png o jpg, hasta 2 MB.
+  4. Se editan los datos de facturación electrónica, todos opcionales: cuenta de detracción, encabezado y pie de factura, usuario y clave SOL, client id y client secret, certificado (archivo PEM con su clave privada) y modo de producción (apagado por defecto).
+  5. La clave SOL, el client secret y el certificado se guardan cifrados y no se vuelven a mostrar: la pantalla indica si ya están cargados, y dejarlos vacíos conserva el valor guardado (confirmado por el usuario el 2026-11-04).
   6. Las credenciales no se cargan por seeder.
   7. Al guardar se muestra un aviso, y si hay errores se indican junto a cada campo.
-  8. Por ahora, cualquier usuario con sesión usa esta pantalla. "Solo el admin" pasa a H24.
+  8. Por ahora, cualquier usuario con sesión usa esta pantalla, incluso para reemplazar las credenciales: el usuario aceptó ese riesgo el 2026-11-04. En H24 se protege con un permiso de acceso.
   9. La pantalla se puede usar bien desde el celular.
 - La referencia es la pantalla de compañía del sistema actual. SIGLA no factura todavía: estos datos solo se guardan, sin ningún proceso que los use, por si el Product Goal llega a incluir la facturación (decisión del usuario del 2026-11-04).
 

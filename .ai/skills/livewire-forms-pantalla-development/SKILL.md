@@ -7,8 +7,7 @@ description: "Usa este skill siempre que crees o cambies un form object de una p
 
 Para el form de una ventana pequeña usa `livewire-forms-modal-development`.
 
-Hoy ninguna pantalla del proyecto usa este tipo de form: los ejemplos son genéricos. Cuando exista la primera, cópiala como
-referencia y actualiza este skill.
+La referencia en el proyecto es `CompanyForm`, con `App\Livewire\Company\EditForm` (H27). Los ejemplos de abajo son genéricos.
 
 ## Principio
 
