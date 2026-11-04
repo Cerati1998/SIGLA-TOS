@@ -124,7 +124,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. Al guardar se muestra un aviso, y si hay errores se indican junto a cada campo.
   8. Por ahora, cualquier usuario con sesión usa esta pantalla, incluso para reemplazar las credenciales: el usuario aceptó ese riesgo el 2026-11-04. En H24 se protege con un permiso de acceso.
   9. La pantalla se puede usar bien desde el celular.
-  10. Hay una lista de sucursales en Configuración, con búsqueda por código o nombre y filtro por estado.
+  10. Hay una lista de sucursales en Administración, con búsqueda por código o nombre y filtro por estado. (Pasó de Configuración a Administración a pedido del usuario el 2026-11-04.)
   11. Se crea y se edita una sucursal con nombre, ubigeo de 6 dígitos y dirección, y con teléfono, correo y sitio web opcionales. Pertenece a la única empresa.
   12. El código se asigna solo al crear: si ya existe 0002, sigue 0003, contando también las desactivadas (indicado por el usuario el 2026-11-04). No se escribe ni se edita.
   13. Una sucursal se desactiva con Soft Deletes y se puede reactivar. Una desactivada ya no se ofrece al crear o editar un usuario.
@@ -158,12 +158,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como usuario de la intranet, quiero crear, editar, desactivar y reactivar líneas navieras, para elegirlas al ingresar lotes y armar kits. (Cambiado el 2026-11-04 en T21: la parte de roles pasa a H24.)
 - Criterios de aceptación:
   1. Se crea una línea naviera con código y nombre.
-  2. No se pueden crear dos líneas con el mismo código, aunque una esté desactivada.
+  2. No se pueden crear dos líneas con el mismo código, aunque una esté desactivada. El código se guarda sin espacios a los lados y en mayúsculas, así `msk` y `MSK` son el mismo (confirmado por el usuario el 2026-11-04).
   3. Se editan el código y el nombre de una línea.
   4. Una línea se desactiva en vez de borrarla, con Soft Deletes, y se reactiva desde la lista. Una línea desactivada no aparece al ingresar lotes ni armar kits, pero se conserva en lo que ya existe (confirmado el 2026-11-04).
-  5. Hay una lista de líneas que se puede buscar por código o nombre.
+  5. Hay una lista de líneas, ordenada por código, que se puede buscar por código o nombre y filtrar por estado (el orden y el filtro, confirmados por el usuario el 2026-11-04).
   6. La pantalla se puede usar bien desde el celular.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
+- En el menú va en el grupo "Maestros" (decisión del usuario del 2026-11-04).
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Pasar las navieras de SIGLA 1.0 a SIGLA 2.0 queda fuera de esta historia: es una tarea aparte, sin fecha todavía. Hasta entonces, las líneas se crean a mano (decisión del usuario del 2026-11-04).
 

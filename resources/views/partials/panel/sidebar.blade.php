@@ -13,18 +13,25 @@
             'route' => route('intranet.users.index'),
             'active' => request()->routeIs('intranet.users.*'),
         ],
+        [
+            'name' => 'Sucursales',
+            'icon' => 'map-pin',
+            'route' => route('intranet.branches.index'),
+            'active' => request()->routeIs('intranet.branches.*'),
+        ],
+        ['header' => 'Maestros'],
+        [
+            'name' => 'Líneas navieras',
+            'icon' => 'anchor',
+            'route' => route('intranet.shipping-lines.index'),
+            'active' => request()->routeIs('intranet.shipping-lines.*'),
+        ],
         ['header' => 'Configuración'],
         [
             'name' => 'Empresa',
             'icon' => 'briefcase',
             'route' => route('intranet.company.edit'),
             'active' => request()->routeIs('intranet.company.*'),
-        ],
-        [
-            'name' => 'Sucursales',
-            'icon' => 'map-pin',
-            'route' => route('intranet.branches.index'),
-            'active' => request()->routeIs('intranet.branches.*'),
         ],
     ];
 @endphp

@@ -47,7 +47,7 @@ Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 y T29 son el 
 - [x] **T20** · Llenar el glosario (`docs/glossary.md`) con los nombres en inglés de los términos del negocio (sello, precinto, cinta, funda, gate out, remolcador, semirremolque, tipo de documento). Quién: Scrum Master decide, Claude Code escribe. 0.5 h. (Hecho el 2026-11-04, PR #33.)
 - [x] **T21** · Cerrar los puntos por confirmar de H09, H10 y H06 (quién usa cada pantalla, datos obligatorios del proveedor, borrado de tipos usados) y comprobar que sus diseños en el lienzo estén aprobados; si falta alguno, diseñarlo y aprobarlo. Quién: Scrum Master. 1 h. (Hecho el 2026-11-04, PR #29. Solo H10 lleva diseño propio, aprobado en la página E8 del lienzo; H09 y H06 salen de la plantilla.)
 - [x] **T22** · Elegir el servicio externo de consulta de RUC y DNI (costo y condiciones) y dejar listo el cliente que usarán H10, H21 y H22. Quién: Scrum Master elige; Claude Code integra. 1 h. (Hecho el 2026-11-04, PR #30. El usuario eligió Decolecta; `SunatService` consulta RUC y DNI, sin tipo de cambio.)
-- [ ] **T23** · H09 · Gestionar líneas navieras. Quién: Claude Code. 1.5 h.
+- [x] **T23** · H09 · Gestionar líneas navieras. Quién: Claude Code. 1.5 h. (Hecho el 2026-11-04, PR #34.)
 - [ ] **T24** · H06 · Gestionar tipos de dispositivo. Quién: Claude Code. 1.5 h.
 - [ ] **T25** · H10 · Gestionar proveedores (con la consulta de T22). Quién: Claude Code. 3 h.
 - [ ] **T26** · (Adelanto opcional) Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h.
