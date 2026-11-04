@@ -11,6 +11,7 @@ Dejar lista la base del proyecto: stack TALL instalado, identidad visual y plant
 
 ## Historias del sprint
 H01 · Iniciar sesión, H02 · Cerrar sesión, H03 · Recuperar contraseña y H04 · Gestionar usuarios intranet, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10) y las rutas de intranet (T14). La extranet no entra en este sprint. Antes: ninguna (opción A).
+El 2026-11-04 el usuario sumó, por el tiempo que sobraba, tareas que iban al Sprint 2: el modelo de datos (T18, T19), el glosario (T20), la preparación de H09, H06 y H10 (T21, T22) y esas tres historias (T23 a T25). T26 y T27 quedan como adelanto opcional.
 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
@@ -38,7 +39,23 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada.
 - [x] **T16** · Diseñar y aprobar en el lienzo el layout de los correos, con la identidad visual, el logo de SIGLA y sin enlaces largos en el cuerpo. Quién: Claude Code; aprueba el usuario. 0.5 h. (Aprobado por el usuario el 2026-11-03, PR #21.)
 - [x] **T17** · Adaptar el layout de los correos desde el diseño aprobado (uno solo para todos los correos, sea cual sea su propósito) y aplicarlo al correo de recuperar contraseña. Quién: Claude Code. 1 h. (Hecho el 2026-11-03, PR #21.)
 
+## Tareas agregadas el 2026-11-04
+Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 son el compromiso; T26 y T27 solo se hacen si sobra tiempo (no suman al total).
+
+- [ ] **T18** · Documentar el modelo de datos en `docs/database.md` (versionado, con diagrama Mermaid y diccionario por tabla, solo hasta este sprint), corregir en el backlog la nota que dice que el ER es solo referencia, proponer los cambios al backlog que salen del cuestionario (H04, H15, H17, historias nuevas H25 y H26) y anotar la regla de que toda migración actualiza `database.md`. Quién: Claude Code; aprueba el usuario. 1 h.
+- [ ] **T19** · Tabla de tipos de documento (`identities`, por seeder), tabla de sucursales (`branches`, por seeder) y los campos de tipo de documento, número de documento y sucursal en `users`, con el cambio al modal de H04. Debe dejar `docs/database.md` al día. Quién: Claude Code. 2.5 h.
+- [ ] **T20** · Llenar el glosario (`docs/glossary.md`) con los nombres en inglés de los términos del negocio (sello, precinto, cinta, funda, gate out, remolcador, semirremolque, tipo de documento). Quién: Scrum Master decide, Claude Code escribe. 0.5 h.
+- [ ] **T21** · Cerrar los puntos por confirmar de H09, H10 y H06 (quién usa cada pantalla, datos obligatorios del proveedor, borrado de tipos usados) y comprobar que sus diseños en el lienzo estén aprobados; si falta alguno, diseñarlo y aprobarlo. Quién: Scrum Master. 1 h.
+- [ ] **T22** · Elegir el servicio externo de consulta de RUC y DNI (costo y condiciones) y dejar listo el cliente que usarán H10, H21 y H22. Quién: Scrum Master elige; Claude Code integra. 1 h.
+- [ ] **T23** · H09 · Gestionar líneas navieras. Quién: Claude Code. 1.5 h.
+- [ ] **T24** · H06 · Gestionar tipos de dispositivo. Quién: Claude Code. 1.5 h.
+- [ ] **T25** · H10 · Gestionar proveedores (con la consulta de T22). Quién: Claude Code. 3 h.
+- [ ] **T26** · (Adelanto opcional) Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h.
+- [ ] **T27** · (Adelanto opcional) Preparar H07 y H08: cerrar los criterios pendientes de anuncio y lote, y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
+
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
+
+**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 12 h de compromiso (T18 a T25) = 30 h para unas 18 disponibles. Quedan 12 h por encima de la capacidad (T26 y T27, 4 h más, quedan aparte como adelanto). El usuario decide qué tareas se mantienen, cuáles pasan al Sprint 2 o si se acepta el exceso. No se cambió la capacidad ni el Sprint Goal.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
