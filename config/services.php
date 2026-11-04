@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'sunat' => [
+        'ruc_url' => env('API_RUC'),
+        'dni_url' => env('API_DNI'),
+        'token' => env('API_TOKEN'),
+        'timeout' => env('API_TIMEOUT', 8),
+    ],
+
 ];

@@ -180,7 +180,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
 - Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
 - Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
-- Decisiones técnicas para la Construcción: qué servicio de terceros para la consulta de RUC/DNI y su costo (el proyecto nace para dejar de pagar por registro). La consulta podría servir luego en otros formularios.
+- Servicio de consulta de RUC y DNI: Decolecta, elegido por el usuario, mediante `SunatService` (T22). También lo usarán H21 y H22.
+- El DNI viaja en la URL de Decolecta, por HTTPS, porque ese servicio solo lo recibe así, y nunca va en nuestros logs. Es una excepción a la regla de datos personales, aceptada por el usuario el 2026-11-04.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
 
 ### E2 · Dispositivos de seguridad
