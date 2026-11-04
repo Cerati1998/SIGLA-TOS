@@ -36,7 +36,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 - **Compatibilidad:** las migraciones corren desde cero y funcionan en **MariaDB 10.6** (producción cPanel). Nunca se hace ingeniería directa del `.mwb` (su intercalación es de MySQL 8). La intercalación es la de `config/database.php` (`utf8mb4_unicode_ci`).
 - **Zona horaria:** la app guarda en UTC (`config/app.php`). Lo que depende del calendario local se calcula en `America/Lima`.
 - **Datos personales:** DNI, brevete y número de documento solo los ven los roles que los necesitan; nunca van en URLs ni en logs.
-- **Excepción documentada:** `identities` y `companies` son catálogos fijos cargados por seeder, sin pantalla y sin `deleted_at`.
+- **Excepción documentada:** `identities` es un catálogo fijo cargado por seeder, sin pantalla y sin `deleted_at`. `companies` tampoco lleva `deleted_at`: la única empresa se carga por seeder y se modifica en su pantalla (H27), sin crearse ni eliminarse.
 
 ## 3. Tablas del Sprint 1
 
@@ -45,7 +45,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `users` | E1 · H04 (T15) y T19 | `en código` | `users` |
 | `passkeys` | E1 · H01 | `en código` | (no estaba en el ER) |
 | `identities` | E1 · T19 | `en código` | (nueva; catálogo SUNAT 06) |
-| `companies` | E1 · T19 | `en código` | `company` |
+| `companies` | E1 · T19 y H27 | `en código` | `company` |
 | `branches` | E1 · T19 | `en código` | `branches` |
 | `shipping_lines` | E8 · H09 | `planeada (H09)` | `shipping_lines` |
 | `providers` | E8 · H10 | `planeada (H10)` | `providers` |
@@ -181,7 +181,7 @@ Se cargan por seeder, sin pantalla: `0000` Sede Principal y `0001` Depot Paita -
 
 ### 5.5 `companies` · `en código`
 
-Por ahora hay **una sola empresa**, cargada por seeder y sin pantalla (MACROMAR LOGISTICS). Si el sistema escala a multitenancy, se pasa a varias: `branches.company_id` ya deja lista esa relación (decisión del usuario del 2026-11-04).
+Por ahora hay **una sola empresa** (MACROMAR LOGISTICS). El seeder solo la crea si no existe; después se modifica en su pantalla (H27). Si el sistema escala a multitenancy, se pasa a varias: `branches.company_id` ya deja lista esa relación (decisión del usuario del 2026-11-04).
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -190,8 +190,19 @@ Por ahora hay **una sola empresa**, cargada por seeder y sin pantalla (MACROMAR 
 | `business_name` | varchar(255) | Razón social. Origen: `razonSocial`. |
 | `trade_name` | varchar(255) | null. Nombre comercial. Origen: `nombreComercial`. |
 | `address` | varchar(255) | Origen: `direccion`. |
-| `ubigeo` | varchar(255) | |
+| `ubigeo` | varchar(255) | 6 dígitos. |
+| `logo_path` | varchar(255) | null. Ruta en el disco `public`. |
+| `detraction_account` | varchar(255) | null. |
+| `invoice_header`, `invoice_footer` | text | null. Hasta 1000 caracteres. |
+| `sol_user` | varchar(255) | null. |
+| `sol_pass` | text | null. **Cifrada** con `APP_KEY`. |
+| `client_id` | varchar(255) | null. |
+| `client_secret` | text | null. **Cifrado** con `APP_KEY`. |
+| `certificate` | text | null. PEM con el certificado y su clave privada, hasta 32 KB, **cifrado** con `APP_KEY`. |
+| `production` | boolean | Por defecto `false`. |
 | `timestamps` | | |
+
+Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún proceso los usa (decisión del usuario del 2026-11-04). Las credenciales no van en seeders, no se devuelven al navegador ni se serializan. Si se cambia `APP_KEY`, hay que declarar la anterior en `APP_PREVIOUS_KEYS`; si se pierde, hay que volver a cargarlas.
 
 ### 5.6 `shipping_lines` · `planeada (H09)`
 
@@ -231,7 +242,7 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 - Tablas descartadas: `branches_has_users`.
 - Columnas descartadas: `users.current_team_id`, `branches.dt_code`, `providers.branch_id`, `providers.cuenta_cte`, `providers.detalle_servicio`.
 - Nuevas: `users.identity_id/document_number/branch_id`, tabla `identities`.
-- De la empresa no se traen los datos de facturación electrónica: `sol_user`, `sol_pass`, `client_id`, `client_secret`, `certificate`, `detraction_account`, `logo_path`, `invoice_header`, `invoice_footer` y `production`. SIGLA no factura, y las credenciales no se guardan en texto plano ni en seeders.
+- De la empresa, los datos de facturación electrónica entran vacíos con H27, y las credenciales se cargan desde la pantalla: nunca en texto plano ni en seeders.
 - Renombres: `razon_social` → `business_name`, `type` → `kind` en tipos de dispositivo.
 
 ## 7. Decisiones guardadas para sprints siguientes

@@ -15,7 +15,7 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
-        $companyId = Company::query()->where('ruc', CompanySeeder::RUC)->value('id');
+        $companyId = Company::query()->value('id');
 
         $branches = [
             [
