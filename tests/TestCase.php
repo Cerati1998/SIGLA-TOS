@@ -16,23 +16,21 @@ abstract class TestCase extends BaseTestCase
     {
         $app = parent::createApplication();
 
-        $this->ensureTestsUseTheInMemoryDatabase($app);
+        $this->ensureTestEnvironmentIsActive($app);
 
         return $app;
     }
 
     /**
      * A cached configuration ignores phpunit.xml, so the tests would run on the database of the .env file.
+     * The connection itself is not checked because the CI runs them on MariaDB on purpose.
      */
-    protected function ensureTestsUseTheInMemoryDatabase(Application $app): void
+    protected function ensureTestEnvironmentIsActive(Application $app): void
     {
-        $connection = $app['config']->get('database.default');
-        $database = $app['config']->get("database.connections.{$connection}.database");
-
-        if ($connection !== 'sqlite' || $database !== ':memory:') {
+        if ($app->configurationIsCached() || ! $app->environment('testing')) {
             throw new RuntimeException(
-                "The tests must run on the in-memory SQLite database, not on [{$connection}]. "
-                .'If the configuration is cached, run `php artisan config:clear`.'
+                'The tests stopped to protect the real database: the configuration is cached or the environment is not [testing]. '
+                .'Run `php artisan config:clear`.'
             );
         }
     }
