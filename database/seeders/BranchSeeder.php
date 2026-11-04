@@ -11,10 +11,14 @@ class BranchSeeder extends Seeder
     public const MAIN_BRANCH_CODE = '0000';
 
     /**
-     * Load the branches of the company.
+     * Load the first branches of the company, unless there are some already: from then on they are managed on their screen.
      */
     public function run(): void
     {
+        if (Branch::withTrashed()->exists()) {
+            return;
+        }
+
         $companyId = Company::query()->value('id');
 
         $branches = [
@@ -33,7 +37,7 @@ class BranchSeeder extends Seeder
         ];
 
         foreach ($branches as $branch) {
-            Branch::query()->updateOrCreate(['code' => $branch['code']], [...$branch, 'company_id' => $companyId]);
+            Branch::query()->create([...$branch, 'company_id' => $companyId]);
         }
     }
 }

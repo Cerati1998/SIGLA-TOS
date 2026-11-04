@@ -107,6 +107,12 @@ class UsersTable extends BaseTable
             return;
         }
 
+        if ($user->branch()->doesntExist()) {
+            $this->dispatch('toast', icon: 'warning', title: 'Sucursal desactivada', text: 'Asigna al usuario una sucursal activa antes de reactivarlo.');
+
+            return;
+        }
+
         $user->restore();
 
         $this->dispatch('toast', icon: 'success', title: 'Usuario reactivado', text: 'El usuario se reactivó correctamente.');

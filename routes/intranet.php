@@ -8,4 +8,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('users', 'pages.users.index')->name('users.index');
 
     Route::view('company', 'pages.company.edit')->name('company.edit');
+
+    Route::view('branches', 'pages.branches.index')->name('branches.index');
 });

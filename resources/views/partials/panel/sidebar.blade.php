@@ -20,6 +20,12 @@
             'route' => route('intranet.company.edit'),
             'active' => request()->routeIs('intranet.company.*'),
         ],
+        [
+            'name' => 'Sucursales',
+            'icon' => 'map-pin',
+            'route' => route('intranet.branches.index'),
+            'active' => request()->routeIs('intranet.branches.*'),
+        ],
     ];
 @endphp
 

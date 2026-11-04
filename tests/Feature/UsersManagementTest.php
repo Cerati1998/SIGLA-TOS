@@ -419,6 +419,26 @@ class UsersManagementTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_a_user_of_a_deactivated_branch_cannot_be_reactivated_until_moved(): void
+    {
+        $user = User::factory()->trashed()->create();
+        $user->branch()->firstOrFail()->delete();
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(UsersTable::class)
+            ->call('reactivate', $user->id)
+            ->assertDispatched('toast', icon: 'warning', title: 'Sucursal desactivada');
+
+        $this->assertSoftDeleted($user);
+
+        $user->update(['branch_id' => Branch::factory()->create()->id]);
+
+        Livewire::test(UsersTable::class)->call('reactivate', $user->id);
+
+        $this->assertNotSoftDeleted($user);
+    }
+
     public function test_deactivating_an_already_deactivated_user_only_warns(): void
     {
         $user = User::factory()->trashed()->create();

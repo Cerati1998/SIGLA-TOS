@@ -11,7 +11,7 @@ Dejar lista la base del proyecto (stack TALL instalado, identidad visual y plant
 
 ## Historias del sprint
 H01 · Iniciar sesión, H02 · Cerrar sesión, H03 · Recuperar contraseña y H04 · Gestionar usuarios intranet, sumadas por el usuario el 2026-11-02 junto con la plantilla base (T10) y las rutas de intranet (T14). La extranet no entra en este sprint. Antes: ninguna (opción A).
-El 2026-11-04 el usuario sumó, por el tiempo que sobraba, tareas que iban al Sprint 2: el modelo de datos (T18, T19), el glosario (T20), la preparación de H09, H06 y H10 (T21, T22) y esas tres historias (T23 a T25). T26 a T28 quedan como adelanto opcional. El mismo día sumó H27 (T29), la pantalla para modificar la empresa.
+El 2026-11-04 el usuario sumó, por el tiempo que sobraba, tareas que iban al Sprint 2: el modelo de datos (T18, T19), el glosario (T20), la preparación de H09, H06 y H10 (T21, T22) y esas tres historias (T23 a T25). T26 a T28 quedan como adelanto opcional. El mismo día sumó H27 (T29), la pantalla para modificar la empresa, y luego amplió esa historia con la gestión de sucursales.
 
 ## Tareas (preparación base)
 Marca de avance: `[ ]` pendiente, `[x]` terminada.
@@ -53,11 +53,11 @@ Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 y T29 son el 
 - [ ] **T26** · (Adelanto opcional) Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h.
 - [ ] **T27** · (Adelanto opcional) Preparar H07 y H08: cerrar los criterios pendientes de anuncio y lote, y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
 - [ ] **T28** · (Adelanto opcional) Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Separada de T19 por pedido del usuario el 2026-11-04. Quién: Claude Code. 1 h.
-- [x] **T29** · H27 · Modificar los datos de la empresa, con los de facturación electrónica. Quién: Claude Code. 3 h. (Hecho el 2026-11-04, PR #27.)
+- [x] **T29** · H27 · Modificar los datos de la empresa, con los de facturación electrónica, y gestionar las sucursales. Quién: Claude Code. 4.5 h. (Hecho el 2026-11-04: la empresa en el PR #27 y las sucursales en el PR #28.)
 
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
-**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 15 h de compromiso (T18 a T25 y T29) = 33 h para unas 18 disponibles. Quedan 15 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario amplió el Sprint Goal el 2026-11-04 para incluir estas listas, así que T18 a T25 se mantienen, y pidió sumar T29. La capacidad no se cambió.
+**Total con las tareas del 2026-11-04:** 18 h ya hechas (T01 a T17) + 16.5 h de compromiso (T18 a T25 y T29) = 34.5 h para unas 18 disponibles. Quedan 16.5 h por encima de la capacidad (T26 a T28, 5 h más, quedan aparte como adelanto). El usuario amplió el Sprint Goal el 2026-11-04 para incluir estas listas, así que T18 a T25 se mantienen, y pidió sumar T29. La capacidad no se cambió.
 
 ## Incertidumbres
 - Licencia de la plantilla de ThemeForest: revisar qué permite (copiar y adaptar su estilo, reutilizar imágenes y fuentes) antes de usarla como referencia en producción.
