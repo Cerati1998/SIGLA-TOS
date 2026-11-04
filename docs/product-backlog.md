@@ -108,6 +108,18 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
+**H27 · Modificar los datos de la empresa** (propuesta del 2026-11-04, sin aprobar)
+- Como admin, quiero modificar los datos de la empresa, para mantenerlos correctos en el sistema.
+- Criterios de aceptación:
+  1. Hay una pantalla con los datos de la única empresa. No se crea ni se elimina desde aquí.
+  2. Se editan RUC, razón social, nombre comercial (opcional), dirección y ubigeo (por confirmar).
+  3. El RUC debe tener 11 dígitos, y la razón social, la dirección y el ubigeo son obligatorios.
+  4. Al guardar se muestra un aviso, y si hay errores se indican junto a cada campo.
+  5. Por ahora, cualquier usuario con sesión usa esta pantalla. "Solo el admin" pasa a H24.
+  6. La pantalla se puede usar bien desde el celular.
+- Por confirmar: si incluye el logo. La referencia es la pantalla de compañía del sistema actual.
+- Fuera de esta historia: datos de facturación electrónica (usuario y clave SOL, credenciales de API, certificado, cuenta de detracción, encabezado y pie de factura). SIGLA no factura.
+
 ### E7 · Puente con SIGLA 1.0
 - Épica temporal: consulta la solicitud de retiro en la API de SIGLA 1.0 (sistema actual en producción) hasta migrar todo el módulo de gate out. Entonces el puente se retira.
 - Depende de: E1. La necesita E5.
