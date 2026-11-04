@@ -117,7 +117,7 @@ erDiagram
   security_device_types {
     bigint id PK
     string name UK
-    string kind "seal, bolt, tape, other"
+    string kind "seal, container_seal, tape, other"
     datetime deleted_at
   }
 ```
@@ -230,7 +230,7 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). |
-| `kind` | varchar(20) | Enum de PHP, lista fija: `seal` (sello), `bolt` (precinto; nombre por confirmar en T20), `tape` (cinta), `other` (otro). ER: `type`. |
+| `kind` | varchar(20) | Enum de PHP, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
 ## 6. Cambios del ER original que ya aplican
@@ -278,5 +278,4 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | P2 | Anuncios y lotes | Confirmar prefijo en columna propia, series numéricas y proveedor solo en el anuncio. Se cierra al entrar H07. |
 | P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
 | P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
-| P5 | Glosario (T20) | Nombres en inglés de precinto/sello/cinta, funda, gate out, remolcador y semirremolque. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
