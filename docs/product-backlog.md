@@ -31,24 +31,25 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Por ahora solo se manejan contenedores de 40'. Lo que pide cada sección es igual para todos. Si entran otras medidas, se amplía.
 - La certificación es un proceso OPCIONAL que va después del EIR del gate out (el EIR se hace a todas las unidades y todavía no entra en SIGLA 2.0). Se practica solo a algunas navieras. SIGLA 2.0 no valida ni obliga si una unidad debe certificarse ni impide cerrar un gate out sin certificación; el inspector decide. Esa regla sería una historia nueva cuando se migre el gate out. No seremos minuciosos en ese detalle por ahora.
 - Lo que pide cada sección (tipo de dispositivo y cantidad) no existe en BUMMOCK; el técnico lo tiene interiorizado. Es una oportunidad de mejora de SIGLA 2.0.
-- Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un inspector certificado, (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
+- Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un trabajador (H25), (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
 - Una certificación usa un solo kit. "El ticket" que se asigna al iniciar es la solicitud de retiro.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
-- El diseño de la base de datos lo hace Claude Code durante la Construcción. El ER del usuario es referencia de negocio.
+- El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
+- Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
 ## Notas para la Construcción (desde el ER del usuario)
-- Falta qué dispositivos y cuántos pide cada sección (H12). El ER ya trae la tabla con su cantidad y clave compuesta. Se podría renombrar `certificacion_criteria_items` (el ER nuevo ya lo llama `certification_criteria_items`).
+- Falta qué dispositivos y cuántos pide cada sección (H12). El ER ya trae la tabla con su cantidad y clave compuesta. Se podría renombrar `certificacion_criteria_items` (el ER nuevo ya lo llama `certification_criteria_items`). (Resuelto el 2026-11-04: se llamará `certification_sections`.)
 - El tipo de kit guarda la cantidad por tipo de dispositivo en el ER nuevo (apoya H13, criterio 7, que sigue por confirmar).
-- Índices únicos individuales en `type_kits_has_security_device_types` y `branches_has_users`: probablemente deberían ser compuestos.
-- `security_certifications` tiene `gate_out_request_id` único: definir si la reinspección reabre la certificación o crea otra.
-- `security_certifications` guarda zona de patio, pero la gestión de patio está fuera del Product Goal: definir de dónde sale ese dato.
-- `security_certifications` guarda horas de inicio y cierre sin fecha: revisar.
-- `kits_dispatches` guarda receptor y quien asigna como trabajadores (`workers`), pero el receptor es un inspector certificado con cuenta de usuario: reconsiderar ese vínculo.
+- Índices únicos individuales en `type_kits_has_security_device_types` y `branches_has_users`: probablemente deberían ser compuestos. (Resuelto el 2026-11-04: `branches_has_users` se descarta y el tipo de kit usa una clave compuesta con cantidad.)
+- `security_certifications` tiene `gate_out_request_id` único: definir si la reinspección reabre la certificación o crea otra. (Resuelto el 2026-11-04: la reabre.)
+- `security_certifications` guarda zona de patio, pero la gestión de patio está fuera del Product Goal: definir de dónde sale ese dato. (Resuelto el 2026-11-04: lo elige el inspector al iniciar, de un catálogo de zonas, H26.)
+- `security_certifications` guarda horas de inicio y cierre sin fecha: revisar. (Resuelto el 2026-11-04: pasan a fecha y hora.)
+- `kits_dispatches` guarda receptor y quien asigna como trabajadores (`workers`), pero el receptor es un inspector certificado con cuenta de usuario: reconsiderar ese vínculo. (Resuelto el 2026-11-04: el receptor es un trabajador, H25; quien entrega es el usuario que despacha.)
 - La certificación debe guardar la copia de los datos de la solicitud y referencias a transportista, conductor, remolcador y semirremolque (el ER aún no lo trae).
 - Traducir el texto del tipo de vehículo a los tres valores del catálogo; si no coincide, crear igual y marcar para revisión (por confirmar).
-- Pendiente: qué significan la semana y la zona de patio del kit, y si la zona se elige al crear el kit.
-- Pendiente: cómo se reconoce la naviera que trae la API contra el catálogo de E8 y qué pasa si no existe.
+- Pendiente: qué significan la semana y la zona de patio del kit, y si la zona se elige al crear el kit. (Resuelto el 2026-11-04: ver H14.)
+- Pendiente: cómo se reconoce la naviera que trae la API contra el catálogo de E8 y qué pasa si no existe. (Resuelto el 2026-11-04: ver H17.)
 - Tipos de contenedor: por ahora solo 40'; supuesto de que la lista se carga una vez, sin pantalla de gestión.
 - EN REVISIÓN (lo posterior a la asignación del kit): fotos por sección y su peso desde celular, vínculo dispositivo ↔ sección ↔ certificación, PDF de la certificación, zonas del formato (exteriores, interiores, puertas) y todo el checkpoint.
 
@@ -86,7 +87,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H04 · Gestionar usuarios intranet**
 - Como usuario de la intranet, quiero crear, editar, desactivar y reactivar usuarios intranet, para controlar quién entra al sistema. (Cambiado el 2026-11-03: la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. Se crea un usuario con nombre y correo.
+  1. Se crea un usuario con nombre, correo, tipo y número de documento, y sucursal. El tipo de documento y la sucursal se eligen de listas cargadas por seeder, sin pantalla propia (cambiado el 2026-11-04; se construye en T19).
   2. No se pueden crear dos usuarios con el mismo correo, aunque uno esté desactivado.
   3. Se editan los datos de un usuario.
   4. Un usuario se desactiva en vez de borrarlo, con Soft Deletes, para conservar el historial (confirmado el 2026-11-03). Un usuario desactivado no puede iniciar sesión y su sesión abierta se cierra en su siguiente petición. Se reactiva desde la lista. Nadie puede desactivarse ni reactivarse a sí mismo.
@@ -94,6 +95,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Por ahora, cualquier usuario con sesión usa esta pantalla. "Solo el admin" pasa a H24.
   7. No existe registro público.
   8. La pantalla se puede usar bien desde el celular.
+  9. No se pueden crear dos usuarios con el mismo tipo y número de documento, aunque uno esté desactivado (T19).
+  10. Un usuario pertenece a una sola sucursal (T19).
 
 **H24 · Roles y permisos** (propuesta del 2026-11-03, sin aprobar; se construye al culminar E6)
 - Como admin, quiero asignar un rol a cada usuario, para que cada persona vea y use solo lo que le corresponde.
@@ -239,7 +242,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Duda: algunos dispositivos podrían ir en un punto único del contenedor (por ejemplo la puerta) y no por sección; ver si entra en esta lista.
 
 ### E4 · Kits
-- Que bodega arme kits con dispositivos escaneados, los despache a un inspector certificado y los consulte.
+- Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte.
 - Depende de: E1, E2, E3, E8. La necesita E5.
 
 **H13 · Gestionar tipos de kit**
@@ -255,10 +258,35 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Solo el admin usa esta pantalla (por confirmar).
   9. La pantalla se puede usar bien desde el celular.
 
+**H25 · Gestionar trabajadores** (propuesta del 2026-11-04, sin aprobar)
+- Como admin, quiero crear, editar y desactivar trabajadores, propios o de un proveedor, para elegirlos como receptores al despachar kits.
+- Criterios de aceptación:
+  1. El admin crea un trabajador con nombre, tipo y número de documento, e indica si es propio o de un proveedor. Si es de un proveedor, elige uno activo (H10).
+  2. No se pueden crear dos trabajadores con el mismo tipo y número de documento, aunque uno esté desactivado.
+  3. El admin edita los datos de un trabajador.
+  4. El admin desactiva un trabajador en vez de borrarlo, y lo reactiva desde la lista. Uno desactivado no aparece al despachar kits, pero se conserva en los despachos ya hechos.
+  5. Hay una lista que se puede buscar por nombre o número de documento.
+  6. Un trabajador no se enlaza directamente a un usuario. Para que un inspector vea los kits que le despacharon, su usuario y su trabajador deben tener el mismo tipo y número de documento.
+  7. El número de documento solo lo ven los roles que lo necesitan. No es asesoría legal.
+  8. Solo el admin usa esta pantalla (por confirmar).
+  9. La pantalla se puede usar bien desde el celular.
+
+**H26 · Gestionar zonas de patio** (propuesta del 2026-11-04, sin aprobar)
+- Como admin, quiero crear, editar y desactivar las zonas de patio de cada sucursal, para que el inspector elija una al iniciar una certificación.
+- Criterios de aceptación:
+  1. El admin crea una zona con sucursal, nombre y capacidad.
+  2. No se pueden crear dos zonas con el mismo nombre en la misma sucursal (por confirmar).
+  3. El admin edita los datos de una zona.
+  4. El admin desactiva una zona en vez de borrarla. Una desactivada no aparece al iniciar una certificación, pero se conserva en las ya hechas.
+  5. Hay una lista que se puede buscar por nombre y filtrar por sucursal.
+  6. La capacidad es un dato informativo: el sistema no controla cuánto hay en cada zona (por confirmar). La gestión de patio sigue fuera del Product Goal.
+  7. Solo el admin usa esta pantalla (por confirmar).
+  8. La pantalla se puede usar bien desde el celular.
+
 **H14 · Crear un kit y agregarle dispositivos**
 - Como usuario de bodega, quiero crear un kit y agregarle dispositivos escaneándolos, para dejarlo listo para despacharlo.
 - Criterios de aceptación:
-  1. Se ingresan los datos generales: código de barras de la funda (escaneado o escrito), tipo de kit, naviera, semana y zona de patio. Cuáles son obligatorios se confirma antes de construir.
+  1. Se ingresan los datos generales: código de barras de la funda (escaneado o escrito), tipo de kit y naviera. Cuáles son obligatorios se confirma antes de construir.
   2. El código de la funda no puede repetirse en otro kit.
   3. Solo se pueden elegir tipos de kit y navieras activos.
   4. Los dispositivos se agregan escaneando uno por uno. Cada escaneo llena el campo y se agrega solo al kit, sin botón de guardar. El guardado es asíncrono (regla común).
@@ -270,12 +298,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   10. Si el tipo de kit define cantidades (H13, criterio 7), se muestra el avance (ejemplo: "4 de 6 precintos") y se avisa si falta alguno (por confirmar si deja guardar el kit incompleto).
   11. Queda registrado quién creó el kit y cuándo.
   12. La pantalla se puede usar bien desde el celular, con el cursor listo en el campo de escaneo después de cada lectura.
-- Pendiente: qué significan la semana y la zona de patio del kit.
+- La semana no se escribe: es la semana ISO de la fecha de creación del kit, en hora de Lima, y se usa para listar y filtrar en H16. La zona de patio no va en el kit: la elige el inspector al iniciar la certificación, H17 (decisión del 2026-11-04).
 
 **H15 · Despachar kits**
-- Como usuario de bodega, quiero despachar uno o más kits a un inspector certificado, para dejarlos disponibles para certificar.
+- Como usuario de bodega, quiero despachar uno o más kits a un trabajador, para dejarlos disponibles para certificar.
 - Criterios de aceptación:
-  1. Se elige el inspector certificado que recibe los kits, de la lista de usuarios con ese rol. Quién entrega es el usuario de bodega que despacha, y queda registrado solo.
+  1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo.
   2. Los kits se agregan escaneando la funda de cada uno. Cada escaneo llena el campo y se agrega solo a la lista, sin botón de guardar.
   3. Solo se pueden despachar kits que no estén ya despachados; si ya lo está, se muestra en qué despacho.
   4. No se puede despachar un kit vacío (por confirmar).
@@ -285,7 +313,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Hay una lista de despachos con kits, receptor y fecha, que se puede filtrar.
   9. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
   10. La pantalla se puede usar bien desde el celular.
-  11. El inspector ve en su app los kits que le despacharon. Un kit despachado a otro inspector no le aparece (por confirmar).
+  11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
 - Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
@@ -295,7 +323,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   2. La lista se puede filtrar por tipo de kit, naviera, semana y estado.
   3. Se puede buscar un kit por el código de su funda, escribiéndolo o escaneándolo; al escanear, llena el campo y busca solo.
   4. Al abrir un kit, se ven sus dispositivos con su serie y su tipo.
-  5. Para un kit despachado, se ve a qué inspector y en qué despacho está, y quién lo despachó.
+  5. Para un kit despachado, se ve a qué trabajador y en qué despacho está, y quién lo despachó.
   6. Para un kit ya usado en una certificación, se ve a qué certificación pertenece (depende de E5; por confirmar).
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
@@ -364,14 +392,15 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
-  6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra (por confirmar, y se cruza con la reinspección).
-  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Solo encuentra kits que le despacharon a él, y ve su contenido como información.
+  6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra. La reinspección reabre esa misma certificación (decisión del 2026-11-04).
+  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Solo encuentra kits despachados al trabajador que tiene su mismo tipo y número de documento, y ve su contenido como información.
   8. Un kit solo se usa en una certificación (por confirmar).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
   10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión).
   11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal.
   12. La pantalla se puede usar bien desde el celular.
-- Por confirmar: cómo se reconoce la naviera de la API contra el catálogo de E8 y qué pasa si no existe. Cliente y producto no tienen catálogo.
+  13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04).
+- La naviera que trae la API se copia como texto y código, sin enlazarla al catálogo de E8, así que no hace falta que exista en él (decisión del 2026-11-04). Cliente y producto no tienen catálogo.
 
 **H18 · Completar las secciones con fotos (EN REVISIÓN, no aprobada)**
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.
@@ -394,7 +423,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.
-- Gestión de patio y stock.
+- Gestión de patio y stock. (El catálogo de zonas de H26 sí entra, solo como lista para elegir.)
 - Gate out (EIR del gate out, fin de lavado) y la regla de exigir certificación al cerrar un gate out.
 - Técnicos reefer y estructura, customer, inspector estructura gate in.
 - Extranet: operadores y sus usuarios.
