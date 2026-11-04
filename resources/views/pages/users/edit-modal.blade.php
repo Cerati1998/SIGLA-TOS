@@ -1,7 +1,7 @@
 <div>
     <x-wire-modal-card title="Editar usuario" wire:model="form.openModal">
         <form id="user-edit-form" wire:submit="save" class="grid gap-4">
-            <x-pages::users.fields id-prefix="user-edit" />
+            <x-pages::users.fields id-prefix="user-edit" :identities="$form->identities()" :branches="$form->branches()" />
         </form>
 
         <x-slot:footer>

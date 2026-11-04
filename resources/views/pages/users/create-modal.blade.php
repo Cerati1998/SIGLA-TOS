@@ -3,11 +3,11 @@
         title="Nuevo usuario"
         name="user-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.email = ''"
+        x-on:open="$wire.form.name = ''; $wire.form.email = ''; $wire.form.identityId = ''; $wire.form.documentNumber = ''; $wire.form.branchId = ''"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="user-create-form" wire:submit="save" class="grid gap-4">
-            <x-pages::users.fields id-prefix="user-create" />
+            <x-pages::users.fields id-prefix="user-create" :identities="$form->identities()" :branches="$form->branches()" />
         </form>
 
         <x-slot:footer>

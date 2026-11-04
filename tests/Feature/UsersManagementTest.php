@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Livewire\Tables\UsersTable;
 use App\Livewire\Users\CreateModal;
 use App\Livewire\Users\EditModal;
+use App\Models\Branch;
+use App\Models\Identity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -77,12 +80,18 @@ class UsersManagementTest extends TestCase
 
     public function test_a_user_is_created_with_a_random_password_that_is_shown_and_lets_them_log_in(): void
     {
+        $identity = Identity::factory()->create();
+        $branch = Branch::factory()->create();
+
         $this->actingAs($this->admin);
 
         $component = Livewire::test(CreateModal::class)
             ->set('form.openModal', true)
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
+            ->set('form.identityId', $identity->id)
+            ->set('form.documentNumber', '12345678')
+            ->set('form.branchId', (string) $branch->id)
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
@@ -95,6 +104,9 @@ class UsersManagementTest extends TestCase
 
         $this->assertIsString($password);
         $this->assertSame('Nuevo Usuario', $user->name);
+        $this->assertSame($identity->id, $user->identity_id);
+        $this->assertSame('12345678', $user->document_number);
+        $this->assertSame($branch->id, $user->branch_id);
         $this->assertNotSame($password, $user->password);
         $this->assertTrue(Hash::check($password, $user->password));
 
@@ -151,10 +163,11 @@ class UsersManagementTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        Livewire::test(CreateModal::class)
+        $this->fillDocumentAndBranch(Livewire::test(CreateModal::class))
             ->set('form.name', 'Nuevo Usuario')
             ->set('form.email', 'nuevo@example.com')
             ->call('save')
+            ->assertSet('showPassword', true)
             ->call('closePassword')
             ->assertSet('showPassword', false)
             ->assertSet('generatedPassword', null)
@@ -197,6 +210,154 @@ class UsersManagementTest extends TestCase
             ->set('form.email', 'ocupado@example.com')
             ->call('save')
             ->assertHasErrors(['form.email' => 'unique']);
+    }
+
+    public function test_a_new_user_needs_a_document_and_a_branch(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(CreateModal::class)
+            ->set('form.name', 'Nuevo Usuario')
+            ->set('form.email', 'nuevo@example.com')
+            ->call('save')
+            ->assertHasErrors([
+                'form.identityId' => 'required',
+                'form.documentNumber' => 'required',
+                'form.branchId' => 'required',
+            ])
+            ->assertSet('generatedPassword', null);
+
+        $this->assertDatabaseMissing('users', ['email' => 'nuevo@example.com']);
+    }
+
+    public function test_two_users_cannot_share_a_document_even_if_one_is_deactivated(): void
+    {
+        $identity = Identity::factory()->create();
+        $branch = Branch::factory()->create();
+        User::factory()->recycle($identity)->create(['document_number' => '11111111']);
+        User::factory()->recycle($identity)->trashed()->create(['document_number' => '22222222']);
+        $this->app->setLocale('es');
+
+        $this->actingAs($this->admin);
+
+        foreach (['11111111', '22222222'] as $documentNumber) {
+            Livewire::test(CreateModal::class)
+                ->set('form.name', 'Otro Usuario')
+                ->set('form.email', 'otro@example.com')
+                ->set('form.identityId', $identity->id)
+                ->set('form.documentNumber', $documentNumber)
+                ->set('form.branchId', (string) $branch->id)
+                ->call('save')
+                ->assertHasErrors(['form.documentNumber' => 'unique'])
+                ->assertSeeText('El valor de número de documento ya está en uso.');
+        }
+
+        $this->assertDatabaseMissing('users', ['email' => 'otro@example.com']);
+    }
+
+    public function test_the_same_number_can_be_used_with_another_document_type(): void
+    {
+        User::factory()->create(['document_number' => '11111111']);
+
+        $this->actingAs($this->admin);
+
+        $this->fillDocumentAndBranch(Livewire::test(CreateModal::class), '11111111')
+            ->set('form.name', 'Otro Usuario')
+            ->set('form.email', 'otro@example.com')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('users', ['email' => 'otro@example.com', 'document_number' => '11111111']);
+    }
+
+    public function test_a_document_number_cannot_be_longer_than_fifteen_characters(): void
+    {
+        $this->actingAs($this->admin);
+
+        $this->fillDocumentAndBranch(Livewire::test(CreateModal::class), str_repeat('1', 16))
+            ->call('save')
+            ->assertHasErrors(['form.documentNumber' => 'max']);
+    }
+
+    public function test_the_document_type_must_exist_and_the_branch_must_be_active(): void
+    {
+        $deactivatedBranch = Branch::factory()->trashed()->create();
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(CreateModal::class)
+            ->set('form.identityId', 'no-existe')
+            ->set('form.branchId', (string) $deactivatedBranch->id)
+            ->call('save')
+            ->assertHasErrors(['form.identityId' => 'exists', 'form.branchId' => 'exists']);
+    }
+
+    public function test_the_form_offers_the_document_types_and_only_the_active_branches(): void
+    {
+        Identity::factory()->create(['description' => 'Pasaporte de prueba']);
+        Branch::factory()->create(['name' => 'Sucursal Activa']);
+        Branch::factory()->trashed()->create(['name' => 'Sucursal Cerrada']);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(CreateModal::class)
+            ->assertSeeText('Pasaporte de prueba')
+            ->assertDontSeeText('Pasaporte de prueba - Pasaporte de prueba')
+            ->assertSeeText('Sucursal Activa')
+            ->assertDontSeeText('Sucursal Cerrada');
+    }
+
+    public function test_the_list_does_not_show_the_document_number(): void
+    {
+        User::factory()->create(['name' => 'Ana Activa', 'document_number' => '87654321']);
+
+        $this->actingAs($this->admin)
+            ->get(route('intranet.users.index'))
+            ->assertSeeText('Ana Activa')
+            ->assertDontSeeText('87654321');
+    }
+
+    public function test_the_document_and_the_branch_of_a_user_can_be_edited(): void
+    {
+        $user = User::factory()->create();
+        $identity = Identity::factory()->create();
+        $branch = Branch::factory()->create();
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-user', userId: $user->id)
+            ->assertSet('form.identityId', $user->identity_id)
+            ->assertSet('form.documentNumber', $user->document_number)
+            ->assertSet('form.branchId', (string) $user->branch_id)
+            ->set('form.identityId', $identity->id)
+            ->set('form.documentNumber', '99999999')
+            ->set('form.branchId', (string) $branch->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertSame($identity->id, $user->identity_id);
+        $this->assertSame('99999999', $user->document_number);
+        $this->assertSame($branch->id, $user->branch_id);
+    }
+
+    public function test_editing_cannot_take_the_document_of_another_user(): void
+    {
+        $identity = Identity::factory()->create();
+        User::factory()->recycle($identity)->create(['document_number' => '11111111']);
+        $user = User::factory()->recycle($identity)->create(['document_number' => '22222222']);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-user', userId: $user->id)
+            ->set('form.documentNumber', '11111111')
+            ->call('save')
+            ->assertHasErrors(['form.documentNumber' => 'unique']);
+
+        $this->assertSame('22222222', $user->refresh()->document_number);
     }
 
     public function test_a_deactivated_user_can_still_be_opened_for_editing(): void
@@ -302,5 +463,16 @@ class UsersManagementTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('intranet.dashboard'))
             ->assertSee('href="'.route('intranet.users.index').'"', false);
+    }
+
+    /**
+     * Fill the document and branch fields with valid values.
+     */
+    private function fillDocumentAndBranch(Testable $component, string $documentNumber = '12345678'): Testable
+    {
+        return $component
+            ->set('form.identityId', Identity::factory()->create()->id)
+            ->set('form.documentNumber', $documentNumber)
+            ->set('form.branchId', (string) Branch::factory()->create()->id);
     }
 }
