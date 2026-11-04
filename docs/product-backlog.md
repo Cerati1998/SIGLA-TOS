@@ -36,6 +36,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
+- Por ahora hay una sola empresa (`companies`), cargada por seeder y sin pantalla, y cada sucursal pertenece a ella. Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
 ## Notas para la Construcción (desde el ER del usuario)

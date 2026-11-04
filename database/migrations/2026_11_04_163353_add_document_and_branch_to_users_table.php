@@ -1,6 +1,7 @@
 <?php
 
 use Database\Seeders\BranchSeeder;
+use Database\Seeders\CompanySeeder;
 use Database\Seeders\IdentitySeeder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -56,6 +57,7 @@ return new class extends Migration
         }
 
         (new IdentitySeeder)->run();
+        (new CompanySeeder)->run();
         (new BranchSeeder)->run();
 
         DB::table('users')->update([

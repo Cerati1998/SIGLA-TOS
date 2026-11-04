@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Branch;
+use App\Models\Company;
 use App\Models\Identity;
 use App\Models\User;
 use Database\Seeders\BranchSeeder;
+use Database\Seeders\CompanySeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\IdentitySeeder;
 use Illuminate\Database\Migrations\Migration;
@@ -19,15 +21,18 @@ class IdentitiesAndBranchesTest extends TestCase
 
     public function test_the_seeders_load_the_catalogs_and_can_run_again_without_duplicating(): void
     {
-        $this->seed([IdentitySeeder::class, BranchSeeder::class]);
-        $this->seed([IdentitySeeder::class, BranchSeeder::class]);
+        $this->seed([IdentitySeeder::class, CompanySeeder::class, BranchSeeder::class]);
+        $this->seed([IdentitySeeder::class, CompanySeeder::class, BranchSeeder::class]);
 
         $this->assertDatabaseCount('identities', 12);
         $this->assertDatabaseHas('identities', ['id' => '1', 'description' => 'DNI']);
         $this->assertDatabaseHas('identities', ['id' => '-', 'description' => 'Sin documento']);
+        $this->assertDatabaseCount('companies', 1);
+        $this->assertDatabaseHas('companies', ['ruc' => '20474360955', 'business_name' => 'MACROMAR LOGISTICS']);
         $this->assertDatabaseCount('branches', 2);
         $this->assertDatabaseHas('branches', ['code' => '0000', 'name' => 'Sede Principal']);
         $this->assertDatabaseHas('branches', ['code' => '0001', 'name' => 'Depot Paita - Macromar']);
+        $this->assertSame(2, Branch::query()->whereRelation('company', 'ruc', CompanySeeder::RUC)->count());
     }
 
     public function test_the_main_seeder_creates_the_first_user_with_a_dni_and_the_main_branch(): void
@@ -69,6 +74,7 @@ class IdentitiesAndBranchesTest extends TestCase
         $migration->up();
 
         $this->assertSame(0, Identity::query()->count());
+        $this->assertSame(0, Company::query()->count());
         $this->assertSame(0, Branch::query()->count());
     }
 

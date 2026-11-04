@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Branch;
+use App\Models\Company;
 use Illuminate\Database\Seeder;
 
 class BranchSeeder extends Seeder
@@ -14,6 +15,8 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
+        $companyId = Company::query()->where('ruc', CompanySeeder::RUC)->value('id');
+
         $branches = [
             [
                 'code' => '0001',
@@ -30,7 +33,7 @@ class BranchSeeder extends Seeder
         ];
 
         foreach ($branches as $branch) {
-            Branch::query()->updateOrCreate(['code' => $branch['code']], $branch);
+            Branch::query()->updateOrCreate(['code' => $branch['code']], [...$branch, 'company_id' => $companyId]);
         }
     }
 }
