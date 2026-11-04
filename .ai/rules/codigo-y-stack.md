@@ -18,4 +18,4 @@ Nada de claves ni URLs en el código; todo por `.env` y `config()`. Colas, sesi�
 Los términos del negocio sin traducción obvia (por ejemplo precinto, funda, gate out) tienen un único nombre en inglés, registrado en `docs/glossary.md`. Antes de crear un nombre en el código, consulta el glosario. Si aparece un término nuevo, propónselo al usuario con su nombre en inglés y, cuando lo apruebe, agrégalo al glosario en el mismo PR. Nunca inventes una traducción distinta para un término que ya está en el glosario.
 
 ## Borrar ramas después del merge
-Después de cada merge a `main` se borra la rama, local y remota, si no pertenece a una historia, épica o sprint (por ejemplo: pequeñas mejoras, modificaciones extra o detalles). Las ramas de historias, épicas o sprint se conservan. Razón: mantener limpio el repositorio sin perder el rastro de lo planificado.
+Después de cada merge a `main` se borra la rama, local y remota, salvo que sea de una épica o de una historia principal. Las ramas de tareas del sprint, mejoras y detalles también se borran. Razón: mantener limpio el repositorio; el rastro queda en los PR.
