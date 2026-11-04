@@ -36,16 +36,17 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 - **Compatibilidad:** las migraciones corren desde cero y funcionan en **MariaDB 10.6** (producción cPanel). Nunca se hace ingeniería directa del `.mwb` (su intercalación es de MySQL 8). La intercalación es la de `config/database.php` (`utf8mb4_unicode_ci`).
 - **Zona horaria:** la app guarda en UTC (`config/app.php`). Lo que depende del calendario local se calcula en `America/Lima`.
 - **Datos personales:** DNI, brevete y número de documento solo los ven los roles que los necesitan; nunca van en URLs ni en logs.
-- **Excepción documentada:** `identities` es un catálogo fijo cargado por seeder, sin pantalla y sin `deleted_at`.
+- **Excepción documentada:** `identities` y `companies` son catálogos fijos cargados por seeder, sin pantalla y sin `deleted_at`.
 
 ## 3. Tablas del Sprint 1
 
 | Tabla | Épica / tarea | Estado | Nombre en el ER |
 | --- | --- | --- | --- |
-| `users` | E1 · H04 (T15) y T19 | `en código`; T19 la amplía | `users` |
+| `users` | E1 · H04 (T15) y T19 | `en código` | `users` |
 | `passkeys` | E1 · H01 | `en código` | (no estaba en el ER) |
-| `identities` | E1 · T19 | `planeada (T19)` | (nueva; catálogo SUNAT 06) |
-| `branches` | E1 · T19 | `planeada (T19)` | `branches` |
+| `identities` | E1 · T19 | `en código` | (nueva; catálogo SUNAT 06) |
+| `companies` | E1 · T19 | `en código` | `company` |
+| `branches` | E1 · T19 | `en código` | `branches` |
 | `shipping_lines` | E8 · H09 | `planeada (H09)` | `shipping_lines` |
 | `providers` | E8 · H10 | `planeada (H10)` | `providers` |
 | `security_device_types` | E2 · H06 | `planeada (H06)` | `security_device_types` |
@@ -54,10 +55,11 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 
 ## 4. Diagramas
 
-### 4.1 Usuarios, identidad y sucursales (E1)
+### 4.1 Usuarios, identidad, empresa y sucursales (E1)
 
 ```mermaid
 erDiagram
+  companies ||--o{ branches : "tiene"
   identities ||--o{ users : "tipo de documento"
   branches ||--o{ users : "pertenece a"
   users ||--o{ passkeys : "tiene"
@@ -66,8 +68,14 @@ erDiagram
     string id PK "código SUNAT, varchar(50)"
     string description
   }
+  companies {
+    bigint id PK
+    string ruc UK
+    string business_name
+  }
   branches {
     bigint id PK
+    bigint company_id FK
     string code UK
     string name
   }
@@ -75,9 +83,9 @@ erDiagram
     bigint id PK
     string name
     string email UK
-    string identity_id FK "T19"
-    string document_number "T19, UK con identity_id"
-    bigint branch_id FK "T19"
+    string identity_id FK
+    string document_number "UK con identity_id"
+    bigint branch_id FK
     datetime deleted_at "null = activo"
   }
   passkeys {
@@ -120,29 +128,30 @@ erDiagram
 
 Notación: `UK` único · `FK` llave foránea. Todo es `NOT NULL` salvo donde dice «null».
 
-### 5.1 `users` · `en código` (T19 la amplía)
+### 5.1 `users` · `en código`
 
-Ya existe: `id`, `name`, `email` (UK), `email_verified_at` (null), `password`, `remember_token` (null), columnas de doble factor (null), `profile_photo_path` (null), `timestamps`, `deleted_at` (null; reemplazó a `is_active` el 2026-11-03).
+Columnas base: `id`, `name`, `email` (UK), `email_verified_at` (null), `password`, `remember_token` (null), columnas de doble factor (null), `profile_photo_path` (null), `timestamps`, `deleted_at` (null; reemplazó a `is_active` el 2026-11-03).
 
-T19 agrega:
+Documento y sucursal (T19):
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `identity_id` | varchar(50) FK → `identities.id` | Tipo de documento. |
-| `document_number` | varchar(12) | Obligatorio. UK compuesta `(identity_id, document_number)`. |
+| `document_number` | varchar(15) | Obligatorio. UK compuesta `(identity_id, document_number)`. |
 | `branch_id` | bigint FK → `branches.id` | Obligatoria. Un usuario pertenece a **una sola** sucursal. |
 
 Consecuencias:
 - H04: el modal de crear y editar pide tipo y número de documento y sucursal.
 - Se descarta `current_team_id` y la tabla puente `branches_has_users` del ER.
 - H15 y H17: `identity_id` + `document_number` también sirven para reconocer al inspector que inició sesión contra `workers` (sección 7).
-- Las tres columnas son obligatorias. Si en algún entorno ya hay usuarios, la migración de T19 tiene que rellenarlos antes de volverlas obligatorias (los seeders usan DNI `1` y la sucursal sembrada).
+- Las tres columnas son obligatorias. Si al migrar ya hay usuarios, se cargan los catálogos y cada usuario queda con tipo `-` (Sin documento), su `id` como número provisional y la sede principal (`0000`), para corregirlos desde la pantalla de usuarios. El seeder crea el primer usuario con DNI `00000000`, también provisional.
+- El número de documento no se muestra en la lista de usuarios y va oculto al serializar el modelo.
 
 ### 5.2 `passkeys` · `en código`
 
 Creada por el starter kit. `id`, `user_id` (FK → `users`, borra en cascada), `name`, `credential_id` (UK), `credential` (json), `last_used_at` (null), `timestamps`.
 
-### 5.3 `identities` · `planeada (T19)`
+### 5.3 `identities` · `en código`
 
 Catálogo SUNAT 06. Seeder, sin pantalla. **Sin** `deleted_at` (excepción).
 
@@ -156,19 +165,35 @@ Doce filas: `-` Sin documento · `0` DOC.TRIB. · `1` DNI · `2` Código IICL ·
 
 Reglas: en usuarios (y luego en trabajadores) se puede elegir cualquier código. Con `-` el número sigue siendo obligatorio y único.
 
-### 5.4 `branches` · `planeada (T19)`
+### 5.4 `branches` · `en código`
 
-Se cargan por seeder, sin pantalla.
+Se cargan por seeder, sin pantalla: `0000` Sede Principal y `0001` Depot Paita - Macromar.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
+| `company_id` | bigint FK → `companies.id` | Obligatoria. |
 | `code` | varchar(20) | UK. |
 | `name` | varchar(255) | |
-| `phone`, `email`, `website`, `ubigeo`, `address`, `dt_code` | varchar | null. Datos informativos del ER. |
+| `phone`, `email`, `website` | varchar | null. |
+| `ubigeo`, `address` | varchar | |
 | `timestamps`, `deleted_at` | | |
 
-### 5.5 `shipping_lines` · `planeada (H09)`
+### 5.5 `companies` · `en código`
+
+Por ahora hay **una sola empresa**, cargada por seeder y sin pantalla (MACROMAR LOGISTICS). Si el sistema escala a multitenancy, se pasa a varias: `branches.company_id` ya deja lista esa relación (decisión del usuario del 2026-11-04).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `ruc` | varchar(11) | UK. |
+| `business_name` | varchar(255) | Razón social. Origen: `razonSocial`. |
+| `trade_name` | varchar(255) | null. Nombre comercial. Origen: `nombreComercial`. |
+| `address` | varchar(255) | Origen: `direccion`. |
+| `ubigeo` | varchar(255) | |
+| `timestamps` | | |
+
+### 5.6 `shipping_lines` · `planeada (H09)`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -178,7 +203,7 @@ Se cargan por seeder, sin pantalla.
 | `created_by` | bigint FK → `users` | Ver P7. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-### 5.6 `providers` · `planeada (H10)`
+### 5.7 `providers` · `planeada (H10)`
 
 Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.
 
@@ -186,12 +211,12 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `identity_id` | varchar(50) FK | Tipo de documento (RUC o DNI, según H10). |
-| `document_number` | varchar(12) | UK compuesta con `identity_id` (criterio 2). |
+| `document_number` | varchar(15) | UK compuesta con `identity_id` (criterio 2). |
 | `business_name` | varchar(255) | ER: `razon_social`. |
 | `address`, `email`, `phone` | varchar | Obligatoriedad por confirmar antes de construir (H10, criterio 1); hasta entonces, null. |
 | `timestamps`, `deleted_at` | | |
 
-### 5.7 `security_device_types` · `planeada (H06)`
+### 5.8 `security_device_types` · `planeada (H06)`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -204,8 +229,9 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
 - Tablas descartadas: `branches_has_users`.
-- Columnas descartadas: `users.current_team_id`, `providers.branch_id`, `providers.cuenta_cte`, `providers.detalle_servicio`.
+- Columnas descartadas: `users.current_team_id`, `branches.dt_code`, `providers.branch_id`, `providers.cuenta_cte`, `providers.detalle_servicio`.
 - Nuevas: `users.identity_id/document_number/branch_id`, tabla `identities`.
+- De la empresa no se traen los datos de facturación electrónica: `sol_user`, `sol_pass`, `client_id`, `client_secret`, `certificate`, `detraction_account`, `logo_path`, `invoice_header`, `invoice_footer` y `production`. SIGLA no factura, y las credenciales no se guardan en texto plano ni en seeders.
 - Renombres: `razon_social` → `business_name`, `type` → `kind` en tipos de dispositivo.
 
 ## 7. Decisiones guardadas para sprints siguientes
@@ -232,7 +258,7 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la naviera y la solicitud se copian como texto y código (sin FK); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | E6 | `por decidir` hasta revisar E6. |
-| `company`, `affectations`, `clients`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
+| `affectations`, `clients`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
 Tablas de roles y permisos: se definen al aprobar H24.
 
@@ -245,7 +271,6 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
 | P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
 | P5 | Glosario (T20) | Nombres en inglés de precinto/sello/cinta, funda, gate out, remolcador y semirremolque. |
-| P6 | Llave de `identities` | Se respeta `id` varchar(50) con el código SUNAT. Alternativa: `id` numérico y `code` aparte. |
+| P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
 | P7 | `created_by` y seeders | Las filas cargadas por seeder o migradas de SIGLA 1.0 no tienen usuario autor: definir si `created_by` admite null o se siembra un usuario del sistema. Afecta a `shipping_lines` en este sprint. |
 | P8 | Obligatoriedad en proveedores | Qué datos de H10 son obligatorios (H10, criterio 1). |
-| P9 | Largo de `document_number` | Se eligió varchar(12), suficiente para DNI y RUC. Comprobar antes de T19 si alcanza para los demás códigos del catálogo (pasaporte, cédula, TIN). |

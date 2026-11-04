@@ -10,7 +10,7 @@
 @source '../views';
 @source '../js';
 @source '../../vendor/rappasoft/laravel-livewire-tables/resources/views';
-@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,TextField,Wrapper}/**/*.{php,blade.php}';
+@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,Select,TextField,Wrapper}/**/*.{php,blade.php}';
 @source inline('z-50');
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
@@ -229,7 +229,8 @@ select:focus[data-flux-control] {
     @apply h-8.5 rounded-control px-[10.5px] py-[5.25px] ring-control focus-within:ring-brand max-md:h-11;
 }
 
-[form-wrapper] label[data-name='form.wrapper.container'] input {
+[form-wrapper] label[data-name='form.wrapper.container'] input,
+[form-wrapper] label[data-name='form.wrapper.container'] select {
     @apply text-base text-ink;
 }
 
