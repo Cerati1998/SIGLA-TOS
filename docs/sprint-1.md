@@ -53,7 +53,7 @@ Bloque pedido por el usuario con el sprint casi cerrado. T18 a T25 y T29 son el 
 - [ ] **T26** · (Adelanto opcional) Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h.
 - [ ] **T27** · (Adelanto opcional) Preparar H07 y H08: cerrar los criterios pendientes de anuncio y lote, y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
 - [ ] **T28** · (Adelanto opcional) Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Separada de T19 por pedido del usuario el 2026-11-04. Quién: Claude Code. 1 h.
-- [ ] **T29** · H27 · Modificar los datos de la empresa, con los de facturación electrónica, y gestionar las sucursales. Quién: Claude Code. 4.5 h.
+- [x] **T29** · H27 · Modificar los datos de la empresa, con los de facturación electrónica, y gestionar las sucursales. Quién: Claude Code. 4.5 h. (Hecho el 2026-11-04: la empresa en el PR #27 y las sucursales en el PR #28.)
 
 **Total estimado:** 18 h para unas 18 disponibles (sin margen). El usuario pidió el 2026-11-03 ajustar la duración de todas las tareas para que encajen en la semana, sin mover las fechas; antes sumaban 35.5 h (T01 a T09: 16.5 h; T10 a T15: 16 h; T16 y T17: 3 h).
 
