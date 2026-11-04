@@ -167,7 +167,7 @@ Reglas: en usuarios (y luego en trabajadores) se puede elegir cualquier código.
 
 ### 5.4 `branches` · `en código`
 
-Se cargan por seeder, sin pantalla: `0000` Sede Principal y `0001` Depot Paita - Macromar.
+El seeder carga las primeras si no hay ninguna: `0000` Sede Principal y `0001` Depot Paita - Macromar. Después se gestionan en su pantalla (H27).
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -176,8 +176,8 @@ Se cargan por seeder, sin pantalla: `0000` Sede Principal y `0001` Depot Paita -
 | `code` | varchar(20) | UK. |
 | `name` | varchar(255) | |
 | `phone`, `email`, `website` | varchar | null. |
-| `ubigeo`, `address` | varchar | |
-| `timestamps`, `deleted_at` | | |
+| `ubigeo`, `address` | varchar | Ubigeo de 6 dígitos. |
+| `timestamps`, `deleted_at` | | No se desactiva si tiene usuarios activos o si es la última activa. |
 
 ### 5.5 `companies` · `en código`
 

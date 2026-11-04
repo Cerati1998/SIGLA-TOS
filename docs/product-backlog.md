@@ -36,7 +36,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
-- Por ahora hay una sola empresa (`companies`), cargada por seeder y modificable en su pantalla (H27), y cada sucursal pertenece a ella. Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
+- Por ahora hay una sola empresa (`companies`), cargada por seeder y modificable en su pantalla (H27), y cada sucursal pertenece a ella. Las sucursales también se gestionan en pantalla (H27). Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
 ## Notas para la Construcción (desde el ER del usuario)
@@ -88,7 +88,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H04 · Gestionar usuarios intranet**
 - Como usuario de la intranet, quiero crear, editar, desactivar y reactivar usuarios intranet, para controlar quién entra al sistema. (Cambiado el 2026-11-03: la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. Se crea un usuario con nombre, correo, tipo y número de documento, y sucursal. El tipo de documento y la sucursal se eligen de listas cargadas por seeder, sin pantalla propia (cambiado el 2026-11-04; se construye en T19).
+  1. Se crea un usuario con nombre, correo, tipo y número de documento, y sucursal. El tipo de documento se elige de una lista cargada por seeder, sin pantalla propia, y la sucursal de las activas, que se gestionan en H27 (cambiado el 2026-11-04; se construye en T19).
   2. No se pueden crear dos usuarios con el mismo correo, aunque uno esté desactivado.
   3. Se editan los datos de un usuario.
   4. Un usuario se desactiva en vez de borrarlo, con Soft Deletes, para conservar el historial (confirmado el 2026-11-03). Un usuario desactivado no puede iniciar sesión y su sesión abierta se cierra en su siguiente petición. Se reactiva desde la lista. Nadie puede desactivarse ni reactivarse a sí mismo.
@@ -105,11 +105,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   1. El admin asigna y cambia el rol de un usuario (admin, supervisor, usuario de bodega, inspector certificado, inspector checkpoint).
   2. Solo el admin ve y usa la pantalla de usuarios.
   3. Cada pantalla y cada acción validan el rol en el servidor.
-  4. La pantalla de la empresa (H27) se protege con un permiso de acceso (indicado por el usuario el 2026-11-04).
+  4. Las pantallas de empresa y sucursales (H27) se protegen con un permiso de acceso (indicado por el usuario el 2026-11-04).
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
-**H27 · Modificar los datos de la empresa** (propuesta del 2026-11-04, sin aprobar)
+**H27 · Modificar la empresa y gestionar sus sucursales** (propuesta del 2026-11-04, sin aprobar; las sucursales se sumaron a pedido del usuario el mismo día)
 - Como admin, quiero modificar los datos de la empresa, incluidos los de facturación electrónica, para mantenerlos correctos y tenerlos listos si el producto llega a facturar.
 - Criterios de aceptación:
   1. Hay una pantalla con los datos de la única empresa. No se crea ni se elimina desde aquí.
@@ -121,6 +121,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. Al guardar se muestra un aviso, y si hay errores se indican junto a cada campo.
   8. Por ahora, cualquier usuario con sesión usa esta pantalla, incluso para reemplazar las credenciales: el usuario aceptó ese riesgo el 2026-11-04. En H24 se protege con un permiso de acceso.
   9. La pantalla se puede usar bien desde el celular.
+  10. Hay una lista de sucursales en Configuración, con búsqueda por código o nombre y filtro por estado.
+  11. Se crea y se edita una sucursal con código, nombre, ubigeo de 6 dígitos y dirección, y con teléfono, correo y sitio web opcionales. Pertenece a la única empresa.
+  12. No se pueden crear dos sucursales con el mismo código, aunque una esté desactivada.
+  13. Una sucursal se desactiva con Soft Deletes y se puede reactivar. Una desactivada ya no se ofrece al crear o editar un usuario.
+  14. No se puede desactivar una sucursal con usuarios activos: el aviso dice cuántos son (decisión del usuario del 2026-11-04). Tampoco la última sucursal activa.
+  15. Un usuario desactivado cuya sucursal está desactivada no se puede reactivar hasta asignarle una activa.
 - La referencia es la pantalla de compañía del sistema actual. SIGLA no factura todavía: estos datos solo se guardan, sin ningún proceso que los use, por si el Product Goal llega a incluir la facturación (decisión del usuario del 2026-11-04).
 
 ### E7 · Puente con SIGLA 1.0
