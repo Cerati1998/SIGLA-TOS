@@ -152,6 +152,10 @@
     @apply h-10.25 rounded-control px-4 text-base transition-all duration-500 max-md:h-11;
 }
 
+[data-flux-switch] {
+    @apply max-md:after:absolute max-md:after:-inset-3 max-md:after:content-[''];
+}
+
 input[data-flux-control]:not([type='checkbox'], [type='radio']),
 select[data-flux-control] {
     @apply h-8.5 rounded-control border-control py-[5.25px] text-base max-md:h-11;

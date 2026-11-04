@@ -9,7 +9,9 @@
         {{ $slot }}
     </div>
 
-    <div class="flex flex-wrap justify-end gap-3 border-t border-line p-5.25">
-        {{ $actions }}
-    </div>
+    @isset($actions)
+        <div class="flex flex-wrap justify-end gap-3 border-t border-line p-5.25">
+            {{ $actions }}
+        </div>
+    @endisset
 </flux:card>
