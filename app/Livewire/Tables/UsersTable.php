@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Tables;
 
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,7 +20,7 @@ class UsersTable extends BaseTable
         parent::configure();
 
         $this->setDefaultSort('name')
-            ->setAdditionalSelects(['users.id as id'])
+            ->setAdditionalSelects(['users.id as id', 'users.branch_id as branch_id'])
             ->setSearchPlaceholder('Nombre o correo')
             ->setEmptyMessage('No se encontraron usuarios.')
             ->setConfigurableAreas([
@@ -29,13 +30,13 @@ class UsersTable extends BaseTable
     }
 
     /**
-     * Get the query of the table, with the deactivated users too.
+     * Get the query of the table, with the deactivated users too and the branch even if it was deactivated.
      *
      * @return Builder<User>
      */
     public function builder(): Builder
     {
-        return User::withTrashed();
+        return User::withTrashed()->with(['branch' => fn ($query) => $query->withTrashed()]);
     }
 
     /**
@@ -48,6 +49,8 @@ class UsersTable extends BaseTable
         return [
             Column::make('Nombre', 'name')->searchable(),
             Column::make('Correo electrónico', 'email')->searchable(),
+            Column::make('Sucursal')
+                ->label(fn (User $row): string => $row->branch->name),
             Column::make('Estado', 'deleted_at')
                 ->format(fn ($value, User $row): View => view('pages.users.partials.status', ['user' => $row])),
             Column::make('Acciones')
@@ -69,6 +72,10 @@ class UsersTable extends BaseTable
                 ->filter(fn (Builder $builder, string $value) => $value === 'active'
                     ? $builder->whereNull('deleted_at')
                     : $builder->whereNotNull('deleted_at')),
+            SelectFilter::make('Sucursal', 'branch')
+                ->options(['' => 'Todas'] + Branch::withTrashed()->orderBy('name')->pluck('name', 'id')->all())
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(fn (Builder $builder, string $value) => $builder->where('branch_id', $value)),
         ];
     }
 
