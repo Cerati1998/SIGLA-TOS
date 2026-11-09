@@ -48,7 +48,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `companies` | E1 · T19 y H27 | `en código` | `company` |
 | `branches` | E1 · T19 | `en código` | `branches` |
 | `shipping_lines` | E8 · H09 | `en código` | `shipping_lines` |
-| `providers` | E8 · H10 | `planeada (H10)` | `providers` |
+| `providers` | E8 · H10 | `en código` | `providers` |
 | `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
@@ -211,18 +211,19 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `name` | varchar(100) | |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-### 5.7 `providers` · `planeada (H10)`
+### 5.7 `providers` · `en código`
 
 Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `identity_id` | varchar(50) FK | Tipo de documento (RUC o DNI, según H10). |
+| `identity_id` | varchar(50) FK | Tipo de documento: solo RUC (`6`) o DNI (`1`), según H10; constantes `Identity::RUC` e `Identity::DNI`. |
 | `document_number` | varchar(15) | UK compuesta con `identity_id` (criterio 2). |
 | `business_name` | varchar(255) | ER: `razon_social`. |
-| `address`, `email`, `phone` | varchar (null) | Opcionales (H10, criterio 1). |
-| `timestamps`, `deleted_at` | | |
+| `address`, `email` | varchar(255) (null) | Opcionales (H10, criterio 1). Vacío se guarda como null. |
+| `phone` | varchar(20) (null) | Opcional (H10, criterio 1). |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). |
 
 ### 5.8 `security_device_types` · `en código`
 
