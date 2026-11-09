@@ -3,17 +3,17 @@
         title="Nuevo usuario"
         name="user-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.email = ''; $wire.form.identityId = ''; $wire.form.documentNumber = ''; $wire.form.branchId = ''"
-        x-on:close="$wire.$errors.any() && $wire.clearErrors()"
+        x-on:open="$wire.form.name = ''; $wire.form.email = ''; $wire.form.identityId = ''; $wire.form.documentNumber = ''; $wire.form.branchId = ''; $wire.form.lookupStatus = null"
+        x-on:close="($wire.$errors.any() || $wire.form.lookedUpDocument !== null) && $wire.clearErrors()"
     >
         <form id="user-create-form" wire:submit="save" class="grid gap-4">
-            <x-pages::users.fields id-prefix="user-create" :identities="$form->identities()" :branches="$form->branches()" />
+            <x-pages::users.fields id-prefix="user-create" :identities="$form->identities()" :branches="$form->branches()" lookup />
         </form>
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
                 <flux:button type="button" x-on:click="close">Cancelar</flux:button>
-                <flux:button variant="primary" type="submit" form="user-create-form" wire:loading.attr="disabled" wire:target="save">Guardar</flux:button>
+                <flux:button variant="primary" type="submit" form="user-create-form" wire:loading.attr="disabled" wire:target="save,lookup">Guardar</flux:button>
             </div>
         </x-slot:footer>
     </x-wire-modal-card>

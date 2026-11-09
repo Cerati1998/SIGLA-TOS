@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Forms;
 
+use App\Concerns\LooksUpDocuments;
 use App\Concerns\ProfileValidationRules;
 use App\Models\Branch;
 use App\Models\Identity;
 use App\Models\User;
+use App\Services\SunatLookupResult;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -14,7 +16,14 @@ use Livewire\Form;
 
 class UserForm extends Form
 {
-    use ProfileValidationRules;
+    use LooksUpDocuments, ProfileValidationRules;
+
+    /**
+     * The digits of each document type whose name is looked up: only the DNI, and only when creating (H04, criterion 12).
+     *
+     * @var array<array-key, int>
+     */
+    public const array LOOKUP_DIGITS = [Identity::DNI => 8];
 
     public bool $openModal = false;
 
@@ -65,6 +74,18 @@ class UserForm extends Form
     }
 
     /**
+     * Get the messages of the rules that need their own wording.
+     *
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return [
+            'documentNumber.digits' => 'El DNI debe tener :digits dígitos.',
+        ];
+    }
+
+    /**
      * Get the names of the fields in the validation messages.
      *
      * @return array<string, string>
@@ -96,6 +117,31 @@ class UserForm extends Form
     public function branches(): Collection
     {
         return Branch::query()->orderBy('name')->get(['id', 'name']);
+    }
+
+    /**
+     * Get the rules that check the document before looking it up: only a DNI with its digits.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    protected function lookupRules(): array
+    {
+        return [
+            'identityId' => ['required', 'string', Rule::in(array_keys(self::LOOKUP_DIGITS))],
+            'documentNumber' => ['required', 'string', 'digits:'.self::LOOKUP_DIGITS[Identity::DNI]],
+        ];
+    }
+
+    /**
+     * Put the name the service found in the form, as given names and then surnames, capitalized.
+     */
+    protected function fillFromLookup(SunatLookupResult $result): void
+    {
+        $name = collect([$result->data['first_name'], $result->data['first_last_name'], $result->data['second_last_name']])
+            ->filter()
+            ->implode(' ');
+
+        $this->name = Str::title(mb_strtolower($name === '' ? (string) $result->data['full_name'] : $name));
     }
 
     /**

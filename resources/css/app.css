@@ -234,7 +234,7 @@ select:focus[data-flux-control] {
 }
 
 /* Un botón pegado al input (como la lupa de H10) ocupa todo el alto del borde derecho. */
-[form-wrapper] label[data-name='form.wrapper.container']:has(> .wrapper-append-slot) {
+[form-wrapper] label[data-name='form.wrapper.container']:has(> .wrapper-append-slot:not([hidden])) {
     @apply overflow-hidden py-0 pr-0;
 }
 
