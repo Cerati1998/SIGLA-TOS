@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Company;
 
+use App\Actions\Session\StoreCompanyAndBranchInSession;
 use App\Livewire\Forms\CompanyForm;
 use App\Models\Company;
 use Illuminate\Contracts\View\View;
@@ -36,11 +37,12 @@ class EditForm extends Component
     }
 
     /**
-     * Save the changes to the company.
+     * Save the changes to the company and refresh its name in the session of the signed-in user.
      */
-    public function save(): void
+    public function save(StoreCompanyAndBranchInSession $storeCompanyAndBranch): void
     {
         $this->form->update($this->company);
+        $storeCompanyAndBranch->forSignedInUser();
 
         $this->dispatch('toast', icon: 'success', title: 'Empresa actualizada', text: 'Los datos de la empresa se guardaron correctamente.');
     }

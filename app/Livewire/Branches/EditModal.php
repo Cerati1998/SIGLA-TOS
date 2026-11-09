@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Branches;
 
+use App\Actions\Session\StoreCompanyAndBranchInSession;
 use App\Livewire\Forms\BranchForm;
 use App\Models\Branch;
 use Illuminate\Contracts\View\View;
@@ -25,11 +26,12 @@ class EditModal extends Component
     }
 
     /**
-     * Save the changes and refresh the table.
+     * Save the changes, refresh the table and the company and branch in the session of the signed-in user.
      */
-    public function save(): void
+    public function save(StoreCompanyAndBranchInSession $storeCompanyAndBranch): void
     {
         $this->form->update(Branch::withTrashed()->findOrFail($this->form->branchId));
+        $storeCompanyAndBranch->forSignedInUser();
         $this->form->openModal = false;
 
         $this->dispatch('toast', icon: 'success', title: 'Sucursal actualizada', text: 'Los datos de la sucursal se guardaron correctamente.');

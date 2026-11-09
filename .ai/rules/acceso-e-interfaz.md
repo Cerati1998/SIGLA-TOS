@@ -80,3 +80,6 @@ Hasta culminar E6 no se validan roles; las pantallas solo exigen sesión iniciad
 
 ## Enlaces en los correos
 Todo enlace de un correo va en un botón; la URL no se escribe de forma explícita en el cuerpo, ni siquiera en la versión de texto plano. Razón: evitar enlaces largos en el cuerpo del correo.
+
+## Título de la pestaña
+El `<title>` de toda pantalla con sesión iniciada es `Pantalla | Empresa | Nombre de la app`, con la empresa tomada de `session('company.name')`; la sucursal no va en el título. Las pantallas sin sesión (iniciar sesión, recuperar contraseña) usan `Pantalla | Nombre de la app`. Razón: que cada pestaña muestre en qué pantalla y en qué empresa se está trabajando.
