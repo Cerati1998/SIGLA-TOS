@@ -53,9 +53,20 @@ class CompanyAndBranchInSessionTest extends TestCase
             ->assertSessionHas('company.name', 'Empresa Razón Social S.A.C.');
     }
 
-    public function test_guests_get_no_company_in_the_session(): void
+    public function test_the_tab_title_shows_the_screen_the_company_and_the_app_but_not_the_branch(): void
     {
-        $this->get(route('login'))->assertOk()->assertSessionMissing('company');
+        $this->actingAs($this->user)
+            ->get(route('intranet.users.index'))
+            ->assertSee('<title>Usuarios | Macromar | '.config('app.name').'</title>', false)
+            ->assertDontSee('Callao |', false);
+    }
+
+    public function test_guests_get_no_company_in_the_session_nor_in_the_title(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSessionMissing('company')
+            ->assertSee('<title>Iniciar sesión | '.config('app.name').'</title>', false);
     }
 
     public function test_editing_the_company_refreshes_its_name_in_the_session(): void

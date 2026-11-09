@@ -37,16 +37,17 @@ class PanelBreadcrumbsTest extends TestCase
     public function test_pages_pass_their_title_and_breadcrumbs_to_the_layout(): void
     {
         $user = User::factory()->create();
+        $user->branch->company->update(['trade_name' => 'Macromar']);
 
         $this->actingAs($user)->get(route('profile.edit'))
             ->assertOk()
-            ->assertSee('Perfil - '.config('app.name'))
+            ->assertSee('<title>Perfil | Macromar | '.config('app.name').'</title>', false)
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Perfil']);
 
         $this->actingAs($user)->get(route('intranet.users.index'))
             ->assertOk()
-            ->assertSee('Usuarios - '.config('app.name'))
+            ->assertSee('<title>Usuarios | Macromar | '.config('app.name').'</title>', false)
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Usuarios']);
 
@@ -54,7 +55,7 @@ class PanelBreadcrumbsTest extends TestCase
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertSee('Seguridad - '.config('app.name'))
+            ->assertSee('<title>Seguridad | Macromar | '.config('app.name').'</title>', false)
             ->assertSee('data-flux-breadcrumbs-item', false)
             ->assertSeeInOrder(['Inicio', 'Seguridad']);
     }
