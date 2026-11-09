@@ -27,14 +27,14 @@ Sigue el orden de épicas aprobado: E1, E7, E8, E2, E3, E4, E9, E5, E6. Con esto
 Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conservan su ID; las nuevas siguen desde T30.
 
 ### Arrastradas del Sprint 1
-- [ ] **T25** · H10 · Gestionar proveedores (con la consulta de T22). Quién: Claude Code. 3 h.
+- [x] **T25** · H10 · Gestionar proveedores (con la consulta de T22). Quién: Claude Code. 3 h. (Hecho el 2026-11-09, PR #36.)
 - [ ] **T27** · Preparar H07 y H08: cerrar los pendientes del backlog (estados de un dispositivo, relleno con ceros de la serie, cuántas series trae el lote más grande, quién ingresa lotes y estado inicial de las unidades) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h. Debe estar lista antes de T32.
 - [ ] **T28** · Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Quién: Claude Code. 1 h.
 - [ ] **T26** · Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h. **Condicionada:** solo entra si la API de SIGLA 1.0 ya entrega todos los datos de la solicitud filtrando por número de contenedor y booking. Si el lunes no está lista, pasa al adelanto y se avisa como impedimento.
 
 ### Nuevas
 - [ ] **T30** · Diseñar y aprobar en el lienzo la pantalla de ingreso de lote (H07) con la vista previa de cantidad, primera y última serie. Solo si T27 concluye que esa vista no sale de la plantilla de formulario. Quién: Scrum Master con Claude Design. 1 h.
-- [ ] **T31** · H04, criterio 12 · Al crear un usuario con DNI, consultar el servicio externo (al completar 8 dígitos o con la lupa) y completar el nombre, con la misma regla de H10. Quién: Claude Code. 1 h. Parte de la rama de T25: no espera su merge.
+- [x] **T31** · H04, criterio 12 · Al crear un usuario con DNI, consultar el servicio externo (al completar 8 dígitos o con la lupa) y completar el nombre, con la misma regla de H10. Quién: Claude Code. 1 h. Parte de la rama de T25: no espera su merge. (Hecho el 2026-11-09, PR #38.)
 - [ ] **T32** · H07 · Ingresar un lote de dispositivos. Incluye las tablas de lote y dispositivos, y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 4 h. Empieza cuando T27 (y T30, si hace falta) estén cerradas.
 - [ ] **T33** · H08 · Consultar lotes y dispositivos. Quién: Claude Code. 3 h. Parte de la rama de T32: no espera su merge.
 
