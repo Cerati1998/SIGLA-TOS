@@ -233,6 +233,11 @@ select:focus[data-flux-control] {
     @apply h-8.5 rounded-control px-[10.5px] py-[5.25px] ring-control focus-within:ring-brand max-md:h-11;
 }
 
+/* Un botón pegado al input (como la lupa de H10) ocupa todo el alto del borde derecho. */
+[form-wrapper] label[data-name='form.wrapper.container']:has(> .wrapper-append-slot) {
+    @apply overflow-hidden py-0 pr-0;
+}
+
 [form-wrapper] label[data-name='form.wrapper.container'] input,
 [form-wrapper] label[data-name='form.wrapper.container'] select {
     @apply text-base text-ink;
