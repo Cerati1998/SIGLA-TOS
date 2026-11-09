@@ -21,4 +21,14 @@ class Identity extends Model
 {
     /** @use HasFactory<IdentityFactory> */
     use HasFactory;
+
+    /**
+     * The id of the DNI in SUNAT catalog 06.
+     */
+    public const string DNI = '1';
+
+    /**
+     * The id of the RUC in SUNAT catalog 06.
+     */
+    public const string RUC = '6';
 }
