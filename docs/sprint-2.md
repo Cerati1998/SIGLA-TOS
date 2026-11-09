@@ -29,7 +29,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 ### Arrastradas del Sprint 1
 - [x] **T25** · H10 · Gestionar proveedores (con la consulta de T22). Quién: Claude Code. 3 h. (Hecho el 2026-11-09, PR #36.)
 - [ ] **T27** · Preparar H07 y H08: cerrar los pendientes del backlog (estados de un dispositivo, relleno con ceros de la serie, cuántas series trae el lote más grande, quién ingresa lotes y estado inicial de las unidades) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h. Debe estar lista antes de T32.
-- [ ] **T28** · Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Quién: Claude Code. 1 h.
+- [x] **T28** · Guardar la empresa y la sucursal del usuario en sesión (`session('company')`, `session('branch')`) y llevar la empresa al título de las pantallas (`Pantalla | Empresa | Nombre de la app`). Quién: Claude Code. 1 h. (Hecho el 2026-11-09, PR #39.)
 - [ ] **T26** · Puente con SIGLA 1.0: autenticación y consulta en vivo para H05. Quién: Claude Code. 3 h. **Condicionada:** solo entra si la API de SIGLA 1.0 ya entrega todos los datos de la solicitud filtrando por número de contenedor y booking. Si el lunes no está lista, pasa al adelanto y se avisa como impedimento.
 
 ### Nuevas
