@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Users;
 
+use App\Actions\Session\StoreCompanyAndBranchInSession;
 use App\Livewire\Forms\UserForm;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -25,11 +26,12 @@ class EditModal extends Component
     }
 
     /**
-     * Save the changes and refresh the table.
+     * Save the changes, refresh the table and the company and branch in the session of the signed-in user.
      */
-    public function save(): void
+    public function save(StoreCompanyAndBranchInSession $storeCompanyAndBranch): void
     {
         $this->form->update(User::withTrashed()->findOrFail($this->form->userId));
+        $storeCompanyAndBranch->forSignedInUser();
         $this->form->openModal = false;
 
         $this->dispatch('toast', icon: 'success', title: 'Usuario actualizado', text: 'Los datos del usuario se guardaron correctamente.');
