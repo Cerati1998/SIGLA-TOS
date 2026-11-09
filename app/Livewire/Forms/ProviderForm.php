@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Forms;
 
+use App\Concerns\LooksUpDocuments;
 use App\Models\Identity;
 use App\Models\Provider;
 use App\Services\SunatLookupResult;
-use App\Services\SunatLookupStatus;
-use App\Services\SunatService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Form;
 
 class ProviderForm extends Form
 {
+    use LooksUpDocuments;
+
     /**
      * The document types a provider can have, with the digits of each one.
      * PHP turns numeric ids such as `6` into integer keys, so the keys are typed as `array-key`.
@@ -42,17 +43,6 @@ class ProviderForm extends Form
     public string $phone = '';
 
     /**
-     * How the last lookup of the document ended: `found`, `not_found`, `unavailable` or null when there is no notice to show.
-     */
-    public ?string $lookupStatus = null;
-
-    /**
-     * The document whose data is already in the form, so that it is not looked up again.
-     */
-    #[Locked]
-    public ?string $lookedUpDocument = null;
-
-    /**
      * Fill the form with the provider being edited.
      */
     public function setProvider(Provider $provider): void
@@ -64,7 +54,7 @@ class ProviderForm extends Form
         $this->address = (string) $provider->address;
         $this->email = (string) $provider->email;
         $this->phone = (string) $provider->phone;
-        $this->lookedUpDocument = $this->documentKey();
+        $this->rememberLookedUpDocument();
     }
 
     /**
@@ -74,7 +64,7 @@ class ProviderForm extends Form
      */
     protected function rules(): array
     {
-        $rules = $this->documentRules();
+        $rules = $this->lookupRules();
 
         $rules['documentNumber'][] = Rule::unique(Provider::class, 'document_number')
             ->where('identity_id', $this->identityId)
@@ -120,42 +110,6 @@ class ProviderForm extends Form
     }
 
     /**
-     * Look up the document in the external service and fill in the data it finds.
-     * A document already looked up is skipped unless the lookup is forced with the magnifier button.
-     */
-    public function lookup(SunatService $sunat, bool $force = false): void
-    {
-        $this->lookupStatus = null;
-        $this->documentNumber = trim($this->documentNumber);
-
-        $this->validate($this->documentRules(), $this->messages(), $this->validationAttributes());
-
-        if (! $force && $this->lookedUpDocument === $this->documentKey()) {
-            return;
-        }
-
-        $result = $this->identityId === Identity::RUC
-            ? $sunat->lookupRuc($this->documentNumber)
-            : $sunat->lookupDni($this->documentNumber);
-
-        $this->lookupStatus = match ($result->status) {
-            SunatLookupStatus::Found => 'found',
-            SunatLookupStatus::NotFound => 'not_found',
-            SunatLookupStatus::Unavailable => 'unavailable',
-        };
-
-        if ($result->status === SunatLookupStatus::Unavailable) {
-            return;
-        }
-
-        $this->lookedUpDocument = $this->documentKey();
-
-        if ($result->status === SunatLookupStatus::Found) {
-            $this->fillFromLookup($result);
-        }
-    }
-
-    /**
      * Create the provider.
      */
     public function store(): void
@@ -180,7 +134,7 @@ class ProviderForm extends Form
      *
      * @return array<string, array<int, mixed>>
      */
-    private function documentRules(): array
+    protected function lookupRules(): array
     {
         $digits = self::DOCUMENT_TYPES[$this->identityId]['digits'] ?? null;
 
@@ -199,17 +153,9 @@ class ProviderForm extends Form
     }
 
     /**
-     * Get the document type and number as one value.
-     */
-    private function documentKey(): string
-    {
-        return "{$this->identityId}:{$this->documentNumber}";
-    }
-
-    /**
      * Put the data the service found in the form: with a DNI, the full name goes in the business name.
      */
-    private function fillFromLookup(SunatLookupResult $result): void
+    protected function fillFromLookup(SunatLookupResult $result): void
     {
         if ($this->identityId === Identity::DNI) {
             $this->businessName = (string) $result->data['full_name'];
