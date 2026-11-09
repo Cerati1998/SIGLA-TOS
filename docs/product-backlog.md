@@ -216,14 +216,15 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   2. Solo se puede elegir un tipo de dispositivo activo.
   3. La cantidad se calcula sola desde el rango (ejemplo: del 200 al 399 son 200). El correlativo inicial no puede ser mayor que el final.
   4. Antes de guardar, se muestra una vista previa con la cantidad, la primera serie y la última.
-  5. Al guardar, el sistema genera todas las series uniendo la serie y el correlativo, completando con ceros a la izquierda según el mínimo de dígitos (por confirmar).
+  5. Al guardar, el sistema genera todas las series uniendo la serie y el correlativo, sin separador, completando con ceros a la izquierda según el mínimo de dígitos. Ejemplo: serie GSW, mínimo 7 dígitos, del 200 al 399 da GSW0000200 a GSW0000399. Si un correlativo tiene más dígitos que el mínimo, se deja completo (confirmado por el usuario el 2026-11-09, T27).
   6. Si alguna serie ya existe en el sistema, no se guarda nada y se muestra cuáles chocan.
   7. El guardado es todo o nada.
-  8. Las unidades quedan disponibles para armar kits (estado inicial exacto por confirmar antes de construir).
+  8. Las unidades quedan en estado Disponible, listas para armar kits (confirmado el 2026-11-09, T27).
   9. Queda registrado quién ingresó el lote y cuándo.
-  10. Un lote grande no traba la pantalla. Cuántas series llegan en el lote más grande se confirma antes de construir.
+  10. Un lote trae como máximo 10 000 series: el sistema no deja ingresar un rango mayor. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando (confirmado el 2026-11-09, T27).
   11. La pantalla se puede usar bien desde el celular.
-- Quién ingresa lotes: usuario de bodega y admin (por confirmar).
+- Quién ingresa lotes: por ahora, cualquier usuario con sesión. "Solo bodega y admin" pasa a H24 (confirmado el 2026-11-09, T27).
+- Diseño: se diseña en la página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, 2026-11-09).
 - Una carga desde Excel con series sueltas sería otra historia (no pedida por ahora).
 
 **H08 · Consultar lotes y dispositivos**
@@ -237,7 +238,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Se ve cuántos dispositivos hay por estado en cada lote.
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
-- Pendiente: los estados de un dispositivo (por confirmar: disponible, en un kit, usado, dañado). Definirlos antes de construir.
+- Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27).
+- Diseño: se diseña en la página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, 2026-11-09).
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
