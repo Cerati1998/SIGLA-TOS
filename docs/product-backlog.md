@@ -246,7 +246,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
 - Como usuario de bodega, quiero corregir los datos de un lote ya ingresado, para arreglar un error de digitación sin borrar el lote y volver a ingresarlo.
 - Criterios de aceptación:
-  1. El detalle del lote tiene un botón "Editar" que abre el formulario de H07 con los datos del lote.
+  1. El detalle del lote tiene un botón "Editar", y cada fila de la lista de lotes tiene uno al lado de "Ver" (pedido por el usuario el 2026-11-10). Los dos abren el formulario de H07 con los datos del lote.
   2. Naviera, proveedor, tipo de dispositivo, fecha de recepción, guía y observaciones se pueden corregir siempre.
   3. Inicio de serie, mínimo de dígitos, correlativos y final de serie solo se pueden corregir si ningún dispositivo del lote cambió de estado (todos siguen Disponible). Si alguno cambió, esos campos se muestran bloqueados con un aviso que explica por qué.
   4. Al cambiar la serie, el sistema rehace todas las series del lote con las reglas de H07: vista previa, correlativo inicial no mayor que el final, máximo 10 000 series y, si alguna serie nueva ya existe en otro lote, no se guarda nada y se muestra cuáles chocan.
