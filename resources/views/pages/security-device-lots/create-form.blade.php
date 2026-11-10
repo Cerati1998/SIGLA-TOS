@@ -96,7 +96,7 @@
         </fieldset>
 
         <x-slot:actions>
-            <flux:button :href="route('intranet.dashboard')" wire:navigate>Cancelar</flux:button>
+            <flux:button :href="route('intranet.security-device-lots.index')" wire:navigate>Cancelar</flux:button>
             <flux:button variant="primary" type="submit" :loading="false">
                 <span wire:loading.remove wire:target="save">Guardar lote</span>
                 <span wire:loading.flex wire:target="save" class="items-center gap-2">

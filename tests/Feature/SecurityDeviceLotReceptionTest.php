@@ -64,16 +64,17 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->assertDontSeeText('Naviera Cerrada');
     }
 
-    public function test_saving_a_lot_generates_every_serial_number_as_an_available_device(): void
+    public function test_saving_a_lot_generates_every_serial_number_as_an_available_device_and_opens_the_lot(): void
     {
         $this->fillForm()
             ->set('form.seriesPrefix', ' gsw ')
             ->set('form.notes', 'Llegaron en dos cajas.')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertDispatched('toast', title: 'Lote guardado', text: 'Se registraron 200 dispositivos disponibles.')
-            ->assertSet('form.seriesStart', '')
-            ->assertSet('form.receivedAt', now('America/Lima')->toDateString());
+            ->assertRedirect(route('intranet.security-device-lots.show', SecurityDeviceLot::query()->sole()));
+
+        $this->assertSame('Lote guardado', session('toast.title'));
+        $this->assertSame('Se registraron 200 dispositivos disponibles.', session('toast.text'));
 
         $lot = SecurityDeviceLot::query()->sole();
 
@@ -114,8 +115,9 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->set('form.seriesPrefix', 'GWF')
             ->set('form.seriesSuffix', ' a ')
             ->call('save')
-            ->assertHasNoErrors()
-            ->assertDispatched('toast', text: 'Se registraron 101 dispositivos disponibles.');
+            ->assertHasNoErrors();
+
+        $this->assertSame('Se registraron 101 dispositivos disponibles.', session('toast.text'));
 
         $serialNumbers = SecurityDevice::query()->orderBy('id')->pluck('serial_number');
 
@@ -164,8 +166,9 @@ class SecurityDeviceLotReceptionTest extends TestCase
 
         $this->fillForm(seriesStart: '1', seriesEnd: '10000')
             ->call('save')
-            ->assertHasNoErrors()
-            ->assertDispatched('toast', text: 'Se registraron 10 000 dispositivos disponibles.');
+            ->assertHasNoErrors();
+
+        $this->assertSame('Se registraron 10 000 dispositivos disponibles.', session('toast.text'));
 
         $this->assertSame(10000, SecurityDevice::query()->count());
     }
