@@ -251,7 +251,7 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | --- | --- | --- |
 | `security_device_announcements` (`security_device_types_announcement`) | H07 | Se mantiene separada del lote. Propuesta: prefijo de serie en columna propia `series_prefix`; `series_start/series_end` enteros (el ER los tenía como texto); el proveedor vive solo aquí. |
 | `security_device_lots` (`security_device_lots`) | H07 | Se quita `provider_id` (propuesta). `qty` → `quantity`, `date_reception` → `received_at`, `observations` → `notes`, `despatch_number` → `dispatch_number`. |
-| `security_devices` (`s_device_lots_units`) | H07/H08 | `serie_number` → `serial_number` (UK). `status` guarda `available`, `in_kit`, `used`, `damaged`. Se descarta `location`. |
+| `security_devices` (`s_device_lots_units`) | H07/H08 | `serie_number` → `serial_number` (UK). `status` guarda `available` (inicial), `in_kit`, `used`, `damaged`, confirmados el 2026-11-09 (T27). Se descarta `location`. |
 | `certification_sections` (`certification_criteria_items`) | H11 | `type` solo `internal`/`external`. Se agrega `sort_order`. `softDeletes`. |
 | `certification_section_security_device_type` | H12 | PK compuesta `(section, device type)` + `quantity`. Las «puertas» no son un tipo: son una ubicación configurada (P1). |
 | `container_types` (`container_types`) | H13 | Definida con el volcado del usuario: `code` varchar(6) UK, `iso_code` varchar(4) UK, `description`, `is_reefer`, `length/width/height` decimal(8,2), `deleted_at`. Seeder con 15 de 16 filas (se omite `20ST`/`22G0`). Sin pantalla. |
