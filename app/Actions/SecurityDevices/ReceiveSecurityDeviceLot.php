@@ -57,16 +57,21 @@ class ReceiveSecurityDeviceLot
 
     /**
      * Get the given serial numbers that already exist, in the order they were given.
+     * The devices of the lot being corrected, when given, do not count.
      *
      * @param  list<string>  $serialNumbers
      * @return list<string>
      */
-    public function takenSerialNumbers(array $serialNumbers): array
+    public function takenSerialNumbers(array $serialNumbers, ?SecurityDeviceLot $exceptLot = null): array
     {
         $taken = [];
 
         foreach (array_chunk($serialNumbers, self::CHUNK_SIZE) as $chunk) {
-            $taken = [...$taken, ...SecurityDevice::query()->whereIn('serial_number', $chunk)->pluck('serial_number')->all()];
+            $taken = [...$taken, ...SecurityDevice::query()
+                ->whereIn('serial_number', $chunk)
+                ->when($exceptLot, fn ($query, SecurityDeviceLot $lot) => $query->where('security_device_lot_id', '!=', $lot->id))
+                ->pluck('serial_number')
+                ->all()];
         }
 
         $takenKeys = array_flip(array_map('mb_strtoupper', $taken));
@@ -79,7 +84,7 @@ class ReceiveSecurityDeviceLot
      *
      * @param  list<string>  $serialNumbers
      */
-    private function createAvailableDevices(SecurityDeviceLot $lot, array $serialNumbers): void
+    public function createAvailableDevices(SecurityDeviceLot $lot, array $serialNumbers): void
     {
         $now = now();
 
