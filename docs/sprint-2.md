@@ -38,7 +38,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 - [x] **T31** · H04, criterio 12 · Al crear un usuario con DNI, consultar el servicio externo (al completar 8 dígitos o con la lupa) y completar el nombre, con la misma regla de H10. Quién: Claude Code. 1 h. Parte de la rama de T25: no espera su merge. (Hecho el 2026-11-09, PR #38.)
 - [x] **T32** · H07 · Ingresar un lote de dispositivos. Incluye las tablas de lote y dispositivos, y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 4 h. Empieza cuando T27 (y T30, si hace falta) estén cerradas. (Hecho el 2026-11-10, PR #41.)
 - [x] **T33** · H08 · Consultar lotes y dispositivos. Quién: Claude Code. 3 h. Parte de la rama de T32: no espera su merge. (Hecho el 2026-11-10, PR #42.)
-- [ ] **T36** · Diseñar y aprobar en el lienzo la pantalla para corregir un lote (H28), con los campos de la serie bloqueados cuando algún dispositivo cambió de estado. Quién: Scrum Master con Claude Design. 0.5 h. (Agregada por el usuario el 2026-11-10.)
+- [x] **T36** · Diseñar y aprobar en el lienzo la pantalla para corregir un lote (H28), con los campos de la serie bloqueados cuando algún dispositivo cambió de estado. Quién: Scrum Master con Claude Design. 0.5 h. (Agregada por el usuario el 2026-11-10.) (Hecho el 2026-11-10, PR #43.)
 - [ ] **T37** · H28 · Corregir un lote. Quién: Claude Code. 2.5 h. Parte de la rama de T33: no espera su merge. Empieza cuando T36 esté aprobada. (Agregada por el usuario el 2026-11-10.)
 
 ### Adelanto opcional

@@ -254,7 +254,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Al guardar, se vuelve al detalle del lote con un aviso.
   7. La pantalla se puede usar bien desde el celular.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
-- Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, por aprobar).
+- Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
