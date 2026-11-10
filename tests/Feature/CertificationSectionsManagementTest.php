@@ -44,6 +44,18 @@ class CertificationSectionsManagementTest extends TestCase
             ->assertSeeTextInOrder(['Primera Sección', 'Externa', 'Activa', 'Segunda Sección', 'Interna', 'Sección Antigua', 'Desactivada']);
     }
 
+    public function test_an_empty_list_invites_to_create_the_first_section(): void
+    {
+        Livewire::test(CertificationSectionsTable::class)
+            ->assertSeeText('Todavía no hay secciones. Crea la primera con «Nueva sección».');
+
+        $this->section('Evaporadores', 1);
+
+        Livewire::test(CertificationSectionsTable::class)
+            ->set('search', 'No existe')
+            ->assertSeeText('No encontramos secciones con estos filtros.');
+    }
+
     public function test_the_list_filters_by_name_type_and_status(): void
     {
         $this->section('Evaporadores', 1, CertificationSectionType::Internal);
