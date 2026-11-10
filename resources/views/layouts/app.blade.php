@@ -10,5 +10,9 @@
         @endif
 
         {{ $slot }}
+
+        @session('toast')
+            <div x-init="$dispatch('toast', @js($value))" hidden></div>
+        @endsession
     </main>
 </x-layouts::app.sidebar>

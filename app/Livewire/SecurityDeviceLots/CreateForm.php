@@ -65,7 +65,7 @@ class CreateForm extends Component
     }
 
     /**
-     * Save the lot and its devices, and leave the form ready for the next lot.
+     * Save the lot and its devices, and open its detail.
      */
     public function save(ReceiveSecurityDeviceLot $receiveLot): void
     {
@@ -78,10 +78,13 @@ class CreateForm extends Component
             return;
         }
 
-        $this->dispatch('toast', icon: 'success', title: 'Lote guardado', text: sprintf(
-            'Se registraron %s dispositivos disponibles.',
-            number_format($lot->quantity, 0, ',', ' '),
-        ));
+        session()->flash('toast', [
+            'icon' => 'success',
+            'title' => 'Lote guardado',
+            'text' => sprintf('Se registraron %s dispositivos disponibles.', number_format($lot->quantity, 0, ',', ' ')),
+        ]);
+
+        $this->redirectRoute('intranet.security-device-lots.show', $lot, navigate: true);
     }
 
     /**

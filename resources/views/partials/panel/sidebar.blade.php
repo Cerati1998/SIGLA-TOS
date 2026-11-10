@@ -10,7 +10,7 @@
         [
             'name' => 'Lotes de dispositivos',
             'icon' => 'package',
-            'route' => route('intranet.security-device-lots.create'),
+            'route' => route('intranet.security-device-lots.index'),
             'active' => request()->routeIs('intranet.security-device-lots.*'),
         ],
         ['header' => 'Administración'],

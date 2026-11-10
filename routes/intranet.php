@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SecurityDeviceLotController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -15,7 +16,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('providers', 'pages.providers.index')->name('providers.index');
 
+    Route::view('security-device-lots', 'pages.security-device-lots.index')->name('security-device-lots.index');
+
     Route::view('security-device-lots/create', 'pages.security-device-lots.create')->name('security-device-lots.create');
+
+    Route::get('security-device-lots/{securityDeviceLot}', [SecurityDeviceLotController::class, 'show'])->name('security-device-lots.show');
 
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 });
