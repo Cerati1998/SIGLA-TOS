@@ -35,7 +35,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 ### Nuevas
 - [x] **T30** · Diseñar y aprobar en el lienzo la pantalla de ingreso de lote (H07) con la vista previa de cantidad, primera y última serie. Solo si T27 concluye que esa vista no sale de la plantilla de formulario. Quién: Scrum Master con Claude Design. 1 h. (Hecho el 2026-11-10, PR #40.)
 - [x] **T31** · H04, criterio 12 · Al crear un usuario con DNI, consultar el servicio externo (al completar 8 dígitos o con la lupa) y completar el nombre, con la misma regla de H10. Quién: Claude Code. 1 h. Parte de la rama de T25: no espera su merge. (Hecho el 2026-11-09, PR #38.)
-- [ ] **T32** · H07 · Ingresar un lote de dispositivos. Incluye las tablas de lote y dispositivos, y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 4 h. Empieza cuando T27 (y T30, si hace falta) estén cerradas.
+- [x] **T32** · H07 · Ingresar un lote de dispositivos. Incluye las tablas de lote y dispositivos, y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 4 h. Empieza cuando T27 (y T30, si hace falta) estén cerradas. (Hecho el 2026-11-10, PR #41.)
 - [ ] **T33** · H08 · Consultar lotes y dispositivos. Quién: Claude Code. 3 h. Parte de la rama de T32: no espera su merge.
 
 ### Adelanto opcional

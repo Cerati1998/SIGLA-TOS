@@ -212,11 +212,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
 - Criterios de aceptación:
-  1. Se ingresan: naviera, proveedor, tipo de dispositivo, serie (por ejemplo GSW), mínimo de dígitos, correlativo inicial y final, fecha de recepción, número de guía y observaciones (opcional).
+  1. Se ingresan: naviera, proveedor, tipo de dispositivo, inicio de serie (por ejemplo GSW), mínimo de dígitos, correlativo inicial y final, final de serie (opcional, solo letras), fecha de recepción, número de guía y observaciones (opcional).
   2. Solo se puede elegir un tipo de dispositivo activo.
   3. La cantidad se calcula sola desde el rango (ejemplo: del 200 al 399 son 200). El correlativo inicial no puede ser mayor que el final.
   4. Antes de guardar, se muestra una vista previa con la cantidad, la primera serie y la última.
-  5. Al guardar, el sistema genera todas las series uniendo la serie y el correlativo, sin separador, completando con ceros a la izquierda según el mínimo de dígitos. Ejemplo: serie GSW, mínimo 7 dígitos, del 200 al 399 da GSW0000200 a GSW0000399. Si un correlativo tiene más dígitos que el mínimo, se deja completo (confirmado por el usuario el 2026-11-09, T27).
+  5. Al guardar, el sistema genera todas las series uniendo la serie y el correlativo, sin separador, completando con ceros a la izquierda según el mínimo de dígitos. Ejemplo: serie GSW, mínimo 7 dígitos, del 200 al 399 da GSW0000200 a GSW0000399. Si un correlativo tiene más dígitos que el mínimo, se deja completo (confirmado por el usuario el 2026-11-09, T27). Si hay final de serie, va pegado al final: inicio GWF, mínimo 5 dígitos, del 100 al 200 y final A da GWF00100A a GWF00200A (pedido por el usuario el 2026-11-10).
   6. Si alguna serie ya existe en el sistema, no se guarda nada y se muestra cuáles chocan.
   7. El guardado es todo o nada.
   8. Las unidades quedan en estado Disponible, listas para armar kits (confirmado el 2026-11-09, T27).

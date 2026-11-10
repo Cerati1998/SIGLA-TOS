@@ -15,5 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('providers', 'pages.providers.index')->name('providers.index');
 
+    Route::view('security-device-lots/create', 'pages.security-device-lots.create')->name('security-device-lots.create');
+
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 });
