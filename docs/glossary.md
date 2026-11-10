@@ -13,3 +13,8 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Semirremolque | `semi_trailer` | Unidad que lleva la carga (H23). |
 | Tipo de documento | `identity` | Tabla `identities` y columna `identity_id`, catálogo SUNAT 06. |
 | Tipo de dispositivo de seguridad | `security_device_type` | Tabla `security_device_types` (H06). Su clase (sello, precinto, cinta u otro) es la columna `kind`. |
+| Anuncio | `security_device_announcement` | Origen de un lote: naviera, proveedor, tipo y cómo se arman sus series (H07). |
+| Lote | `security_device_lot` | Dispositivos de seguridad que llegan juntos, con su fecha de recepción y su guía (H07). |
+| Dispositivo de seguridad | `security_device` | Cada unidad con su serie única y su estado (H07). |
+| Correlativo | `series_start`, `series_end` | Número que, con el prefijo de la serie y los ceros, forma la serie de un dispositivo (H07). |
+| Guía (de remisión) | `dispatch_number` | Número de la guía con que llegó el lote (H07). |

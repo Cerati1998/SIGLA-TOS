@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) · **Última revisión:** 2026-11-04 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07) · **Última revisión:** 2026-11-10 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -50,6 +50,9 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `shipping_lines` | E8 · H09 | `en código` | `shipping_lines` |
 | `providers` | E8 · H10 | `en código` | `providers` |
 | `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
+| `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
+| `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
+| `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -119,6 +122,44 @@ erDiagram
     string name UK
     string kind "seal, container_seal, tape, other"
     datetime deleted_at
+  }
+```
+
+### 4.3 Lotes y dispositivos de seguridad (E2)
+
+```mermaid
+erDiagram
+  shipping_lines ||--o{ security_device_announcements : "naviera"
+  providers ||--o{ security_device_announcements : "proveedor"
+  security_device_types ||--o{ security_device_announcements : "tipo"
+  security_device_announcements ||--|| security_device_lots : "origen"
+  users ||--o{ security_device_lots : "ingresó"
+  security_device_lots ||--o{ security_devices : "trae"
+
+  security_device_announcements {
+    bigint id PK
+    bigint shipping_line_id FK
+    bigint provider_id FK
+    bigint security_device_type_id FK
+    string series_prefix
+    int min_digits
+    bigint series_start
+    bigint series_end
+  }
+  security_device_lots {
+    bigint id PK
+    bigint security_device_announcement_id FK "UK"
+    int quantity
+    date received_at
+    string dispatch_number
+    text notes
+    bigint created_by FK
+  }
+  security_devices {
+    bigint id PK
+    bigint security_device_lot_id FK
+    string serial_number UK
+    string status "available, in_kit, used, damaged"
   }
 ```
 
@@ -234,6 +275,48 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
+### 5.9 `security_device_announcements` · `en código`
+
+El origen de un lote: de quién viene y cómo se arman sus series. Se crea uno por lote, en el mismo guardado; bodega no lo gestiona aparte (P2, cerrada el 2026-11-10).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `shipping_line_id` | bigint FK | Naviera activa al ingresar el lote (H07, criterio 1). |
+| `provider_id` | bigint FK | Proveedor activo. Vive solo aquí: el lote no lo repite. |
+| `security_device_type_id` | bigint FK | Tipo activo (H07, criterio 2). |
+| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. |
+| `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
+| `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
+| `timestamps` | | |
+
+La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits`, sin separador; un correlativo más largo queda completo (H07, criterio 5). La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
+
+### 5.10 `security_device_lots` · `en código`
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `security_device_announcement_id` | bigint FK | UK: un anuncio, un lote. |
+| `quantity` | smallint sin signo | Dispositivos del lote, de 1 a 10 000 (H07, criterio 10). ER: `qty`. |
+| `received_at` | date | Fecha de recepción. ER: `date_reception`. |
+| `dispatch_number` | varchar(50) | Número de guía. ER: `despatch_number`. |
+| `notes` | text (null) | Observaciones, opcionales. ER: `observations`. |
+| `created_by` | bigint FK → `users` | Quién ingresó el lote; cuándo es `created_at` (H07, criterio 9). |
+| `timestamps` | | |
+
+### 5.11 `security_devices` · `en código`
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `security_device_lot_id` | bigint FK | Lote del que vino. |
+| `serial_number` | varchar(50) | UK: cada dispositivo es único. ER: `serie_number`. |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `available` (Disponible, el inicial), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `timestamps` | | |
+
+El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER.
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -249,9 +332,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `security_device_announcements` (`security_device_types_announcement`) | H07 | Se mantiene separada del lote. Propuesta: prefijo de serie en columna propia `series_prefix`; `series_start/series_end` enteros (el ER los tenía como texto); el proveedor vive solo aquí. |
-| `security_device_lots` (`security_device_lots`) | H07 | Se quita `provider_id` (propuesta). `qty` → `quantity`, `date_reception` → `received_at`, `observations` → `notes`, `despatch_number` → `dispatch_number`. |
-| `security_devices` (`s_device_lots_units`) | H07/H08 | `serie_number` → `serial_number` (UK). `status` guarda `available` (inicial), `in_kit`, `used`, `damaged`, confirmados el 2026-11-09 (T27). Se descarta `location`. |
 | `certification_sections` (`certification_criteria_items`) | H11 | `type` solo `internal`/`external`. Se agrega `sort_order`. `softDeletes`. |
 | `certification_section_security_device_type` | H12 | PK compuesta `(section, device type)` + `quantity`. Las «puertas» no son un tipo: son una ubicación configurada (P1). |
 | `container_types` (`container_types`) | H13 | Definida con el volcado del usuario: `code` varchar(6) UK, `iso_code` varchar(4) UK, `description`, `is_reefer`, `length/width/height` decimal(8,2), `deleted_at`. Seeder con 15 de 16 filas (se omite `20ST`/`22G0`). Sin pantalla. |
@@ -276,7 +356,6 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | # | Tema | Detalle |
 | --- | --- | --- |
 | P1 | «Puertas» | Dónde se guarda la ubicación configurada que dice a qué punto va cada tipo de dispositivo del kit. Se resuelve con H12. |
-| P2 | Anuncios y lotes | Confirmar prefijo en columna propia, series numéricas y proveedor solo en el anuncio. Se cierra al entrar H07. |
 | P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
 | P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
