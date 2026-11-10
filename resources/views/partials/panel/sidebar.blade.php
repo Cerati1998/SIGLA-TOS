@@ -52,6 +52,12 @@
             'route' => route('intranet.security-device-types.index'),
             'active' => request()->routeIs('intranet.security-device-types.*'),
         ],
+        [
+            'name' => 'Secciones de certificación',
+            'icon' => 'layers',
+            'route' => route('intranet.certification-sections.index'),
+            'active' => request()->routeIs('intranet.certification-sections.*'),
+        ],
         ['header' => 'Configuración'],
         [
             'name' => 'Empresa',
