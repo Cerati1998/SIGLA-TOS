@@ -22,5 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('security-device-lots/{securityDeviceLot}', [SecurityDeviceLotController::class, 'show'])->name('security-device-lots.show');
 
+    Route::get('security-device-lots/{securityDeviceLot}/edit', [SecurityDeviceLotController::class, 'edit'])->name('security-device-lots.edit');
+
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 });

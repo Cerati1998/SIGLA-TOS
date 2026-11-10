@@ -23,6 +23,18 @@
     ['name' => 'Lotes de dispositivos', 'route' => route('intranet.security-device-lots.index')],
     ['name' => $announcement->lotName()],
 ]">
+    <x-slot:actions>
+        <flux:button
+            variant="primary"
+            :href="route('intranet.security-device-lots.edit', $lot)"
+            wire:navigate
+            class="[--color-accent:var(--color-status-green)] max-md:h-11 max-md:w-full"
+        >
+            <i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>
+            Editar
+        </flux:button>
+    </x-slot:actions>
+
     <flux:card class="flex flex-col gap-5.25 p-5.25!">
         <dl class="m-0 grid grid-cols-2 gap-4 md:grid-cols-4">
             @foreach ($details as $label => $value)
