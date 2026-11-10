@@ -6,6 +6,13 @@
             'route' => route('intranet.dashboard'),
             'active' => request()->routeIs('intranet.dashboard'),
         ],
+        ['header' => 'Bodega'],
+        [
+            'name' => 'Lotes de dispositivos',
+            'icon' => 'package',
+            'route' => route('intranet.security-device-lots.create'),
+            'active' => request()->routeIs('intranet.security-device-lots.*'),
+        ],
         ['header' => 'Administración'],
         [
             'name' => 'Usuarios',
