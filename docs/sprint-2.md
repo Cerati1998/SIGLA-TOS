@@ -44,7 +44,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
 - [ ] **T34** · Preparar H11, H12 y H13: cerrar los "por confirmar" (orden de las secciones, si las puertas son un tercer tipo, cantidades del tipo de kit) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
-- [ ] **T35** · H11 · Gestionar secciones de certificación. Quién: Claude Code. 2.5 h. Depende de T34.
+- [x] **T35** · H11 · Gestionar secciones de certificación. Quién: Claude Code. 2.5 h. Depende de T34. (Hecho el 2026-11-10, PR #45. Construida sin T34, con sus supuestos por confirmar, a pedido del usuario.)
 
 ## Total estimado
 | Bloque | Tareas | Horas |
