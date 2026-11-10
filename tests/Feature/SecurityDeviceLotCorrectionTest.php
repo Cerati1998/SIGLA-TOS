@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
 use App\Enums\SecurityDeviceStatus;
 use App\Livewire\SecurityDeviceLots\EditForm;
+use App\Livewire\Tables\SecurityDeviceLotsTable;
 use App\Models\Provider;
 use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceAnnouncement;
@@ -41,8 +42,12 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $this->get(route('intranet.security-device-lots.edit', $this->lot))->assertRedirect(route('login'));
     }
 
-    public function test_the_detail_leads_to_the_form_filled_with_the_lot(): void
+    public function test_the_list_and_the_detail_lead_to_the_form_filled_with_the_lot(): void
     {
+        Livewire::test(SecurityDeviceLotsTable::class)
+            ->assertSee(route('intranet.security-device-lots.show', $this->lot))
+            ->assertSee(route('intranet.security-device-lots.edit', $this->lot));
+
         $this->get(route('intranet.security-device-lots.show', $this->lot))
             ->assertOk()
             ->assertSee(route('intranet.security-device-lots.edit', $this->lot))
