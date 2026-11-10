@@ -42,4 +42,10 @@ return [
         'timeout' => env('API_TIMEOUT', 8),
     ],
 
+    'sigla1' => [
+        'url' => env('SIGLA1_API_URL'),
+        'token' => env('SIGLA1_API_TOKEN'),
+        'timeout' => env('SIGLA1_API_TIMEOUT', 8),
+    ],
+
 ];
