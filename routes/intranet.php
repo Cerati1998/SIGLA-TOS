@@ -27,4 +27,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
+
+    Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
 });

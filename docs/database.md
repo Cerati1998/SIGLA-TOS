@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07) · **Última revisión:** 2026-11-10 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11) · **Última revisión:** 2026-11-10 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -53,6 +53,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
+| `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -161,6 +162,21 @@ erDiagram
     bigint security_device_lot_id FK
     string serial_number UK
     string status "available, in_kit, used, damaged"
+  }
+```
+
+### 4.4 Secciones de certificación (E3)
+
+Todavía no se relaciona con otras tablas: H12 le sumará los tipos de dispositivo que lleva cada sección.
+
+```mermaid
+erDiagram
+  certification_sections {
+    bigint id PK
+    string name UK
+    string type "internal, external"
+    smallint sort_order "null si está desactivada"
+    datetime deleted_at
   }
 ```
 
@@ -319,6 +335,18 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 
 El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER.
 
+### 5.12 `certification_sections` · `planeada (T35/H11)`
+
+Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `name` | varchar(100) | UK, aunque la sección esté desactivada (H11, criterio 2). |
+| `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna) o `external` (Externa). Las puertas no son un tipo (P1). |
+| `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -334,7 +362,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `certification_sections` (`certification_criteria_items`) | H11 | `type` solo `internal`/`external`. Se agrega `sort_order`. `softDeletes`. |
 | `certification_section_security_device_type` | H12 | PK compuesta `(section, device type)` + `quantity`. Las «puertas» no son un tipo: son una ubicación configurada (P1). |
 | `container_types` (`container_types`) | H13 | Definida con el volcado del usuario: `code` varchar(6) UK, `iso_code` varchar(4) UK, `description`, `is_reefer`, `length/width/height` decimal(8,2), `deleted_at`. Seeder con 15 de 16 filas (se omite `20ST`/`22G0`). Sin pantalla. |
 | `kit_types` (`type_kits`) | H13 | Se desactiva con `deleted_at` (sin `status`). |

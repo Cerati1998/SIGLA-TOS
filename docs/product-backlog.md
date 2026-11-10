@@ -277,6 +277,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   9. La pantalla se puede usar bien desde el celular.
 - Riesgo: agregar o desactivar una sección a mitad de una certificación en curso puede dejar el sistema inconsistente.
 - Duda abierta (en revisión): el formato de la certificación agrupa en tres zonas (exteriores, interiores, puertas); falta saber si las puertas son un tercer tipo.
+- Construida el 2026-11-10 (T35) con supuestos que quedan por confirmar en T34, a pedido del usuario: las puertas no son un tipo (solo interna o externa, P1 de `database.md`); el orden es uno solo para internas y externas y es el de los pasos (criterio 4); una sección desactivada sale del orden y no aparece en certificaciones nuevas (criterio 5); una nueva o reactivada va al final; el nombre no se repite aunque una esté desactivada; por ahora, cualquier usuario con sesión usa la pantalla (criterio 8, hasta H24). Se ordena arrastrando en escritorio y con subir y bajar en el teléfono, y se guarda al momento.
 
 **H12 · Definir qué dispositivos lleva cada sección**
 - Como admin, quiero indicar para cada sección qué tipos de dispositivo lleva y cuántos de cada uno, para que el inspector sepa qué colocar en cada sección durante la certificación.
