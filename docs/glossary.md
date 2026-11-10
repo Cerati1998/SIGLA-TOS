@@ -20,3 +20,8 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Final de serie | `series_suffix` | Letras opcionales con que termina la serie, por ejemplo la A de GWF00100A (H07). |
 | Correlativo | `series_start`, `series_end` | Número que, con el prefijo de la serie y los ceros, forma la serie de un dispositivo (H07). |
 | Guía (de remisión) | `dispatch_number` | Número de la guía con que llegó el lote (H07). |
+| Solicitud de retiro | `gate_out_request` | Solicitud de SIGLA 1.0 que se consulta por booking y contenedor (H05). Su número es `reference`. |
+| Cliente (operador) | `client` | Operador de la solicitud de retiro (H05). |
+| Embarcador | `shipper` | Dueño de la carga, cliente de la naviera (H05). |
+| Brevete | `license` | Licencia de conducir. En los conductores locales es el DNI con una letra delante (H05). |
+| Carrocería | `body` | Tipo de carrocería del vehículo que trae SIGLA 1.0, como REMOLCADOR o PLATAFORMA (H05). |

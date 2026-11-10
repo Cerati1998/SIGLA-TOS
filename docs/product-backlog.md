@@ -135,18 +135,21 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 ### E7 · Puente con SIGLA 1.0
 - Épica temporal: consulta la solicitud de retiro en la API de SIGLA 1.0 (sistema actual en producción) hasta migrar todo el módulo de gate out. Entonces el puente se retira.
 - Depende de: E1. La necesita E5.
-- Dependencia externa: la API de SIGLA 1.0 está creada a medias; falta que entregue todos los datos filtrando por `numero_contenedor` + `booking`. Terminarla antes de construir H05 (trabajo del sistema viejo; ponerlo en el sprint como tarea o impedimento).
+- Dependencia externa: la API de SIGLA 1.0 está creada a medias; falta que entregue todos los datos filtrando por `numero_contenedor` + `booking`. Terminarla antes de construir H05 (trabajo del sistema viejo; ponerlo en el sprint como tarea o impedimento). (Resuelto el 2026-11-10: la API ya entrega la solicitud con `op=GetDespatch`, filtrando por booking y contenedor, por HTTPS y con token Bearer.)
 
 **H05 · Consultar la solicitud de retiro desde SIGLA 1.0**
 - Como inspector certificado, quiero buscar una solicitud de retiro con el número de contenedor y el booking, para ver los datos de la unidad y del conductor antes de certificar.
 - Criterios de aceptación:
-  1. La búsqueda pide número de contenedor y booking, y ambos son obligatorios.
-  2. Si la solicitud existe, se muestran: cliente, producto, booking, naviera, conductor (con documento de identidad y brevete), remolcador, semirremolque y contenedor asignado. Los datos menores se definen antes de construir.
+  1. La búsqueda pide número de contenedor y booking, y ambos son obligatorios. Se escriben a mano y se pasan a mayúsculas mientras se escriben (decidido por el usuario el 2026-11-10).
+  2. Si la solicitud existe, se muestran: cliente, producto, booking, naviera, conductor (con documento de identidad y brevete), remolcador, semirremolque y contenedor asignado. Los datos menores se definieron el 2026-11-10: embarcador (RUC y nombre), nave y viaje, destino y fecha de despacho; de cada vehículo, placa, carrocería, marca y categoría. No se muestran el modelo, el color ni las fechas internas de SIGLA 1.0.
   3. Si no existe ninguna solicitud con esa combinación, se muestra un mensaje claro.
   4. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el usuario puede reintentar sin perder lo que escribió.
   5. Los datos son solo de lectura. SIGLA 2.0 no modifica nada en SIGLA 1.0.
-  6. Solo usuarios con sesión iniciada y un rol autorizado pueden consultar (por confirmar: inspector certificado y supervisor).
+  6. Solo usuarios con sesión iniciada y un rol autorizado pueden consultar (por confirmar: inspector certificado y supervisor). Hasta H24, cualquier usuario con sesión.
   7. La pantalla se puede usar bien desde el celular.
+  8. El cliente es el operador de la solicitud. El embarcador es el dueño de la carga (cliente de la naviera) (indicado por el usuario el 2026-11-10).
+  9. El DNI del conductor es su brevete sin la letra inicial (B46099190 → 46099190), porque los conductores son locales. Si el brevete no tiene esa forma, no se muestra DNI (indicado por el usuario el 2026-11-10).
+  10. Si SIGLA 1.0 trae más de una solicitud con esa combinación, se muestran todas, una debajo de otra (suposición aprobada con el diseño el 2026-11-10).
 - La consulta es en vivo. Al iniciar una certificación (H17) esos datos se guardan; la consulta de H05 en sí no guarda nada.
 - La autenticación del puente es una decisión técnica para la Construcción.
 
@@ -452,6 +455,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. La pantalla se puede usar bien desde el celular.
   13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04).
 - La naviera que trae la API se copia como texto y código, sin enlazarla al catálogo de E8, así que no hace falta que exista en él (decisión del 2026-11-04). Cliente y producto no tienen catálogo.
+- **Propuesta de cambio (2026-11-10, por aprobar en el PR de H05):** la naviera ya no se copia: se enlaza a `shipping_lines`, y el código es el de SIGLA 2.0 (la API solo trae el nombre, por ejemplo `SEATRADE`). Antes de construir H17 falta decidir cómo se reconoce la naviera de la API en el catálogo y qué pasa si no existe. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta` (falta la lista completa de valores).
 
 **H18 · Completar las secciones con fotos (EN REVISIÓN, no aprobada)**
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.

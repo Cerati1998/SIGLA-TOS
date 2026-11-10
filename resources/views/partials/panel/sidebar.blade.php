@@ -13,6 +13,13 @@
             'route' => route('intranet.security-device-lots.index'),
             'active' => request()->routeIs('intranet.security-device-lots.*'),
         ],
+        ['header' => 'Certificación'],
+        [
+            'name' => 'Solicitudes de retiro',
+            'icon' => 'file-text',
+            'route' => route('intranet.gate-out-requests.index'),
+            'active' => request()->routeIs('intranet.gate-out-requests.*'),
+        ],
         ['header' => 'Administración'],
         [
             'name' => 'Usuarios',
