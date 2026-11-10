@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-enum Sigla1LookupStatus
+enum Sigla1LookupStatus: string
 {
-    case Found;
-    case NotFound;
-    case Unavailable;
+    case Found = 'found';
+    case NotFound = 'not_found';
+    case Unavailable = 'unavailable';
 }
