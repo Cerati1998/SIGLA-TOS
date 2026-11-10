@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('min_digits');
             $table->unsignedBigInteger('series_start');
             $table->unsignedBigInteger('series_end');
+            $table->string('series_suffix', 10)->nullable();
             $table->timestamps();
         });
     }

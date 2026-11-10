@@ -16,5 +16,7 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Anuncio | `security_device_announcement` | Origen de un lote: naviera, proveedor, tipo y cómo se arman sus series (H07). |
 | Lote | `security_device_lot` | Dispositivos de seguridad que llegan juntos, con su fecha de recepción y su guía (H07). |
 | Dispositivo de seguridad | `security_device` | Cada unidad con su serie única y su estado (H07). |
+| Inicio de serie | `series_prefix` | Letras y números con que empieza la serie, por ejemplo GSW (H07). |
+| Final de serie | `series_suffix` | Letras opcionales con que termina la serie, por ejemplo la A de GWF00100A (H07). |
 | Correlativo | `series_start`, `series_end` | Número que, con el prefijo de la serie y los ceros, forma la serie de un dispositivo (H07). |
 | Guía (de remisión) | `dispatch_number` | Número de la guía con que llegó el lote (H07). |

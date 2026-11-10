@@ -35,6 +35,8 @@ class SecurityDeviceLotForm extends Form
 
     public string $seriesEnd = '';
 
+    public string $seriesSuffix = '';
+
     public string $notes = '';
 
     /**
@@ -62,6 +64,7 @@ class SecurityDeviceLotForm extends Form
             'minDigits' => ['required', 'integer', 'between:1,15'],
             'seriesStart' => ['required', 'digits_between:1,15'],
             'seriesEnd' => ['required', 'digits_between:1,15'],
+            'seriesSuffix' => ['nullable', 'alpha:ascii', 'max:10'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -79,6 +82,7 @@ class SecurityDeviceLotForm extends Form
             'securityDeviceTypeId.exists' => 'Elige un tipo de dispositivo activo.',
             'seriesStart.digits_between' => 'El correlativo inicial solo lleva números, hasta 15 dígitos.',
             'seriesEnd.digits_between' => 'El correlativo final solo lleva números, hasta 15 dígitos.',
+            'seriesSuffix.alpha' => 'El final de serie solo lleva letras.',
         ];
     }
 
@@ -95,10 +99,11 @@ class SecurityDeviceLotForm extends Form
             'securityDeviceTypeId' => 'tipo de dispositivo',
             'receivedAt' => 'fecha de recepción',
             'dispatchNumber' => 'número de guía',
-            'seriesPrefix' => 'serie',
+            'seriesPrefix' => 'inicio de serie',
             'minDigits' => 'mínimo de dígitos',
             'seriesStart' => 'correlativo inicial',
             'seriesEnd' => 'correlativo final',
+            'seriesSuffix' => 'final de serie',
             'notes' => 'observaciones',
         ];
     }
@@ -109,6 +114,7 @@ class SecurityDeviceLotForm extends Form
     public function store(ReceiveSecurityDeviceLot $receiveLot, User $user): ?SecurityDeviceLot
     {
         $this->seriesPrefix = mb_strtoupper(trim($this->seriesPrefix));
+        $this->seriesSuffix = mb_strtoupper(trim($this->seriesSuffix));
         $this->dispatchNumber = trim($this->dispatchNumber);
         $this->validate();
 
@@ -170,6 +176,7 @@ class SecurityDeviceLotForm extends Form
             'min_digits' => (int) $this->minDigits,
             'series_start' => (int) $this->seriesStart,
             'series_end' => (int) $this->seriesEnd,
+            'series_suffix' => $this->seriesSuffix ?: null,
         ]);
     }
 

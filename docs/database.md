@@ -145,6 +145,7 @@ erDiagram
     int min_digits
     bigint series_start
     bigint series_end
+    string series_suffix "null"
   }
   security_device_lots {
     bigint id PK
@@ -288,9 +289,10 @@ El origen de un lote: de quién viene y cómo se arman sus series. Se crea uno p
 | `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. |
 | `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
 | `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
+| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). |
 | `timestamps` | | |
 
-La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits`, sin separador; un correlativo más largo queda completo (H07, criterio 5). La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
+La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
 
 ### 5.10 `security_device_lots` · `en código`
 

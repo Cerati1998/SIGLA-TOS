@@ -32,21 +32,40 @@
             x-data="securityDeviceLotPreview({{ \App\Actions\SecurityDevices\ReceiveSecurityDeviceLot::MAX_DEVICES }})"
             class="col-span-full flex flex-col gap-3.5"
         >
-            <fieldset wire:loading.attr="disabled" wire:target="save" class="grid grid-cols-2 items-start gap-x-6 gap-y-3.5 md:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
-                <flux:input wire:model="form.seriesPrefix" label="Serie" type="text" maxlength="20" required autocomplete="off" class:input="uppercase" />
-                <flux:input wire:model="form.minDigits" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
-                <flux:input wire:model="form.seriesStart" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
-                <flux:input
-                    wire:model="form.seriesEnd"
-                    label="Correlativo final"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="15"
-                    required
-                    autocomplete="off"
-                    x-bind:data-invalid="preview.error !== null"
-                    x-bind:aria-invalid="preview.error !== null"
-                />
+            <fieldset wire:loading.attr="disabled" wire:target="save" class="grid grid-cols-2 items-start gap-x-6 gap-y-3.5 md:grid-cols-6">
+                <div class="md:col-span-2">
+                    <flux:input wire:model="form.seriesPrefix" label="Inicio de serie" type="text" maxlength="20" required autocomplete="off" class:input="uppercase" />
+                </div>
+                <div class="md:col-span-2">
+                    <flux:input wire:model="form.minDigits" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
+                </div>
+                <div class="col-span-2">
+                    <flux:input
+                        wire:model="form.seriesSuffix"
+                        label="Final de serie (opcional)"
+                        description:trailing="Letras al final, como la A de GWF00100A."
+                        type="text"
+                        maxlength="10"
+                        autocomplete="off"
+                        class:input="uppercase"
+                    />
+                </div>
+                <div class="md:col-span-3">
+                    <flux:input wire:model="form.seriesStart" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
+                </div>
+                <div class="md:col-span-3">
+                    <flux:input
+                        wire:model="form.seriesEnd"
+                        label="Correlativo final"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="15"
+                        required
+                        autocomplete="off"
+                        x-bind:data-invalid="preview.error !== null"
+                        x-bind:aria-invalid="preview.error !== null"
+                    />
+                </div>
             </fieldset>
 
             <p x-show="preview.error === null && preview.quantity === null" class="m-0 text-sm text-ink-muted">

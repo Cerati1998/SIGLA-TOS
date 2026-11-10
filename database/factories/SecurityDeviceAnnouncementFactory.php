@@ -28,6 +28,7 @@ class SecurityDeviceAnnouncementFactory extends Factory
             'min_digits' => 7,
             'series_start' => 200,
             'series_end' => 399,
+            'series_suffix' => null,
         ];
     }
 }

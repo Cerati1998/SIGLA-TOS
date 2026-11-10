@@ -108,6 +108,32 @@ class SecurityDeviceLotReceptionTest extends TestCase
         );
     }
 
+    public function test_the_optional_series_suffix_closes_every_serial_number(): void
+    {
+        $this->fillForm(minDigits: '5', seriesStart: '100', seriesEnd: '200')
+            ->set('form.seriesPrefix', 'GWF')
+            ->set('form.seriesSuffix', ' a ')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', text: 'Se registraron 101 dispositivos disponibles.');
+
+        $serialNumbers = SecurityDevice::query()->orderBy('id')->pluck('serial_number');
+
+        $this->assertSame('GWF00100A', $serialNumbers->first());
+        $this->assertSame('GWF00200A', $serialNumbers->last());
+        $this->assertSame('A', SecurityDeviceLot::query()->sole()->announcement->series_suffix);
+    }
+
+    public function test_the_series_suffix_only_takes_letters(): void
+    {
+        $this->fillForm()
+            ->set('form.seriesSuffix', '7')
+            ->call('save')
+            ->assertHasErrors(['form.seriesSuffix' => 'El final de serie solo lleva letras.']);
+
+        $this->assertDatabaseEmpty('security_device_lots');
+    }
+
     public function test_a_deactivated_device_type_cannot_be_chosen(): void
     {
         $this->securityDeviceType->delete();

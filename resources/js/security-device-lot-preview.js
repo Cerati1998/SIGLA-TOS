@@ -6,7 +6,7 @@ const formatNumber = (number) => String(number).replace(/\B(?=(\d{3})+(?!\d))/g,
 const isWholeNumber = (value) => /^\d+$/.test(String(value ?? '').trim());
 
 /**
- * The preview of a lot of security devices (H07): how many devices the range brings and its first and last serial numbers.
+ * The preview of a lot of security devices (H07): how many devices the range brings and its first and last serial numbers, built as prefix + zero-padded correlative + optional suffix.
  * It reads the fields of the Livewire form in the browser, without asking the server. The server checks the same rules on save.
  */
 document.addEventListener('alpine:init', () => {
@@ -14,6 +14,7 @@ document.addEventListener('alpine:init', () => {
         get preview() {
             const form = this.$wire.form;
             const prefix = String(form.seriesPrefix ?? '').trim().toUpperCase();
+            const suffix = String(form.seriesSuffix ?? '').trim().toUpperCase();
             const empty = { quantity: null, first: null, last: null, error: null };
 
             if (prefix === '' || ![form.minDigits, form.seriesStart, form.seriesEnd].every(isWholeNumber)) {
@@ -35,7 +36,7 @@ document.addEventListener('alpine:init', () => {
                 };
             }
 
-            const serialNumber = (correlative) => prefix + String(correlative).padStart(Number(form.minDigits), '0');
+            const serialNumber = (correlative) => prefix + String(correlative).padStart(Number(form.minDigits), '0') + suffix;
 
             return { quantity: formatNumber(quantity), first: serialNumber(start), last: serialNumber(end), error: null };
         },

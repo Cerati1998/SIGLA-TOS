@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $min_digits
  * @property int $series_start
  * @property int $series_end
+ * @property string|null $series_suffix
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read ShippingLine $shippingLine
@@ -28,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read SecurityDeviceType $securityDeviceType
  * @property-read SecurityDeviceLot|null $lot
  */
-#[Fillable(['shipping_line_id', 'provider_id', 'security_device_type_id', 'series_prefix', 'min_digits', 'series_start', 'series_end'])]
+#[Fillable(['shipping_line_id', 'provider_id', 'security_device_type_id', 'series_prefix', 'min_digits', 'series_start', 'series_end', 'series_suffix'])]
 class SecurityDeviceAnnouncement extends Model
 {
     /** @use HasFactory<SecurityDeviceAnnouncementFactory> */
@@ -49,12 +50,12 @@ class SecurityDeviceAnnouncement extends Model
     }
 
     /**
-     * Get the serial number of a correlative: the prefix and the correlative, left-padded with zeros up to the minimum of digits.
-     * A correlative longer than the minimum stays whole.
+     * Get the serial number of a correlative: the prefix, the correlative left-padded with zeros up to the minimum of digits,
+     * and the suffix when there is one. A correlative longer than the minimum stays whole.
      */
     public function serialNumber(int $correlative): string
     {
-        return $this->series_prefix.str_pad((string) $correlative, $this->min_digits, '0', STR_PAD_LEFT);
+        return $this->series_prefix.str_pad((string) $correlative, $this->min_digits, '0', STR_PAD_LEFT).$this->series_suffix;
     }
 
     /**
