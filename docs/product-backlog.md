@@ -243,6 +243,19 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
 - Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
 
+**H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
+- Como usuario de bodega, quiero corregir los datos de un lote ya ingresado, para arreglar un error de digitación sin borrar el lote y volver a ingresarlo.
+- Criterios de aceptación:
+  1. El detalle del lote tiene un botón "Editar", y cada fila de la lista de lotes tiene uno al lado de "Ver" (pedido por el usuario el 2026-11-10). Los dos abren el formulario de H07 con los datos del lote.
+  2. Naviera, proveedor, tipo de dispositivo, fecha de recepción, guía y observaciones se pueden corregir siempre.
+  3. Inicio de serie, mínimo de dígitos, correlativos y final de serie solo se pueden corregir si ningún dispositivo del lote cambió de estado (todos siguen Disponible). Si alguno cambió, esos campos se muestran bloqueados con un aviso que explica por qué.
+  4. Al cambiar la serie, el sistema rehace todas las series del lote con las reglas de H07: vista previa, correlativo inicial no mayor que el final, máximo 10 000 series y, si alguna serie nueva ya existe en otro lote, no se guarda nada y se muestra cuáles chocan.
+  5. El guardado es todo o nada.
+  6. Al guardar, se vuelve al detalle del lote con un aviso.
+  7. La pantalla se puede usar bien desde el celular.
+- Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
+- Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
+
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
 - Depende de: E1 (y de H06 para H12). La necesitan E4, E5 y E6.

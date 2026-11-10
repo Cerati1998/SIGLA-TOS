@@ -1,3 +1,7 @@
+@php
+    $seriesLocked = $seriesLockedNotice !== null;
+@endphp
+
 <form wire:submit="save" class="flex max-w-190 flex-col gap-5.25">
     <x-panel.form-card>
         <x-slot:heading>Origen</x-slot:heading>
@@ -32,16 +36,24 @@
             x-data="securityDeviceLotPreview({{ \App\Actions\SecurityDevices\ReceiveSecurityDeviceLot::MAX_DEVICES }})"
             class="col-span-full flex flex-col gap-3.5"
         >
+            @if ($seriesLocked)
+                <p role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
+                    <x-feather name="lock" class="mt-0.5 size-4.5 flex-none" />
+                    <span>{{ $seriesLockedNotice }} Puedes corregir el origen, la recepción, la guía y las observaciones.</span>
+                </p>
+            @endif
+
             <fieldset wire:loading.attr="disabled" wire:target="save" class="grid grid-cols-2 items-start gap-x-6 gap-y-3.5 md:grid-cols-6">
                 <div class="md:col-span-2">
-                    <flux:input wire:model="form.seriesPrefix" label="Inicio de serie" type="text" maxlength="20" required autocomplete="off" class:input="uppercase" />
+                    <flux:input wire:model="form.seriesPrefix" :disabled="$seriesLocked" label="Inicio de serie" type="text" maxlength="20" required autocomplete="off" class:input="uppercase" />
                 </div>
                 <div class="md:col-span-2">
-                    <flux:input wire:model="form.minDigits" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
+                    <flux:input wire:model="form.minDigits" :disabled="$seriesLocked" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
                 </div>
                 <div class="col-span-2">
                     <flux:input
                         wire:model="form.seriesSuffix"
+                        :disabled="$seriesLocked"
                         label="Final de serie (opcional)"
                         description:trailing="Letras al final, como la A de GWF00100A."
                         type="text"
@@ -51,11 +63,12 @@
                     />
                 </div>
                 <div class="md:col-span-3">
-                    <flux:input wire:model="form.seriesStart" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
+                    <flux:input wire:model="form.seriesStart" :disabled="$seriesLocked" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
                 </div>
                 <div class="md:col-span-3">
                     <flux:input
                         wire:model="form.seriesEnd"
+                        :disabled="$seriesLocked"
                         label="Correlativo final"
                         type="text"
                         inputmode="numeric"
@@ -68,26 +81,28 @@
                 </div>
             </fieldset>
 
-            <p x-show="preview.error === null && preview.quantity === null" class="m-0 text-sm text-ink-muted">
-                Completa la serie y el rango para ver la vista previa.
-            </p>
+            @unless ($seriesLocked)
+                <p x-show="preview.error === null && preview.quantity === null" class="m-0 text-sm text-ink-muted">
+                    Completa la serie y el rango para ver la vista previa.
+                </p>
 
-            <p x-show="preview.error !== null" x-cloak x-text="preview.error" role="alert" class="m-0 text-sm text-danger"></p>
+                <p x-show="preview.error !== null" x-cloak x-text="preview.error" role="alert" class="m-0 text-sm text-danger"></p>
 
-            <p x-show="preview.quantity !== null" x-cloak role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
-                <x-feather name="info" class="mt-0.5 size-4.5 flex-none" />
-                <span>
-                    <strong x-text="preview.quantity + (preview.quantity === '1' ? ' dispositivo' : ' dispositivos')"></strong>
-                    · primera serie <strong x-text="preview.first"></strong>
-                    · última serie <strong x-text="preview.last"></strong>
-                </span>
-            </p>
+                <p x-show="preview.quantity !== null" x-cloak role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
+                    <x-feather name="info" class="mt-0.5 size-4.5 flex-none" />
+                    <span>
+                        <strong x-text="preview.quantity + (preview.quantity === '1' ? ' dispositivo' : ' dispositivos')"></strong>
+                        · primera serie <strong x-text="preview.first"></strong>
+                        · última serie <strong x-text="preview.last"></strong>
+                    </span>
+                </p>
+            @endunless
         </div>
 
         @error('form.serialNumbers')
             <p role="alert" class="col-span-full m-0 flex gap-2.5 rounded-control bg-badge-danger p-3.5 text-sm text-badge-danger-ink">
                 <x-feather name="alert-circle" class="mt-0.5 size-4.5 flex-none" />
-                <span><strong>No se guardó el lote.</strong> {{ $message }}</span>
+                <span><strong>{{ $notSavedTitle }}</strong> {{ $message }}</span>
             </p>
         @enderror
 
@@ -96,9 +111,9 @@
         </fieldset>
 
         <x-slot:actions>
-            <flux:button :href="route('intranet.security-device-lots.index')" wire:navigate>Cancelar</flux:button>
+            <flux:button :href="$cancelUrl" wire:navigate>Cancelar</flux:button>
             <flux:button variant="primary" type="submit" :loading="false">
-                <span wire:loading.remove wire:target="save">Guardar lote</span>
+                <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
                 <span wire:loading.flex wire:target="save" class="items-center gap-2">
                     <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                     Guardando…

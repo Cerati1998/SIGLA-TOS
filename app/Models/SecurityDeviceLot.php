@@ -74,6 +74,14 @@ class SecurityDeviceLot extends Model
     }
 
     /**
+     * Check that the series of the lot can still be corrected: none of its devices changed status (H28, criterion 3).
+     */
+    public function seriesCanBeCorrected(): bool
+    {
+        return ! $this->devices()->where('status', '!=', SecurityDeviceStatus::Available)->exists();
+    }
+
+    /**
      * Count the devices of the lot in each status, with every status present.
      *
      * @return array<string, int>

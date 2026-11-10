@@ -19,4 +19,14 @@ class SecurityDeviceLotController extends Controller
             'deviceCounts' => $securityDeviceLot->deviceCountsByStatus(),
         ]);
     }
+
+    /**
+     * Show the correction of a lot (H28).
+     */
+    public function edit(SecurityDeviceLot $securityDeviceLot): View
+    {
+        $securityDeviceLot->load('announcement');
+
+        return view('pages.security-device-lots.edit', ['lot' => $securityDeviceLot]);
+    }
 }

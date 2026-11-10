@@ -19,6 +19,7 @@ Cerrar las listas maestras con proveedores (consulta de RUC y DNI incluida) y de
 - **H04, criterio 12** · Completar el nombre con la consulta de DNI al crear un usuario (T31). Depende de H10.
 - **H07** · Ingresar un lote de dispositivos (T32).
 - **H08** · Consultar lotes y dispositivos (T33).
+- **H28** · Corregir un lote (T36 y T37, agregada por el usuario el 2026-11-10 al revisar H08).
 - **H05** · Consultar la solicitud de retiro desde SIGLA 1.0 (T26, condicionada a la API de SIGLA 1.0).
 
 Sigue el orden de épicas aprobado: E1, E7, E8, E2, E3, E4, E9, E5, E6. Con esto se cierra E8 y avanza E2.
@@ -37,6 +38,8 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 - [x] **T31** · H04, criterio 12 · Al crear un usuario con DNI, consultar el servicio externo (al completar 8 dígitos o con la lupa) y completar el nombre, con la misma regla de H10. Quién: Claude Code. 1 h. Parte de la rama de T25: no espera su merge. (Hecho el 2026-11-09, PR #38.)
 - [x] **T32** · H07 · Ingresar un lote de dispositivos. Incluye las tablas de lote y dispositivos, y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 4 h. Empieza cuando T27 (y T30, si hace falta) estén cerradas. (Hecho el 2026-11-10, PR #41.)
 - [x] **T33** · H08 · Consultar lotes y dispositivos. Quién: Claude Code. 3 h. Parte de la rama de T32: no espera su merge. (Hecho el 2026-11-10, PR #42.)
+- [x] **T36** · Diseñar y aprobar en el lienzo la pantalla para corregir un lote (H28), con los campos de la serie bloqueados cuando algún dispositivo cambió de estado. Quién: Scrum Master con Claude Design. 0.5 h. (Agregada por el usuario el 2026-11-10.) (Hecho el 2026-11-10, PR #43.)
+- [x] **T37** · H28 · Corregir un lote. Quién: Claude Code. 2.5 h. Parte de la rama de T33: no espera su merge. Empieza cuando T36 esté aprobada. (Agregada por el usuario el 2026-11-10.) (Hecho el 2026-11-10, PR #43.)
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
@@ -46,12 +49,12 @@ Solo se hacen si sobra tiempo; no suman al total.
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
-| Compromiso | T25, T27, T28, T30, T31, T32, T33 | 14 h |
+| Compromiso | T25, T27, T28, T30, T31, T32, T33, T36, T37 | 17 h |
 | Condicionada a la API de SIGLA 1.0 | T26 | 3 h |
-| **Compromiso con T26** | | **17 h** |
+| **Compromiso con T26** | | **20 h** |
 | Adelanto opcional (no suma) | T34, T35 | 3.5 h |
 
-Capacidad para tareas: unas 18 h. Con T26 quedan 1 h de margen; sin T26, 4 h, que cubren el adelanto.
+Capacidad para tareas: unas 18 h. Sin T26 queda 1 h de margen. Con T26 el compromiso pasaría la capacidad en 2 h. (Cambiado el 2026-11-10: T36 y T37 suman 3 h al compromiso, a pedido del usuario. Antes eran 14 h, con 4 h de margen sin T26.)
 
 Referencia: el Sprint 1 terminó 31.5 h estimadas con esa misma capacidad, pero con un compromiso que se infló durante la semana. Este plan se queda en la capacidad declarada para que el compromiso no cambie a mitad de sprint.
 
@@ -65,11 +68,12 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 3 | T28 · empresa y sucursal en sesión | `feature/T28-empresa-en-sesion` | `main` | nada |
 | 4 | T32 · H07 | `feature/H07-ingresar-lote` | `main` | T27 cerrada (y T30, si hace falta) |
 | 5 | T33 · H08 | `feature/H08-consultar-lotes` | rama de T32 | nada |
-| 6 | T26 · H05 | `feature/H05-consultar-solicitud` | `main` | la API de SIGLA 1.0 |
+| 6 | T37 · H28 | `feature/H28-corregir-lote` | rama de T33 | T36 aprobada |
+| 7 | T26 · H05 | `feature/H05-consultar-solicitud` | `main` | la API de SIGLA 1.0 |
 
 - **Scrum Master, en paralelo:** T27 el lunes, para que T32 no se frene al terminar T28. T30 solo si T27 lo pide.
 - **Ramas encadenadas.** T31 parte de la rama de T25, y T33 de la de T32. Su PR va hacia `main` y, mientras la tarea base no se mergee, muestra también los commits de esa tarea. Al mergear la base, el PR queda solo con lo suyo.
-- **Orden de merge:** primero la tarea base (T25 antes que T31, y T32 antes que T33). Las demás se mergean en cualquier orden.
+- **Orden de merge:** primero la tarea base (T25 antes que T31, T32 antes que T33, y T33 antes que T37). Las demás se mergean en cualquier orden.
 - **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a la rama encadenada antes de pedir su visto bueno.
 - **Viernes:** Sprint Review y Retrospectiva (incluida la del Sprint 1); reporte en `docs/sprint-2-report.md`.
 

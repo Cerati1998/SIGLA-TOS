@@ -17,4 +17,8 @@
             @endforeach
         </flux:breadcrumbs>
     @endif
+
+    @if ($slot->isNotEmpty())
+        <div class="ms-auto flex flex-wrap gap-2.5 max-md:w-full">{{ $slot }}</div>
+    @endif
 </div>
