@@ -224,7 +224,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   10. Un lote trae como máximo 10 000 series: el sistema no deja ingresar un rango mayor. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando (confirmado el 2026-11-09, T27).
   11. La pantalla se puede usar bien desde el celular.
 - Quién ingresa lotes: por ahora, cualquier usuario con sesión. "Solo bodega y admin" pasa a H24 (confirmado el 2026-11-09, T27).
-- Diseño: se diseña en la página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, 2026-11-09).
+- Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, aprobado por el usuario el 2026-11-10).
+- En el menú va en el grupo "Bodega", como "Lotes de dispositivos" (decisión del usuario del 2026-11-10).
 - Una carga desde Excel con series sueltas sería otra historia (no pedida por ahora).
 
 **H08 · Consultar lotes y dispositivos**
@@ -239,7 +240,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
 - Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27).
-- Diseño: se diseña en la página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, 2026-11-09).
+- Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
+- Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
