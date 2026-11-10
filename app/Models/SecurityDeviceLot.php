@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SecurityDeviceStatus;
 use Database\Factories\SecurityDeviceLotFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -70,5 +71,23 @@ class SecurityDeviceLot extends Model
     public function devices(): HasMany
     {
         return $this->hasMany(SecurityDevice::class);
+    }
+
+    /**
+     * Count the devices of the lot in each status, with every status present.
+     *
+     * @return array<string, int>
+     */
+    public function deviceCountsByStatus(): array
+    {
+        $counts = $this->devices()
+            ->toBase()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return collect(SecurityDeviceStatus::cases())
+            ->mapWithKeys(fn (SecurityDeviceStatus $status): array => [$status->value => (int) ($counts[$status->value] ?? 0)])
+            ->all();
     }
 }

@@ -55,7 +55,31 @@ class SecurityDeviceAnnouncement extends Model
      */
     public function serialNumber(int $correlative): string
     {
-        return $this->series_prefix.str_pad((string) $correlative, $this->min_digits, '0', STR_PAD_LEFT).$this->series_suffix;
+        return $this->series_prefix.$this->correlativeWithSuffix($correlative);
+    }
+
+    /**
+     * Get the range of the lot without the prefix, as in "0000200 – 0000399".
+     */
+    public function rangeLabel(): string
+    {
+        return $this->correlativeWithSuffix($this->series_start).' – '.$this->correlativeWithSuffix($this->series_end);
+    }
+
+    /**
+     * Get the name of the lot: its prefix and its range, as in "GSW 0000200 – 0000399".
+     */
+    public function lotName(): string
+    {
+        return $this->series_prefix.' '.$this->rangeLabel();
+    }
+
+    /**
+     * Get a correlative left-padded with zeros and followed by the suffix, without the prefix.
+     */
+    private function correlativeWithSuffix(int $correlative): string
+    {
+        return str_pad((string) $correlative, $this->min_digits, '0', STR_PAD_LEFT).$this->series_suffix;
     }
 
     /**
