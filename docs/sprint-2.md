@@ -21,6 +21,7 @@ Cerrar las listas maestras con proveedores (consulta de RUC y DNI incluida) y de
 - **H08** · Consultar lotes y dispositivos (T33).
 - **H28** · Corregir un lote (T36 y T37, agregada por el usuario el 2026-11-10 al revisar H08).
 - **H05** · Consultar la solicitud de retiro desde SIGLA 1.0 (T26, condicionada a la API de SIGLA 1.0).
+- **Extensión del 2026-11-11:** H12 (T38), H13 (T39), H21 a H23 (T40 a T42) y, si se aprueban, H25 y H26 (T43 y T44).
 
 Sigue el orden de épicas aprobado: E1, E7, E8, E2, E3, E4, E9, E5, E6. Con esto se cierra E8 y avanza E2.
 
@@ -43,8 +44,19 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas arrastradas conser
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
-- [ ] **T34** · Preparar H11, H12 y H13: cerrar los "por confirmar" (orden de las secciones, si las puertas son un tercer tipo, cantidades del tipo de kit) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h.
+- **T34** · Pasó a la extensión del 2026-11-11 (ver más abajo).
 - [x] **T35** · H11 · Gestionar secciones de certificación. Quién: Claude Code. 2.5 h. Depende de T34. (Hecho el 2026-11-10, PR #45. Construida sin T34, con sus supuestos por confirmar, a pedido del usuario.)
+
+### Extensión del miércoles 11 y jueves 12 (agregada el 2026-11-11, a pedido del usuario)
+Con T25 a T37 ya construidas, el usuario pidió sumar más trabajo para el miércoles y el jueves. Van en el orden de épicas aprobado (E3, E4, E9). Si el tiempo no alcanza, se corta desde abajo: lo último en entrar es lo primero en pasar al Sprint 3. T34 es la misma tarea del adelanto, ahora comprometida.
+- [ ] **T34** · Preparar H11, H12 y H13: cerrar los "por confirmar" (orden de las secciones, si las puertas son un tercer tipo, cantidades del tipo de kit) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h. Frena a T38 y T39.
+- [ ] **T38** · H12 · Definir qué dispositivos lleva cada sección. Quién: Claude Code. 3 h. Empieza cuando T34 cierre la duda de las puertas (P1 de `docs/database.md`). Deja la tabla `certification_section_security_device_type` y `docs/database.md` al día en el mismo PR.
+- [ ] **T39** · H13 · Gestionar tipos de kit. Quién: Claude Code. 3 h. Empieza cuando T34 confirme la cantidad por tipo de dispositivo (criterio 7).
+- [ ] **T40** · H21 · Gestionar transportistas, con la consulta de RUC. Quién: Claude Code. 2 h. Sin decisiones abiertas; sigue el patrón de H10.
+- [ ] **T41** · H22 · Gestionar conductores, con la consulta de DNI. Quién: Claude Code. 2 h. Sin decisiones abiertas; cuáles roles ven DNI y brevete se resuelve en H24.
+- [ ] **T42** · H23 · Gestionar vehículos. Quién: Claude Code. 2 h. Usa las listas fijas de categoría y tipo de `docs/database.md`.
+- [ ] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
+- [ ] **T44** · H26 · Gestionar zonas de patio. Quién: Claude Code. 2 h. **H26 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
@@ -55,6 +67,17 @@ Solo se hacen si sobra tiempo; no suman al total.
 | Adelanto opcional (no suma) | T34, T35 | 3.5 h |
 
 Capacidad para tareas: unas 18 h. Sin T26 queda 1 h de margen. Con T26 el compromiso pasaría la capacidad en 2 h. (Cambiado el 2026-11-10: T36 y T37 suman 3 h al compromiso, a pedido del usuario. Antes eran 14 h, con 4 h de margen sin T26.)
+
+**Con la extensión del 2026-11-11:**
+
+| Bloque | Tareas | Horas |
+| --- | --- | --- |
+| Compromiso original con T26 | T25 a T33, T36, T37 | 20 h |
+| Adelanto ya construido | T35 | 2.5 h |
+| Extensión (E3, E4, E9) | T34, T38, T39, T40, T41, T42, T43, T44 | 17 h |
+| **Total del sprint** | | **39.5 h** |
+
+La capacidad declarada sigue en unas 18 h para tareas, así que el sprint ya pasa de ella: el original con T35 sumaba 22.5 h y la extensión añade 17 h. Es una decisión del usuario, igual que T36 y T37. Para saber cuánto rinde Claude Code de verdad, se registran las horas reales de cada tarea (ver "Temas a resolver"). Lo que no entre antes del viernes pasa al Sprint 3.
 
 Referencia: el Sprint 1 terminó 31.5 h estimadas con esa misma capacidad, pero con un compromiso que se infló durante la semana. Este plan se queda en la capacidad declarada para que el compromiso no cambie a mitad de sprint.
 
@@ -75,6 +98,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 - **Ramas encadenadas.** T31 parte de la rama de T25, y T33 de la de T32. Su PR va hacia `main` y, mientras la tarea base no se mergee, muestra también los commits de esa tarea. Al mergear la base, el PR queda solo con lo suyo.
 - **Orden de merge:** primero la tarea base (T25 antes que T31, T32 antes que T33, y T33 antes que T37). Las demás se mergean en cualquier orden.
 - **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a la rama encadenada antes de pedir su visto bueno.
+- **Extensión (miércoles y jueves):** T34 el miércoles en la mañana, en paralelo con T40, T41 y T42, que no esperan nada. Con T34 cerrada, T38 y T39. T43 y T44 al final y solo con H25 y H26 aprobadas. Cada una en su rama desde `main`, `feature/H12-...`, `feature/H13-...`, `feature/H21-...` y así; T38 y T39 tocan secciones y tipos de kit, y T40 a T42 abren módulos nuevos, así que no se pisan.
 - **Viernes:** Sprint Review y Retrospectiva (incluida la del Sprint 1); reporte en `docs/sprint-2-report.md`.
 
 Para no tocar los mismos archivos a la vez: T25 y T31 tocan proveedores y usuarios (por eso T31 se encadena); T28 toca la sesión y el layout; T32 y T33 abren el módulo nuevo de dispositivos.

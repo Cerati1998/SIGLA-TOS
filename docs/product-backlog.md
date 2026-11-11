@@ -392,17 +392,22 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Depende de: E1. La necesita E5 (H17).
 
 **H21 · Gestionar transportistas**
-- Como admin, quiero crear, editar y desactivar transportistas, para tener su registro ordenado y poder enlazarlos a cada certificación.
+- Como admin, quiero crear, editar y desactivar transportistas, para tener su registro ordenado y poder enlazarlos a cada certificación. (Cambiado el 2026-11-11 en T40: por ahora la usa cualquier usuario con sesión; la parte de roles pasa a H24.)
 - Criterios de aceptación:
   1. El admin crea un transportista con RUC y razón social. Dirección, correo y teléfono son opcionales.
   2. No se pueden crear dos transportistas con el mismo RUC.
   3. Al escribir el RUC, el sistema consulta el servicio externo y completa los datos que encuentre, como en H10. Si falla, se llena a mano.
   4. El admin edita los datos de un transportista.
-  5. El admin desactiva un transportista en vez de borrarlo. Uno con certificaciones no se puede eliminar (por confirmar).
-  6. Hay una lista que se puede buscar por razón social o RUC.
+  5. El admin desactiva un transportista en vez de borrarlo, con Soft Deletes, y lo reactiva desde la lista. Como nunca se borra, uno con certificaciones tampoco se elimina (resuelto el 2026-11-11 en T40: no hay botón de eliminar).
+  6. Hay una lista, ordenada por razón social, que se puede buscar por razón social o RUC y filtrar por estado (aprobado con el diseño el 2026-11-11).
   7. Un transportista se crea solo al iniciar una certificación si viene de SIGLA 1.0 y todavía no existe (H17), con RUC y razón social.
-  8. Solo el admin usa esta pantalla (por confirmar).
+  8. Solo el admin usa esta pantalla: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa (decisión del 2026-11-03).
   9. La pantalla se puede usar bien desde el celular.
+- El criterio 7 se construye con H17; H21 deja listo el catálogo.
+- El tipo de documento es siempre RUC: no se elige.
+- En el menú va en un grupo nuevo, "Transporte", donde después entrarán Conductores (H22) y Vehículos (H23) (aprobado con el diseño el 2026-11-11).
+- No se asignan conductores ni vehículos al transportista: siguen siendo catálogos independientes y la relación se guarda en cada certificación (confirmado por el usuario el 2026-11-11).
+- Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H22 · Gestionar conductores**
 - Como admin, quiero crear, editar y desactivar conductores, para tener su registro ordenado y poder enlazarlos a cada certificación.

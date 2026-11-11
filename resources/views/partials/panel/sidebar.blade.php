@@ -58,6 +58,13 @@
             'route' => route('intranet.certification-sections.index'),
             'active' => request()->routeIs('intranet.certification-sections.*'),
         ],
+        ['header' => 'Transporte'],
+        [
+            'name' => 'Transportistas',
+            'icon' => 'navigation',
+            'route' => route('intranet.carriers.index'),
+            'active' => request()->routeIs('intranet.carriers.*'),
+        ],
         ['header' => 'Configuración'],
         [
             'name' => 'Empresa',
