@@ -58,12 +58,22 @@
             'route' => route('intranet.certification-sections.index'),
             'active' => request()->routeIs('intranet.certification-sections.*'),
         ],
-        ['header' => 'Transporte'],
         [
-            'name' => 'Transportistas',
+            'name' => 'Transporte',
             'icon' => 'navigation',
-            'route' => route('intranet.carriers.index'),
-            'active' => request()->routeIs('intranet.carriers.*'),
+            'active' => request()->routeIs('intranet.carriers.*', 'intranet.drivers.*'),
+            'submenu' => [
+                [
+                    'name' => 'Transportistas',
+                    'route' => route('intranet.carriers.index'),
+                    'active' => request()->routeIs('intranet.carriers.*'),
+                ],
+                [
+                    'name' => 'Conductores',
+                    'route' => route('intranet.drivers.index'),
+                    'active' => request()->routeIs('intranet.drivers.*'),
+                ],
+            ],
         ],
         ['header' => 'Configuración'],
         [

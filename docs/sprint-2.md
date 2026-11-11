@@ -52,7 +52,7 @@ Con T25 a T37 ya construidas, el usuario pidió sumar más trabajo para el miér
 - [ ] **T34** · Preparar H11, H12 y H13: cerrar los "por confirmar" (orden de las secciones, si las puertas son un tercer tipo, cantidades del tipo de kit) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1 h. Frena a T38 y T39.
 - [ ] **T38** · H12 · Definir qué dispositivos lleva cada sección. Quién: Claude Code. 3 h. Empieza cuando T34 cierre la duda de las puertas (P1 de `docs/database.md`). Deja la tabla `certification_section_security_device_type` y `docs/database.md` al día en el mismo PR.
 - [ ] **T39** · H13 · Gestionar tipos de kit. Quién: Claude Code. 3 h. Empieza cuando T34 confirme la cantidad por tipo de dispositivo (criterio 7).
-- [ ] **T40** · H21 · Gestionar transportistas, con la consulta de RUC. Quién: Claude Code. 2 h. Sin decisiones abiertas; sigue el patrón de H10.
+- [x] **T40** · H21 · Gestionar transportistas, con la consulta de RUC. Quién: Claude Code. 2 h. Sin decisiones abiertas; sigue el patrón de H10. (Hecho el 2026-11-11, PR #46. La marca entró con el PR de H22 porque no alcanzó a ir en el #46.)
 - [ ] **T41** · H22 · Gestionar conductores, con la consulta de DNI. Quién: Claude Code. 2 h. Sin decisiones abiertas; cuáles roles ven DNI y brevete se resuelve en H24.
 - [ ] **T42** · H23 · Gestionar vehículos. Quién: Claude Code. 2 h. Usa las listas fijas de categoría y tipo de `docs/database.md`.
 - [ ] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.

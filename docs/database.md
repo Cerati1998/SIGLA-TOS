@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H21) · **Última revisión:** 2026-11-11 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H21, H22) · **Última revisión:** 2026-11-11 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -54,7 +54,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
-| `carriers` | E9 · H21 | `planeada (T40/H21)` | (no estaba en el ER) |
+| `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
+| `drivers` | E9 · H22 | `planeada (T41/H22)` | (no estaba en el ER) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -181,19 +182,28 @@ erDiagram
   }
 ```
 
-### 4.5 Transportistas (E9)
+### 4.5 Transportistas y conductores (E9)
 
-Catálogo independiente: no se relaciona con conductores ni vehículos. La relación se guardará en cada certificación (H17).
+Catálogos independientes: no se relacionan entre sí ni con los vehículos. La relación se guardará en cada certificación (H17).
 
 ```mermaid
 erDiagram
   identities ||--o{ carriers : "tipo de documento (RUC)"
+  identities ||--o{ drivers : "tipo de documento (DNI)"
 
   carriers {
     bigint id PK
     string identity_id FK "siempre RUC"
     string document_number "UK con identity_id"
     string business_name
+    datetime deleted_at
+  }
+  drivers {
+    bigint id PK
+    string identity_id FK "siempre DNI"
+    string document_number "UK con identity_id"
+    string full_name
+    string license UK
     datetime deleted_at
   }
 ```
@@ -365,7 +375,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-### 5.13 `carriers` · `planeada (T40/H21)`
+### 5.13 `carriers` · `en código`
 
 Transportistas (empresas). Global, sin sucursal. Independiente de conductores y vehículos (decisión confirmada por el usuario el 2026-11-11).
 
@@ -378,6 +388,19 @@ Transportistas (empresas). Global, sin sucursal. Independiente de conductores y 
 | `address`, `email` | varchar(255) (null) | Opcionales (H21, criterio 1). Vacío se guarda como null. |
 | `phone` | varchar(20) (null) | Opcional (H21, criterio 1). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H21, criterio 5). |
+
+### 5.14 `drivers` · `planeada (T41/H22)`
+
+Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y el brevete son datos personales: hasta H24 los ve cualquier usuario con sesión, y nunca van en URLs ni en logs (la búsqueda de su tabla no viaja en la URL).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `identity_id` | varchar(50) FK | Siempre DNI (`1`, `Identity::DNI`); el usuario no lo elige. |
+| `document_number` | varchar(15) | DNI de 8 dígitos. UK compuesta con `identity_id`, aunque esté desactivado (H22, criterio 2). |
+| `full_name` | varchar(255) | Índice. Nombres y apellidos en un solo campo, como los entrega la API de SIGLA 1.0 (decisión del usuario del 2026-11-11). |
+| `license` | varchar(15) | UK, aunque esté desactivado. Brevete obligatorio, texto libre en mayúsculas y sin espacios, para servir también a extranjeros (aprobado el 2026-11-11). |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H22, criterio 5). |
 
 ## 6. Cambios del ER original que ya aplican
 
@@ -404,7 +427,7 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `workers` (`workers`) | H25 (nueva) | Recibe los kits. Propio o de proveedor (`provider_id` null si `is_own`). Con `identity_id` + `document_number` UK. **Sin llave hacia `users`:** el inspector se reconoce comparando `identity_id` + `document_number` de su usuario y del trabajador; si no coinciden, no ve kits (decisión del usuario del 2026-11-04). |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
 | `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
-| `drivers`, `vehicles` (no estaban en el ER) | H22–H23 | Catálogos independientes, `softDeletes`. `carriers` (H21) ya pasó al diccionario (5.13). Identificación por `identity_id` + `document_number` (DNI), brevete y placa. Vehículo: `category` N1, N2, N3, O1, O2, O3, O4 y `type` `tractor`, `flatbed_semitrailer`, `container_semitrailer` (listas fijas), más `needs_review`. |
+| `vehicles` (no estaba en el ER) | H23 | Catálogo independiente, `softDeletes`. `carriers` (H21) y `drivers` (H22) ya pasaron al diccionario (5.13 y 5.14). Identificación por placa. Vehículo: `category` N1, N2, N3, O1, O2, O3, O4 y `type` `tractor`, `flatbed_semitrailer`, `container_semitrailer` (listas fijas), más `needs_review`. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | E6 | `por decidir` hasta revisar E6. |

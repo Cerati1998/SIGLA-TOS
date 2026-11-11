@@ -31,4 +31,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
 
     Route::view('carriers', 'pages.carriers.index')->name('carriers.index');
+
+    Route::view('drivers', 'pages.drivers.index')->name('drivers.index');
 });
