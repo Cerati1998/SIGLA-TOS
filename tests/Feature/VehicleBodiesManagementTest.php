@@ -8,6 +8,7 @@ use App\Livewire\VehicleBodies\EditModal;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleBody;
+use Database\Seeders\VehicleBodySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -22,6 +23,19 @@ class VehicleBodiesManagementTest extends TestCase
 
         $this->actingAs(User::factory()->create());
         $this->app->setLocale('es');
+    }
+
+    public function test_the_seeder_loads_the_initial_bodies_in_capitals_without_repeating_them(): void
+    {
+        VehicleBody::factory()->trashed()->create(['name' => 'CISTERNA']);
+
+        $this->seed(VehicleBodySeeder::class);
+        $this->seed(VehicleBodySeeder::class);
+
+        $this->assertDatabaseCount('vehicle_bodies', 9);
+        $this->assertDatabaseHas('vehicle_bodies', ['name' => 'REMOLCADOR 4X2']);
+        $this->assertDatabaseHas('vehicle_bodies', ['name' => 'CHASIS GOOSENECK']);
+        $this->assertSoftDeleted('vehicle_bodies', ['name' => 'CISTERNA']);
     }
 
     public function test_guests_cannot_open_the_screen(): void
