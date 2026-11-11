@@ -25,7 +25,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Un rol por usuario (suposición por confirmar antes de construir H24).
 - Regla común de escaneo: todo se escanea (dispositivos y kits tienen código propio; el kit lleva funda con código de barras). Hoy el escáner llena el campo activo y el dato se guarda solo, de forma asíncrona, sin botón de guardar. SIGLA 2.0 debe tener esa misma capacidad. La pantalla muestra qué escaneos se guardaron y cuáles fallaron, para poder reintentar (suposición por confirmar: el escáner funciona como teclado).
 - Puente con SIGLA 1.0 (decisión revisada el 2026-10-27): al iniciar una certificación se consulta SIGLA 1.0 una sola vez y SIGLA 2.0 guarda en la certificación una copia permanente de los datos de la solicitud (cliente, producto, booking, naviera y contenedor) más la referencia al despacho (`source` = api mientras dependa de SIGLA 1.0; `web` cuando SIGLA 2.0 tenga su módulo de solicitudes y despachos y apunte directo a su tabla de solicitudes u operaciones). Así la certificación y cualquier PDF futuro no dependen de que SIGLA 1.0 siga existiendo. Los datos llegan validados desde una operación real, casi al final del despacho.
-- Transportista, conductor y vehículos (remolcador y semirremolque) tienen catálogos propios (E9) y son independientes entre sí: un conductor o vehículo no depende de un transportista (pueden cambiar de transportista o tercerizar). La relación entre ellos se guarda en cada certificación. Al iniciar la certificación se hace un findOrCreate: si ya existen se enlazan; si no, se crean. Se reconocen por RUC (transportista), DNI (conductor) y placa (vehículo). El número de documento y de brevete no cambian.
+- Transportista, conductor y vehículos (remolcador y semirremolque) tienen catálogos propios (E9) y son independientes entre sí: un conductor o vehículo no depende de un transportista (pueden cambiar de transportista o tercerizar). La relación entre ellos se guarda en cada certificación. **Cambiado el 2026-11-11 (T45, corrección de H22):** los conductores van por empresa transportista, porque en la extranet cada transportista registrará los suyos. Un conductor puede estar en varios transportistas (tabla puente `carrier_driver`), se registra una sola vez con su DNI y se desactiva en cada uno por separado. Los vehículos siguen independientes. Al iniciar la certificación se hace un findOrCreate: si ya existen se enlazan; si no, se crean. Se reconocen por RUC (transportista), DNI (conductor) y placa (vehículo). El número de documento y de brevete no cambian.
 - Datos que entrega la API de SIGLA 1.0: transportista (RUC, razón social); conductor (DNI, brevete, nombres y apellidos); vehículo (marca, categoría —N1, N2, N3, O1, O2, O3…—, placa, y tipo de vehículo como texto: remolcador, semirremolque plataforma o semirremolque contenedora). Cliente y producto no tienen catálogo y se guardan como datos de la certificación.
 - Las líneas navieras y los proveedores son tablas maestras de SIGLA 2.0, con su propio módulo (E8).
 - Por ahora solo se manejan contenedores de 40'. Lo que pide cada sección es igual para todos. Si entran otras medidas, se amplía.
@@ -387,7 +387,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 
 ### E9 · Transportistas, conductores y vehículos
 - Los catálogos de transportistas (empresas), conductores y vehículos (remolcador y semirremolque), con sus pantallas de gestión. También se crean solos al iniciar una certificación, cuando vienen de SIGLA 1.0 y no existen todavía.
-- Se reconocen por RUC (transportista), DNI (conductor) y placa (vehículo). Son catálogos independientes entre sí. No hay pantallas de gestión de la relación: esta se guarda en cada certificación.
+- Se reconocen por RUC (transportista), DNI (conductor) y placa (vehículo). Son catálogos independientes entre sí. No hay pantallas de gestión de la relación: esta se guarda en cada certificación. (Cambiado el 2026-11-11 en T45: los conductores se gestionan desde cada transportista; ver H22.)
 - No va dentro de E7 porque el puente es temporal y estos catálogos se quedan (los usará el módulo de solicitudes y despachos de SIGLA 2.0).
 - Depende de: E1. La necesita E5 (H17).
 
@@ -406,7 +406,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - El criterio 7 se construye con H17; H21 deja listo el catálogo.
 - El tipo de documento es siempre RUC: no se elige.
 - En el menú va dentro de "Maestros", en el desplegable "Transporte", junto con Conductores (H22) y Vehículos (H23) (cambiado por el usuario el 2026-11-11; antes era un grupo propio).
-- No se asignan conductores ni vehículos al transportista: siguen siendo catálogos independientes y la relación se guarda en cada certificación (confirmado por el usuario el 2026-11-11).
+- No se asignan conductores ni vehículos al transportista: siguen siendo catálogos independientes y la relación se guarda en cada certificación (confirmado por el usuario el 2026-11-11). **Cambiado ese mismo día en T45 (corrección de H22):** cada fila tiene el botón Conductores, que abre los conductores de esa empresa. Los vehículos siguen sin asignarse.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H22 · Gestionar conductores**
@@ -422,7 +422,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Los datos personales (DNI y brevete) solo los ven los roles que los necesitan. Cuáles son se resuelve en H24; hasta entonces los ve cualquier usuario con sesión (T41, sprint 2). Esto no es asesoría legal.
   9. Solo el admin crea, edita y desactiva conductores: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa (decisión del 2026-11-03).
   10. La pantalla se puede usar bien desde el celular.
-- El conductor no queda ligado a ningún transportista.
+- El conductor no queda ligado a ningún transportista. **Corrección del 2026-11-11 (T45), a pedido del usuario, pensando en la extranet:**
+  - Los conductores van por empresa transportista. Conductores sale del menú: se llega con el botón Conductores de cada fila de Transportistas, que abre un modal con los conductores de esa empresa.
+  - Un conductor puede estar en varios transportistas y se registra una sola vez con su DNI. "Agregar conductor" pide el DNI: si ya está registrado, lo enlaza con sus datos sin consultar RENIEC; si no, lo consulta y lo crea. Si ya está en la empresa, se avisa; si estaba desactivado en ella, lo reactiva.
+  - Editar cambia los datos del conductor en todas las empresas. Desactivar y reactivar solo afectan a la empresa desde la que se hace (reemplaza al criterio 5 en ese punto).
+  - Diseño de la corrección aprobado por el usuario el 2026-11-11 en el lienzo.
 - El criterio 7 se construye con H17; H22 deja listo el catálogo.
 - En el menú va en Maestros → Transporte, debajo de Transportistas (cambiado por el usuario el 2026-11-11).
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
@@ -454,7 +458,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige.
   2. Al elegirla, el sistema consulta SIGLA 1.0 una sola vez y guarda en la certificación los datos de la solicitud: cliente, producto, booking, naviera y contenedor, además de la referencia al despacho.
-  3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa.
+  3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa. Desde el 2026-11-11 (T45), el conductor también se enlaza con el transportista de esa misma solicitud, si todavía no lo está.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
   6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra. La reinspección reabre esa misma certificación (decisión del 2026-11-04).
