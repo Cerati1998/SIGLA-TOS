@@ -4,7 +4,7 @@ namespace App\Services;
 
 /**
  * @phpstan-type Party array{document_number: string|null, name: string|null}
- * @phpstan-type Vehicle array{plate: string|null, brand: string|null, category: string|null, body: string|null}
+ * @phpstan-type Vehicle array{plate: string|null, brand: string|null, category: string|null, body: string|null, color: string|null}
  * @phpstan-type GateOutRequest array{
  *     reference: string,
  *     booking: string|null,

@@ -18,7 +18,7 @@ class VehicleRegistryTest extends TestCase
     public function test_a_vehicle_not_in_the_catalog_is_registered_with_the_data_of_sigla_1(): void
     {
         $vehicle = app(VehicleRegistry::class)->findOrRegister(
-            ['plate' => 'abc-123', 'brand' => ' VOLVO ', 'category' => 'n3', 'body' => ' remolcador '],
+            ['plate' => 'abc-123', 'brand' => ' VOLVO ', 'category' => 'n3', 'body' => ' remolcador ', 'color' => ' blanco '],
             VehicleKind::Tractor,
         );
 
@@ -27,6 +27,7 @@ class VehicleRegistryTest extends TestCase
         $this->assertSame(VehicleKind::Tractor, $vehicle->kind);
         $this->assertSame(VehicleCategory::N3, $vehicle->category);
         $this->assertSame('REMOLCADOR', $vehicle->body->name);
+        $this->assertSame('BLANCO', $vehicle->color);
     }
 
     public function test_an_existing_vehicle_is_returned_without_changes_even_if_it_is_deactivated(): void
@@ -34,7 +35,7 @@ class VehicleRegistryTest extends TestCase
         $existing = Vehicle::factory()->trashed()->create(['plate' => 'ABC123', 'brand' => 'MARCA GUARDADA']);
 
         $vehicle = app(VehicleRegistry::class)->findOrRegister(
-            ['plate' => 'ABC123', 'brand' => 'OTRA MARCA', 'category' => 'O4', 'body' => 'PLATAFORMA'],
+            ['plate' => 'ABC123', 'brand' => 'OTRA MARCA', 'category' => 'O4', 'body' => 'PLATAFORMA', 'color' => null],
             VehicleKind::SemiTrailer,
         );
 
@@ -49,7 +50,7 @@ class VehicleRegistryTest extends TestCase
         $body = VehicleBody::factory()->trashed()->create(['name' => 'PLATAFORMA']);
 
         $vehicle = app(VehicleRegistry::class)->findOrRegister(
-            ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'O4', 'body' => 'plataforma'],
+            ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'O4', 'body' => 'plataforma', 'color' => null],
             VehicleKind::SemiTrailer,
         );
 
@@ -60,7 +61,7 @@ class VehicleRegistryTest extends TestCase
     public function test_a_category_out_of_the_list_is_stored_as_other(): void
     {
         $vehicle = app(VehicleRegistry::class)->findOrRegister(
-            ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'OTRO', 'body' => 'PLATAFORMA'],
+            ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'OTRO', 'body' => 'PLATAFORMA', 'color' => null],
             VehicleKind::SemiTrailer,
         );
 
@@ -73,7 +74,7 @@ class VehicleRegistryTest extends TestCase
 
         try {
             app(VehicleRegistry::class)->findOrRegister(
-                ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'O4', 'body' => null],
+                ['plate' => 'XYZ789', 'brand' => 'RANDON', 'category' => 'O4', 'body' => null, 'color' => null],
                 VehicleKind::SemiTrailer,
             );
         } finally {

@@ -50,6 +50,7 @@ class VehicleRegistry
                 'kind' => $kind,
                 'vehicle_body_id' => $body->id,
                 'category' => VehicleCategory::fromSigla1($data['category']),
+                'color' => Vehicle::normalizeColor($data['color']),
             ]);
         });
     }

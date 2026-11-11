@@ -34,6 +34,8 @@ class VehicleForm extends Form
 
     public string $category = VehicleCategory::N3->value;
 
+    public string $color = '';
+
     /**
      * Fill the form with the vehicle being edited.
      */
@@ -46,6 +48,7 @@ class VehicleForm extends Form
         $this->kind = $vehicle->kind->value;
         $this->vehicleBodyId = (string) $vehicle->vehicle_body_id;
         $this->category = $vehicle->category->value;
+        $this->color = (string) $vehicle->color;
     }
 
     /**
@@ -64,6 +67,7 @@ class VehicleForm extends Form
                 fn (Builder $query): Builder => $query->whereNull('deleted_at')->orWhere('id', $this->savedBodyId),
             )],
             'category' => ['required', Rule::enum(VehicleCategory::class)],
+            'color' => ['nullable', 'string', 'max:30'],
         ];
     }
 
@@ -95,6 +99,7 @@ class VehicleForm extends Form
             'kind' => 'tipo',
             'vehicleBodyId' => 'carrocería',
             'category' => 'categoría',
+            'color' => 'color',
         ];
     }
 
@@ -119,12 +124,13 @@ class VehicleForm extends Form
     }
 
     /**
-     * Validate the data as it will be stored: the plate in capitals, without spaces or hyphens.
+     * Validate the data as it will be stored: the plate in capitals, without spaces or hyphens, and the color in capitals.
      */
     private function validateNormalized(): void
     {
         $this->plate = Vehicle::normalizePlate($this->plate);
         $this->brand = trim($this->brand);
+        $this->color = (string) Vehicle::normalizeColor($this->color);
 
         $this->validate();
     }
@@ -132,7 +138,7 @@ class VehicleForm extends Form
     /**
      * Get the columns of the vehicle that this form writes.
      *
-     * @return array{plate: string, brand: string, kind: string, vehicle_body_id: int, category: string}
+     * @return array{plate: string, brand: string, kind: string, vehicle_body_id: int, category: string, color: string|null}
      */
     private function vehicleAttributes(): array
     {
@@ -142,6 +148,7 @@ class VehicleForm extends Form
             'kind' => $this->kind,
             'vehicle_body_id' => (int) $this->vehicleBodyId,
             'category' => $this->category,
+            'color' => Vehicle::normalizeColor($this->color),
         ];
     }
 }

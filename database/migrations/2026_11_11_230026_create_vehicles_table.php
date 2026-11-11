@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('kind', 20)->index();
             $table->foreignId('vehicle_body_id')->constrained();
             $table->string('category', 10)->index();
+            $table->string('color', 30)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

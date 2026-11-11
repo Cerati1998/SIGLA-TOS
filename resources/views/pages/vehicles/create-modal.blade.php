@@ -3,7 +3,7 @@
         title="Nuevo vehículo"
         name="vehicle-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.plate = ''; $wire.form.brand = ''; $wire.form.kind = '{{ \App\Enums\VehicleKind::Tractor->value }}'; $wire.form.vehicleBodyId = ''; $wire.form.category = '{{ \App\Enums\VehicleCategory::N3->value }}'"
+        x-on:open="$wire.form.plate = ''; $wire.form.brand = ''; $wire.form.kind = '{{ \App\Enums\VehicleKind::Tractor->value }}'; $wire.form.vehicleBodyId = ''; $wire.form.category = '{{ \App\Enums\VehicleCategory::N3->value }}'; $wire.form.color = ''"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="vehicle-create-form" wire:submit="save" class="grid gap-4">

@@ -46,8 +46,8 @@ class Sigla1ServiceTest extends TestCase
             'shipper' => ['document_number' => '20000000002', 'name' => 'EMBARCADOR DE EJEMPLO S.A.C.'],
             'carrier' => ['document_number' => '20000000003', 'name' => 'TRANSPORTES DE EJEMPLO S.R.L.'],
             'driver' => ['name' => 'NOMBRE APELLIDO DE EJEMPLO', 'license' => 'B00000001', 'document_number' => '00000001'],
-            'tractor' => ['plate' => 'AAA111', 'brand' => 'MARCA TRACTO', 'category' => 'N3', 'body' => 'REMOLCADOR'],
-            'semi_trailer' => ['plate' => 'BBB222', 'brand' => 'MARCA CARRETA', 'category' => 'O4', 'body' => 'PLATAFORMA'],
+            'tractor' => ['plate' => 'AAA111', 'brand' => 'MARCA TRACTO', 'category' => 'N3', 'body' => 'REMOLCADOR', 'color' => 'BLANCO'],
+            'semi_trailer' => ['plate' => 'BBB222', 'brand' => 'MARCA CARRETA', 'category' => 'O4', 'body' => 'PLATAFORMA', 'color' => 'GRIS'],
         ]], $result->gateOutRequests);
         Http::assertSent(fn (Request $request): bool => $request->url() === self::API_URL.'?op=GetDespatch&booking=BKG000000001&container=ABCU1234567'
             && $request->hasHeader('Authorization', 'Bearer test-token'));

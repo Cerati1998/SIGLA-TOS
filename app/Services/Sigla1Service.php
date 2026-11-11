@@ -116,6 +116,7 @@ class Sigla1Service
             'brand' => $this->text($item, "marca_{$suffix}"),
             'category' => $this->text($item, "categoria_{$suffix}"),
             'body' => $this->text($item, "carroceria_{$suffix}"),
+            'color' => $this->text($item, "color_{$suffix}"),
         ];
     }
 

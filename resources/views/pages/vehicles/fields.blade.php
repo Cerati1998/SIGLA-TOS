@@ -15,6 +15,7 @@
     <x-wire-native-select id="{{ $idPrefix }}-body" wire:model="form.vehicleBodyId" label="Carrocería" description="Solo las carrocerías activas." :options="['' => 'Elige una carrocería'] + $bodies->all()" option-key-value required />
 </div>
 
-<div class="md:max-w-50">
+<div class="grid gap-4 md:grid-cols-2">
     <x-wire-native-select id="{{ $idPrefix }}-category" wire:model="form.category" label="Categoría" :options="$categories" option-key-value required />
+    <x-wire-input id="{{ $idPrefix }}-color" wire:model="form.color" label="Color (opcional)" description="Se guarda en mayúsculas." type="text" maxlength="30" autocomplete="off" />
 </div>

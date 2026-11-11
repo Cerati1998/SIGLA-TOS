@@ -221,6 +221,7 @@ erDiagram
     string kind "tractor, semi_trailer"
     bigint vehicle_body_id FK
     string category "N1 a O4, other"
+    string color "null"
     datetime deleted_at
   }
 ```
@@ -441,6 +442,7 @@ Remolcadores y semirremolques. No se ligan a ningún transportista.
 | `kind` | varchar(20) | Índice. Enum de PHP `VehicleKind`: `tractor` (Remolcador) o `semi_trailer` (Semirremolque), como el glosario. Desde SIGLA 1.0 sale de dónde viene la placa: `placa_tracto` o `placa_carreta`. |
 | `vehicle_body_id` | bigint FK | Carrocería (`vehicle_bodies`). |
 | `category` | varchar(10) | Índice. Enum de PHP `VehicleCategory`: la lista fija de SIGLA 1.0, `N1`, `N2`, `N3`, `O1`, `O2`, `O3`, `O4` y `other` (OTRO). N3 por defecto. Un texto fuera de la lista que llegue de SIGLA 1.0 se guarda como `other`. |
+| `color` | varchar(30) (null) | Opcional, texto libre en mayúsculas; vacío se guarda como null. Desde SIGLA 1.0 sale de `color_tracto` o `color_carreta` (agregado a pedido del usuario el 2026-11-11). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
 Sin `needs_review`: el vehículo que llega de SIGLA 1.0 se registra directo en el catálogo con `VehicleRegistry` (decisión del usuario del 2026-11-11).

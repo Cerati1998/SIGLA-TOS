@@ -21,12 +21,13 @@ use Illuminate\Support\Carbon;
  * @property VehicleKind $kind
  * @property int $vehicle_body_id
  * @property VehicleCategory $category
+ * @property string|null $color
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read VehicleBody $body
  */
-#[Fillable(['plate', 'brand', 'kind', 'vehicle_body_id', 'category'])]
+#[Fillable(['plate', 'brand', 'kind', 'vehicle_body_id', 'category', 'color'])]
 class Vehicle extends Model
 {
     /** @use HasFactory<VehicleFactory> */
@@ -38,6 +39,16 @@ class Vehicle extends Model
     public static function normalizePlate(string $plate): string
     {
         return mb_strtoupper((string) preg_replace('/[\s-]+/', '', $plate));
+    }
+
+    /**
+     * Get the color as it is stored: in capitals, or null when it is empty.
+     */
+    public static function normalizeColor(?string $color): ?string
+    {
+        $color = mb_strtoupper(trim((string) $color));
+
+        return $color === '' ? null : $color;
     }
 
     /**

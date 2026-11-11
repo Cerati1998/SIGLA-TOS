@@ -94,6 +94,7 @@ class VehiclesManagementTest extends TestCase
             ->set('form.kind', VehicleKind::SemiTrailer->value)
             ->set('form.vehicleBodyId', (string) $body->id)
             ->set('form.category', VehicleCategory::Other->value)
+            ->set('form.color', ' blanco ')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
@@ -106,6 +107,7 @@ class VehiclesManagementTest extends TestCase
             'kind' => 'semi_trailer',
             'vehicle_body_id' => $body->id,
             'category' => 'other',
+            'color' => 'BLANCO',
         ]);
     }
 
@@ -124,6 +126,11 @@ class VehiclesManagementTest extends TestCase
             ->set('form.category', 'M1')
             ->call('save')
             ->assertHasErrors(['form.plate' => 'alpha_num', 'form.kind', 'form.vehicleBodyId' => 'exists', 'form.category']);
+
+        Livewire::test(CreateModal::class)
+            ->set('form.color', str_repeat('A', 31))
+            ->call('save')
+            ->assertHasErrors(['form.color' => 'max']);
 
         Livewire::test(CreateModal::class)
             ->set('form.plate', 'ABCDEFG12345')
@@ -174,6 +181,7 @@ class VehiclesManagementTest extends TestCase
             ->assertSet('form.openModal', true)
             ->assertSeeText('CAMA BAJA (desactivada)')
             ->set('form.brand', 'MARCA NUEVA')
+            ->set('form.color', '')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
@@ -182,6 +190,7 @@ class VehiclesManagementTest extends TestCase
         $vehicle->refresh();
 
         $this->assertSame('MARCA NUEVA', $vehicle->brand);
+        $this->assertNull($vehicle->color);
         $this->assertSame($body->id, $vehicle->vehicle_body_id);
         $this->assertTrue($vehicle->trashed());
     }

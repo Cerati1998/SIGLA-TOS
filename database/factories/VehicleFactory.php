@@ -26,6 +26,7 @@ class VehicleFactory extends Factory
             'kind' => VehicleKind::Tractor,
             'vehicle_body_id' => VehicleBody::factory(),
             'category' => VehicleCategory::N3,
+            'color' => mb_strtoupper(fake()->safeColorName()),
         ];
     }
 }
