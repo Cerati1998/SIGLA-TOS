@@ -410,19 +410,22 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H22 · Gestionar conductores**
-- Como admin, quiero crear, editar y desactivar conductores, para tener su registro ordenado y poder enlazarlos a cada certificación.
+- Como admin, quiero crear, editar y desactivar conductores, para tener su registro ordenado y poder enlazarlos a cada certificación. (Cambiado el 2026-11-11 en T41: por ahora la usa cualquier usuario con sesión; la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. El admin crea un conductor con DNI, brevete, nombres y apellidos.
-  2. No se pueden crear dos conductores con el mismo DNI.
-  3. Al escribir el DNI, el sistema consulta el servicio externo y completa los nombres y apellidos que encuentre, como en H10. El usuario puede corregirlos, y si el servicio falla llena a mano (por confirmar).
+  1. El admin crea un conductor con DNI, brevete, nombres y apellidos. Los nombres y apellidos van en un solo campo, como los entrega la API de SIGLA 1.0. El brevete es obligatorio (decisiones del usuario del 2026-11-11).
+  2. No se pueden crear dos conductores con el mismo DNI, ni con el mismo brevete, aunque uno esté desactivado. El brevete es texto libre de hasta 15 caracteres, en mayúsculas y sin espacios, para servir también a extranjeros (aprobado con el diseño el 2026-11-11).
+  3. Al escribir el DNI, el sistema consulta el servicio externo y completa los nombres y apellidos que encuentre, como en H10. El usuario puede corregirlos, y si el servicio falla llena a mano (confirmado con el diseño el 2026-11-11).
   4. El admin edita los datos de un conductor.
-  5. El admin desactiva un conductor en vez de borrarlo. Uno con certificaciones no se puede eliminar (por confirmar).
-  6. Hay una lista que se puede buscar por DNI, brevete o nombre.
+  5. El admin desactiva un conductor en vez de borrarlo, con Soft Deletes, y lo reactiva desde la lista. Como nunca se borra, uno con certificaciones tampoco se elimina (resuelto el 2026-11-11 en T41: no hay botón de eliminar).
+  6. Hay una lista, ordenada por nombres y apellidos, que se puede buscar por DNI, brevete o nombre y filtrar por estado. La búsqueda no viaja en la URL, para que el DNI no quede en ella (aprobado con el diseño el 2026-11-11).
   7. Un conductor se crea solo al iniciar una certificación si viene de SIGLA 1.0 y todavía no existe (H17).
-  8. Los datos personales (DNI y brevete) solo los ven los roles que los necesitan. Cuáles son se confirma antes de construir. Esto no es asesoría legal.
-  9. Solo el admin crea, edita y desactiva conductores (por confirmar).
+  8. Los datos personales (DNI y brevete) solo los ven los roles que los necesitan. Cuáles son se resuelve en H24; hasta entonces los ve cualquier usuario con sesión (T41, sprint 2). Esto no es asesoría legal.
+  9. Solo el admin crea, edita y desactiva conductores: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa (decisión del 2026-11-03).
   10. La pantalla se puede usar bien desde el celular.
 - El conductor no queda ligado a ningún transportista.
+- El criterio 7 se construye con H17; H22 deja listo el catálogo.
+- En el menú va en el grupo "Transporte", debajo de Transportistas.
+- Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H23 · Gestionar vehículos**
 - Como admin, quiero crear, editar y desactivar vehículos (remolcadores y semirremolques), para tener su registro ordenado y poder enlazarlos a cada certificación.
