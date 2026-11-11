@@ -65,6 +65,12 @@
             'route' => route('intranet.carriers.index'),
             'active' => request()->routeIs('intranet.carriers.*'),
         ],
+        [
+            'name' => 'Conductores',
+            'icon' => 'user-check',
+            'route' => route('intranet.drivers.index'),
+            'active' => request()->routeIs('intranet.drivers.*'),
+        ],
         ['header' => 'Configuración'],
         [
             'name' => 'Empresa',
