@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H21, H22) · **Última revisión:** 2026-11-11 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H21, H22, H23) · **Última revisión:** 2026-11-11 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -56,6 +56,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
 | `drivers` | E9 · H22 | `planeada (T41/H22)` | (no estaba en el ER) |
+| `vehicle_bodies` | E9 · H23 | `planeada (T42/H23)` | (no estaba en el ER) |
+| `vehicles` | E9 · H23 | `planeada (T42/H23)` | (no estaba en el ER) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -182,14 +184,15 @@ erDiagram
   }
 ```
 
-### 4.5 Transportistas y conductores (E9)
+### 4.5 Transportistas, conductores y vehículos (E9)
 
-Catálogos independientes: no se relacionan entre sí ni con los vehículos. La relación se guardará en cada certificación (H17).
+Catálogos independientes: transportistas, conductores y vehículos no se relacionan entre sí. La relación se guardará en cada certificación (H17). Cada vehículo tiene una carrocería del catálogo `vehicle_bodies`.
 
 ```mermaid
 erDiagram
   identities ||--o{ carriers : "tipo de documento (RUC)"
   identities ||--o{ drivers : "tipo de documento (DNI)"
+  vehicle_bodies ||--o{ vehicles : "carrocería"
 
   carriers {
     bigint id PK
@@ -204,6 +207,20 @@ erDiagram
     string document_number "UK con identity_id"
     string full_name
     string license UK
+    datetime deleted_at
+  }
+  vehicle_bodies {
+    bigint id PK
+    string name UK
+    datetime deleted_at
+  }
+  vehicles {
+    bigint id PK
+    string plate UK "ABC123"
+    string brand
+    string kind "tractor, semi_trailer"
+    bigint vehicle_body_id FK
+    string category "N1 a O4, other"
     datetime deleted_at
   }
 ```
@@ -402,6 +419,32 @@ Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y
 | `license` | varchar(15) | UK, aunque esté desactivado. Brevete obligatorio, texto libre en mayúsculas y sin espacios, para servir también a extranjeros (aprobado el 2026-11-11). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H22, criterio 5). |
 
+### 5.15 `vehicle_bodies` · `planeada (T42/H23)`
+
+Carrocerías, como REMOLCADOR o PLATAFORMA. Una sola lista para remolcadores y semirremolques, como en SIGLA 1.0, pero gestionable desde su pantalla (decisión del usuario del 2026-11-11). El Service `VehicleRegistry` registra una nueva si llega de SIGLA 1.0 y no existe.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `name` | varchar(100) | UK, aunque esté desactivada. Se guarda en mayúsculas y con espacios simples, como lo manda SIGLA 1.0. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. Una desactivada no se elige en vehículos nuevos, pero los vehículos que la tienen la conservan. |
+
+### 5.16 `vehicles` · `planeada (T42/H23)`
+
+Remolcadores y semirremolques. No se ligan a ningún transportista.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `plate` | varchar(10) | UK, aunque esté desactivado. En mayúsculas, solo letras y números, como `ABC123`, igual que SIGLA 1.0 (decisión del usuario del 2026-11-11). |
+| `brand` | varchar(100) | Marca. |
+| `kind` | varchar(20) | Índice. Enum de PHP `VehicleKind`: `tractor` (Remolcador) o `semi_trailer` (Semirremolque), como el glosario. Desde SIGLA 1.0 sale de dónde viene la placa: `placa_tracto` o `placa_carreta`. |
+| `vehicle_body_id` | bigint FK | Carrocería (`vehicle_bodies`). |
+| `category` | varchar(10) | Índice. Enum de PHP `VehicleCategory`: la lista fija de SIGLA 1.0, `N1`, `N2`, `N3`, `O1`, `O2`, `O3`, `O4` y `other` (OTRO). N3 por defecto. Un texto fuera de la lista que llegue de SIGLA 1.0 se guarda como `other`. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
+
+Sin `needs_review`: el vehículo que llega de SIGLA 1.0 se registra directo en el catálogo con `VehicleRegistry` (decisión del usuario del 2026-11-11).
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -427,7 +470,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `workers` (`workers`) | H25 (nueva) | Recibe los kits. Propio o de proveedor (`provider_id` null si `is_own`). Con `identity_id` + `document_number` UK. **Sin llave hacia `users`:** el inspector se reconoce comparando `identity_id` + `document_number` de su usuario y del trabajador; si no coinciden, no ve kits (decisión del usuario del 2026-11-04). |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
 | `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
-| `vehicles` (no estaba en el ER) | H23 | Catálogo independiente, `softDeletes`. `carriers` (H21) y `drivers` (H22) ya pasaron al diccionario (5.13 y 5.14). Identificación por placa. Vehículo: `category` N1, N2, N3, O1, O2, O3, O4 y `type` `tractor`, `flatbed_semitrailer`, `container_semitrailer` (listas fijas), más `needs_review`. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | E6 | `por decidir` hasta revisar E6. |
