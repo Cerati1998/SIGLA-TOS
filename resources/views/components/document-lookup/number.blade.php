@@ -2,6 +2,8 @@
     'id',
     'digits',
     'maxlength',
+    'label' => 'Número de documento',
+    'buttonLabel' => 'Consultar documento',
 ])
 
 {{--
@@ -16,15 +18,15 @@
     x-on:input="$wire.form.lookupStatus = null; digits[$wire.form.identityId] && $event.target.value.trim().length === digits[$wire.form.identityId] && $nextTick(() => $wire.lookup())"
     x-on:focusout="digits[$wire.form.identityId] && $event.target.tagName === 'INPUT' && ! $el.contains($event.relatedTarget) && $event.target.value.trim() !== '' && $event.target.value.trim().length !== digits[$wire.form.identityId] && $wire.lookup()"
 >
-    <x-wire-input id="{{ $id }}" wire:model="form.documentNumber" label="Número de documento" type="text" maxlength="{{ $maxlength }}" required autocomplete="off">
+    <x-wire-input id="{{ $id }}" wire:model="form.documentNumber" :label="$label" type="text" maxlength="{{ $maxlength }}" required autocomplete="off">
         <x-slot:append class="py-0! pr-0!" x-bind:hidden="! digits[$wire.form.identityId]">
             <button
                 type="button"
                 x-on:click="$wire.form.lookupStatus = null; $wire.lookup(true)"
                 wire:loading.attr="disabled"
                 wire:target="lookup"
-                title="Consultar documento"
-                aria-label="Consultar documento"
+                title="{{ $buttonLabel }}"
+                aria-label="{{ $buttonLabel }}"
                 class="flex h-full w-10 cursor-pointer items-center justify-center rounded-r-control bg-highlight text-white disabled:cursor-not-allowed disabled:opacity-60 max-md:w-11"
             >
                 <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>

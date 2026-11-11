@@ -29,4 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
 
     Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
+
+    Route::view('carriers', 'pages.carriers.index')->name('carriers.index');
 });
