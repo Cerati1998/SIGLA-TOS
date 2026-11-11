@@ -55,9 +55,9 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
-| `drivers` | E9 · H22 | `planeada (T41/H22)` | (no estaba en el ER) |
-| `vehicle_bodies` | E9 · H23 | `planeada (T42/H23)` | (no estaba en el ER) |
-| `vehicles` | E9 · H23 | `planeada (T42/H23)` | (no estaba en el ER) |
+| `drivers` | E9 · H22 | `en código` | (no estaba en el ER) |
+| `vehicle_bodies` | E9 · H23 | `en código` | (no estaba en el ER) |
+| `vehicles` | E9 · H23 | `en código` | (no estaba en el ER) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -407,7 +407,7 @@ Transportistas (empresas). Global, sin sucursal. Independiente de conductores y 
 | `phone` | varchar(20) (null) | Opcional (H21, criterio 1). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H21, criterio 5). |
 
-### 5.14 `drivers` · `planeada (T41/H22)`
+### 5.14 `drivers` · `en código`
 
 Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y el brevete son datos personales: hasta H24 los ve cualquier usuario con sesión, y nunca van en URLs ni en logs (la búsqueda de su tabla no viaja en la URL).
 
@@ -420,7 +420,7 @@ Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y
 | `license` | varchar(15) | UK, aunque esté desactivado. Brevete obligatorio, texto libre en mayúsculas y sin espacios, para servir también a extranjeros (aprobado el 2026-11-11). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H22, criterio 5). |
 
-### 5.15 `vehicle_bodies` · `planeada (T42/H23)`
+### 5.15 `vehicle_bodies` · `en código`
 
 Carrocerías, como REMOLCADOR o PLATAFORMA. Una sola lista para remolcadores y semirremolques, como en SIGLA 1.0, pero gestionable desde su pantalla (decisión del usuario del 2026-11-11). El Service `VehicleRegistry` registra una nueva si llega de SIGLA 1.0 y no existe. `VehicleBodySeeder` carga las 9 iniciales que dio el usuario el 2026-11-11 (remolcador 4x2, 6x2 y 6x4, plataforma, plataforma abierta, containera, portacontenedor extensible, cisterna y chasis gooseneck).
 
@@ -430,7 +430,7 @@ Carrocerías, como REMOLCADOR o PLATAFORMA. Una sola lista para remolcadores y s
 | `name` | varchar(100) | UK, aunque esté desactivada. Se guarda en mayúsculas y con espacios simples, como lo manda SIGLA 1.0. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. Una desactivada no se elige en vehículos nuevos, pero los vehículos que la tienen la conservan. |
 
-### 5.16 `vehicles` · `planeada (T42/H23)`
+### 5.16 `vehicles` · `en código`
 
 Remolcadores y semirremolques. No se ligan a ningún transportista.
 
