@@ -405,7 +405,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   9. La pantalla se puede usar bien desde el celular.
 - El criterio 7 se construye con H17; H21 deja listo el catálogo.
 - El tipo de documento es siempre RUC: no se elige.
-- En el menú va en un grupo nuevo, "Transporte", donde después entrarán Conductores (H22) y Vehículos (H23) (aprobado con el diseño el 2026-11-11).
+- En el menú va dentro de "Maestros", en el desplegable "Transporte", junto con Conductores (H22) y Vehículos (H23) (cambiado por el usuario el 2026-11-11; antes era un grupo propio).
 - No se asignan conductores ni vehículos al transportista: siguen siendo catálogos independientes y la relación se guarda en cada certificación (confirmado por el usuario el 2026-11-11).
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
@@ -424,7 +424,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   10. La pantalla se puede usar bien desde el celular.
 - El conductor no queda ligado a ningún transportista.
 - El criterio 7 se construye con H17; H22 deja listo el catálogo.
-- En el menú va en el grupo "Transporte", debajo de Transportistas.
+- En el menú va en Maestros → Transporte, debajo de Transportistas (cambiado por el usuario el 2026-11-11).
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H23 · Gestionar vehículos**

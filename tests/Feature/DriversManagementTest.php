@@ -52,7 +52,7 @@ class DriversManagementTest extends TestCase
 
         $this->get(route('intranet.drivers.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Transporte', 'Transportistas', 'Conductores', 'Configuración'])
+            ->assertSeeInOrder(['Maestros', 'Secciones de certificación', 'Transporte', 'Transportistas', 'Conductores', 'Configuración'])
             ->assertSee(route('intranet.drivers.index'))
             ->assertSeeText('46099190')
             ->assertSeeText('PEREZ ROJAS JUAN')
