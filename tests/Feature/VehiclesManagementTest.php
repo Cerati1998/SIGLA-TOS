@@ -41,7 +41,7 @@ class VehiclesManagementTest extends TestCase
 
         $this->get(route('intranet.vehicles.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Maestros', 'Transporte', 'Transportistas', 'Conductores', 'Vehículos', 'Carrocerías', 'Configuración'])
+            ->assertSeeInOrder(['Maestros', 'Transporte', 'Transportistas', 'Vehículos', 'Carrocerías', 'Configuración'])
             ->assertSee(route('intranet.vehicles.index'))
             ->assertSeeText('XYZ789')
             ->assertSeeText('Semirremolque')

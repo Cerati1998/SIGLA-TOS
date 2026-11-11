@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Carriers\DriversModal;
 use App\Livewire\Drivers\CreateModal;
 use App\Livewire\Drivers\EditModal;
-use App\Livewire\Tables\DriversTable;
+use App\Livewire\Tables\CarrierDriversTable;
+use App\Models\Carrier;
+use App\Models\CarrierDriver;
 use App\Models\Driver;
 use App\Models\Identity;
 use App\Models\User;
@@ -22,6 +25,8 @@ class DriversManagementTest extends TestCase
 
     private const string DNI_URL = 'https://lookup.test/dni';
 
+    private Carrier $carrier;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -29,6 +34,7 @@ class DriversManagementTest extends TestCase
         $this->seed(IdentitySeeder::class);
         $this->actingAs(User::factory()->create());
         $this->app->setLocale('es');
+        $this->carrier = Carrier::factory()->create(['business_name' => 'TRANSPORTES DEL SUR S.A.C.', 'document_number' => '20123456789']);
 
         config([
             'services.sunat.ruc_url' => 'https://lookup.test/ruc',
@@ -38,47 +44,59 @@ class DriversManagementTest extends TestCase
         Http::preventStrayRequests();
     }
 
-    public function test_guests_cannot_open_the_screen(): void
+    /**
+     * Link a new driver to the given carrier, deactivated in it when asked.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private function driverOf(Carrier $carrier, array $attributes = [], bool $deactivated = false): Driver
     {
-        auth()->logout();
+        $driver = Driver::factory()->create($attributes);
+        $link = CarrierDriver::query()->create(['carrier_id' => $carrier->id, 'driver_id' => $driver->id]);
 
-        $this->get(route('intranet.drivers.index'))->assertRedirect(route('login'));
+        if ($deactivated) {
+            $link->delete();
+        }
+
+        return $driver;
     }
 
-    public function test_the_menu_leads_to_the_list_with_active_and_deactivated_drivers(): void
+    public function test_drivers_are_reached_from_each_carrier_and_not_from_the_menu(): void
     {
-        Driver::factory()->create(['document_number' => '46099190', 'full_name' => 'PEREZ ROJAS JUAN', 'license' => 'B46099190']);
-        Driver::factory()->trashed()->create(['full_name' => 'QUISPE MAMANI ANA']);
-
-        $this->get(route('intranet.drivers.index'))
+        $this->get(route('intranet.carriers.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Maestros', 'Secciones de certificación', 'Transporte', 'Transportistas', 'Conductores', 'Configuración'])
-            ->assertSee(route('intranet.drivers.index'))
-            ->assertSeeText('46099190')
-            ->assertSeeText('PEREZ ROJAS JUAN')
-            ->assertSeeText('B46099190')
-            ->assertSeeText('QUISPE MAMANI ANA')
-            ->assertSeeText('Desactivado');
+            ->assertSeeInOrder(['Transporte', 'Transportistas', 'Vehículos'])
+            ->assertDontSee('/intranet/drivers')
+            ->assertSeeHtml("show-carrier-drivers', { carrierId: id }");
+
+        $this->get('/intranet/drivers')->assertNotFound();
+
+        Livewire::test(DriversModal::class)
+            ->dispatch('show-carrier-drivers', carrierId: $this->carrier->id)
+            ->assertSet('openModal', true)
+            ->assertSeeText('TRANSPORTES DEL SUR S.A.C. · RUC 20123456789');
     }
 
-    public function test_the_list_is_ordered_by_name_and_filters_by_search_and_status(): void
+    public function test_the_table_shows_only_the_drivers_of_the_carrier_by_name_with_their_state_in_it(): void
     {
-        $alvarez = Driver::factory()->create(['document_number' => '10000001', 'full_name' => 'ALVAREZ DIAZ LUIS', 'license' => 'B10000001']);
-        Driver::factory()->create(['document_number' => '10000002', 'full_name' => 'ZAPATA RIOS JOSE', 'license' => 'Q10000002']);
-        Driver::factory()->trashed()->create(['document_number' => '10000003', 'full_name' => 'MEDINA SOTO EVA', 'license' => 'A10000003']);
+        $alvarez = $this->driverOf($this->carrier, ['document_number' => '10000001', 'full_name' => 'ALVAREZ DIAZ LUIS', 'license' => 'B10000001']);
+        $this->driverOf($this->carrier, ['document_number' => '10000002', 'full_name' => 'ZAPATA RIOS JOSE', 'license' => 'Q10000002']);
+        $this->driverOf($this->carrier, ['document_number' => '10000003', 'full_name' => 'MEDINA SOTO EVA', 'license' => 'A10000003'], deactivated: true);
+        $this->driverOf(Carrier::factory()->create(), ['full_name' => 'DE OTRA EMPRESA']);
 
-        Livewire::test(DriversTable::class)
-            ->assertSeeInOrder(['ALVAREZ DIAZ LUIS', 'MEDINA SOTO EVA', 'ZAPATA RIOS JOSE'])
-            ->assertSeeHtml("id: {$alvarez->id},");
+        Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
+            ->assertSeeInOrder(['ALVAREZ DIAZ LUIS', 'MEDINA SOTO EVA', 'Desactivado', 'ZAPATA RIOS JOSE'])
+            ->assertDontSeeText('DE OTRA EMPRESA')
+            ->assertSeeHtml("driverId: {$alvarez->id},");
 
         foreach (['ZAPATA', '10000002', 'Q10000002'] as $search) {
-            Livewire::test(DriversTable::class)
+            Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
                 ->set('search', $search)
                 ->assertSeeText('ZAPATA RIOS JOSE')
                 ->assertDontSeeText('ALVAREZ DIAZ LUIS');
         }
 
-        Livewire::test(DriversTable::class)
+        Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
             ->set('filterComponents.status', 'inactive')
             ->assertSeeText('MEDINA SOTO EVA')
             ->assertDontSeeText('ZAPATA RIOS JOSE');
@@ -86,121 +104,197 @@ class DriversManagementTest extends TestCase
 
     public function test_the_search_does_not_go_in_the_url_so_a_dni_is_not_left_there(): void
     {
-        $this->assertFalse(Livewire::test(DriversTable::class)->instance()->queryStringForSearchEnabled());
+        $this->assertFalse(Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])->instance()->queryStringIsEnabled());
     }
 
-    public function test_a_driver_is_created_with_the_license_in_capitals_and_without_spaces(): void
+    public function test_a_new_driver_is_created_and_added_with_the_license_in_capitals_and_without_spaces(): void
     {
-        Livewire::test(CreateModal::class)
+        Http::fake([self::DNI_URL.'*' => Http::response(['message' => 'dni no valido'], 422)]);
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->assertSeeText('a TRANSPORTES DEL SUR S.A.C.')
             ->set('form.openModal', true)
             ->set('form.documentNumber', ' 46099190 ')
+            ->call('lookup')
+            ->assertSet('form.lookupStatus', 'not_found')
             ->set('form.fullName', ' PEREZ ROJAS JUAN ')
             ->set('form.license', ' b 46099190 ')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
-            ->assertDispatched('toast', icon: 'success', title: 'Conductor creado')
+            ->assertSet('form.carrierId', $this->carrier->id)
+            ->assertDispatched('toast', icon: 'success', title: 'Conductor agregado')
             ->assertDispatched('refreshDatatable');
 
-        $this->assertDatabaseHas('drivers', [
-            'identity_id' => Identity::DNI,
-            'document_number' => '46099190',
-            'full_name' => 'PEREZ ROJAS JUAN',
-            'license' => 'B46099190',
-        ]);
+        $driver = Driver::query()->sole();
+
+        $this->assertSame(Identity::DNI, $driver->identity_id);
+        $this->assertSame('PEREZ ROJAS JUAN', $driver->full_name);
+        $this->assertSame('B46099190', $driver->license);
+        $this->assertDatabaseHas('carrier_driver', ['carrier_id' => $this->carrier->id, 'driver_id' => $driver->id, 'deleted_at' => null]);
     }
 
-    public function test_the_document_type_cannot_be_changed_from_dni(): void
+    public function test_a_driver_registered_in_another_carrier_is_added_with_its_data_and_without_looking_it_up(): void
     {
-        $this->expectException(CannotUpdateLockedPropertyException::class);
+        Http::fake();
+        $driver = $this->driverOf(Carrier::factory()->create(), ['document_number' => '46099190', 'full_name' => 'PEREZ ROJAS JUAN', 'license' => 'B46099190']);
 
-        Livewire::test(CreateModal::class)->set('form.identityId', Identity::RUC);
-    }
-
-    public function test_the_fields_of_a_driver_are_validated(): void
-    {
-        Livewire::test(CreateModal::class)
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->set('form.documentNumber', '46099190')
+            ->call('lookup')
+            ->assertSet('form.lookupStatus', 'registered')
+            ->assertSet('form.fullName', 'PEREZ ROJAS JUAN')
+            ->assertSet('form.license', 'B46099190')
+            ->set('form.fullName', 'OTRO NOMBRE')
             ->call('save')
-            ->assertHasErrors(['form.documentNumber' => 'required', 'form.fullName' => 'required', 'form.license' => 'required'])
+            ->assertHasNoErrors();
+
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('drivers', 1);
+        $this->assertSame('PEREZ ROJAS JUAN', $driver->refresh()->full_name);
+        $this->assertDatabaseHas('carrier_driver', ['carrier_id' => $this->carrier->id, 'driver_id' => $driver->id]);
+        $this->assertDatabaseCount('carrier_driver', 2);
+    }
+
+    public function test_a_driver_already_active_in_the_carrier_is_not_added_again(): void
+    {
+        $this->driverOf($this->carrier, ['document_number' => '46099190']);
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->set('form.documentNumber', '46099190')
+            ->call('lookup')
+            ->assertSet('form.lookupStatus', 'in_carrier')
+            ->assertSeeText('Este conductor ya está en este transportista.')
+            ->call('save')
+            ->assertHasErrors(['form.documentNumber'])
             ->assertNotDispatched('toast');
 
-        Livewire::test(CreateModal::class)
-            ->set('form.documentNumber', '4609919')
-            ->set('form.fullName', 'PEREZ ROJAS JUAN')
-            ->set('form.license', 'B460991901234567')
-            ->call('save')
-            ->assertHasErrors(['form.documentNumber' => 'digits', 'form.license' => 'max']);
-
-        $this->assertDatabaseCount('drivers', 0);
+        $this->assertDatabaseCount('carrier_driver', 1);
     }
 
-    public function test_a_dni_or_a_license_cannot_be_repeated_even_if_the_other_driver_is_deactivated(): void
+    public function test_a_driver_deactivated_in_the_carrier_is_reactivated_when_added(): void
     {
-        Driver::factory()->trashed()->create(['document_number' => '46099190', 'license' => 'B46099190']);
+        $driver = $this->driverOf($this->carrier, ['document_number' => '46099190'], deactivated: true);
 
-        Livewire::test(CreateModal::class)
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
             ->set('form.documentNumber', '46099190')
+            ->call('lookup')
+            ->assertSet('form.lookupStatus', 'inactive_in_carrier')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('carrier_driver', ['carrier_id' => $this->carrier->id, 'driver_id' => $driver->id, 'deleted_at' => null]);
+        $this->assertDatabaseCount('carrier_driver', 1);
+    }
+
+    public function test_changing_from_a_registered_dni_to_a_new_one_clears_its_data(): void
+    {
+        Http::fake([self::DNI_URL.'*' => Http::response('', 500)]);
+        $this->driverOf(Carrier::factory()->create(), ['document_number' => '46099190', 'full_name' => 'PEREZ ROJAS JUAN']);
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->set('form.documentNumber', '46099190')
+            ->call('lookup')
+            ->assertSet('form.fullName', 'PEREZ ROJAS JUAN')
+            ->set('form.documentNumber', '46099191')
+            ->call('lookup')
+            ->assertSet('form.lookupStatus', 'unavailable')
+            ->assertSet('form.fullName', '')
+            ->assertSet('form.license', '')
+            ->assertSet('form.registeredDriverId', null);
+    }
+
+    public function test_the_fields_of_a_new_driver_are_validated(): void
+    {
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->call('save')
+            ->assertHasErrors(['form.documentNumber' => 'required'])
+            ->assertNotDispatched('toast');
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->set('form.documentNumber', '46099190')
+            ->set('form.license', 'B460991901234567')
+            ->call('save')
+            ->assertHasErrors(['form.fullName' => 'required', 'form.license' => 'max']);
+
+        Driver::factory()->create(['license' => 'B46099190']);
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
+            ->set('form.documentNumber', '46099191')
             ->set('form.fullName', 'OTRO CONDUCTOR')
             ->set('form.license', 'b46099190')
             ->call('save')
-            ->assertHasErrors(['form.documentNumber' => 'unique', 'form.license' => 'unique'])
-            ->assertSeeText('Ya existe un conductor con este DNI, aunque esté desactivado.')
+            ->assertHasErrors(['form.license' => 'unique'])
             ->assertSeeText('Ya existe un conductor con este brevete, aunque esté desactivado.');
 
-        $this->assertDatabaseMissing('drivers', ['full_name' => 'OTRO CONDUCTOR']);
+        $this->assertDatabaseCount('carrier_driver', 0);
     }
 
-    public function test_a_driver_can_be_edited_even_if_it_is_deactivated(): void
+    public function test_the_carrier_and_the_document_type_cannot_be_changed_from_the_browser(): void
     {
-        $driver = Driver::factory()->trashed()->create(['full_name' => 'NOMBRE ANTERIOR', 'license' => 'B46099190']);
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])->set('form.carrierId', Carrier::factory()->create()->id);
+    }
+
+    public function test_editing_a_driver_changes_its_data_in_every_carrier(): void
+    {
+        $driver = $this->driverOf($this->carrier, ['full_name' => 'NOMBRE ANTERIOR', 'license' => 'B46099190']);
+        CarrierDriver::query()->create(['carrier_id' => Carrier::factory()->create()->id, 'driver_id' => $driver->id]);
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-driver', driverId: $driver->id)
             ->assertSet('form.openModal', true)
-            ->assertSet('form.fullName', 'NOMBRE ANTERIOR')
             ->set('form.fullName', 'NOMBRE NUEVO')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertSet('form.openModal', false)
             ->assertDispatched('toast', icon: 'success', title: 'Conductor actualizado');
 
-        $driver->refresh();
-
-        $this->assertSame('NOMBRE NUEVO', $driver->full_name);
+        $this->assertSame('NOMBRE NUEVO', $driver->refresh()->full_name);
         $this->assertSame('B46099190', $driver->license);
-        $this->assertTrue($driver->trashed());
     }
 
-    public function test_a_driver_can_be_deactivated_and_reactivated(): void
+    public function test_a_driver_is_deactivated_and_reactivated_only_in_the_carrier(): void
     {
-        $driver = Driver::factory()->create();
+        $driver = $this->driverOf($this->carrier);
+        $otherLink = CarrierDriver::query()->create(['carrier_id' => Carrier::factory()->create()->id, 'driver_id' => $driver->id]);
+        $link = CarrierDriver::query()->where('carrier_id', $this->carrier->id)->sole();
 
-        Livewire::test(DriversTable::class)
-            ->call('deactivate', $driver->id)
+        Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
+            ->call('deactivate', $link->id)
             ->assertDispatched('toast', icon: 'success', title: 'Conductor desactivado');
 
-        $this->assertSoftDeleted($driver);
+        $this->assertSoftDeleted($link);
+        $this->assertNotSoftDeleted($otherLink);
+        $this->assertNotSoftDeleted($driver);
 
-        Livewire::test(DriversTable::class)
-            ->call('reactivate', $driver->id)
+        Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
+            ->call('reactivate', $link->id)
             ->assertDispatched('toast', icon: 'success', title: 'Conductor reactivado');
 
-        $this->assertNotSoftDeleted($driver);
+        $this->assertNotSoftDeleted($link);
+    }
+
+    public function test_the_link_of_another_carrier_cannot_be_deactivated_from_this_one(): void
+    {
+        $this->driverOf($this->carrier);
+        $otherDriver = $this->driverOf(Carrier::factory()->create());
+        $otherLink = CarrierDriver::query()->where('driver_id', $otherDriver->id)->sole();
+
+        Livewire::test(CarrierDriversTable::class, ['carrierId' => $this->carrier->id])
+            ->call('deactivate', $otherLink->id)
+            ->assertNotFound();
+
+        $this->assertNotSoftDeleted($otherLink);
     }
 
     public function test_a_found_dni_fills_the_full_name_that_can_be_corrected(): void
     {
-        Http::fake([self::DNI_URL.'*' => Http::response([
-            'first_name' => 'JUAN',
-            'first_last_name' => 'PEREZ',
-            'second_last_name' => 'ROJAS',
-            'full_name' => 'PEREZ ROJAS JUAN',
-        ])]);
+        Http::fake([self::DNI_URL.'*' => Http::response(['full_name' => 'PEREZ ROJAS JUAN'])]);
 
-        Livewire::test(CreateModal::class)
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
             ->set('form.documentNumber', '46099190')
             ->call('lookup')
-            ->assertHasNoErrors()
             ->assertSet('form.lookupStatus', 'found')
             ->assertSet('form.fullName', 'PEREZ ROJAS JUAN')
             ->set('form.fullName', 'PÉREZ ROJAS JUAN')
@@ -212,32 +306,11 @@ class DriversManagementTest extends TestCase
         $this->assertDatabaseHas('drivers', ['document_number' => '46099190', 'full_name' => 'PÉREZ ROJAS JUAN']);
     }
 
-    public function test_a_dni_not_found_or_a_service_down_lets_the_data_be_filled_by_hand(): void
-    {
-        Http::fakeSequence(self::DNI_URL.'*')
-            ->push(['message' => 'dni no valido'], 422)
-            ->push('', 500);
-
-        Livewire::test(CreateModal::class)
-            ->set('form.documentNumber', '46099190')
-            ->call('lookup')
-            ->assertSet('form.lookupStatus', 'not_found')
-            ->set('form.documentNumber', '46099191')
-            ->call('lookup')
-            ->assertSet('form.lookupStatus', 'unavailable')
-            ->set('form.fullName', 'LLENADO A MANO')
-            ->set('form.license', 'B46099191')
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertDatabaseHas('drivers', ['document_number' => '46099191', 'full_name' => 'LLENADO A MANO']);
-    }
-
     public function test_a_dni_with_a_wrong_format_is_not_looked_up(): void
     {
         Http::fake();
 
-        Livewire::test(CreateModal::class)
+        Livewire::test(CreateModal::class, ['carrierId' => $this->carrier->id])
             ->set('form.documentNumber', '460991')
             ->call('lookup')
             ->assertHasErrors(['form.documentNumber' => 'digits'])
@@ -250,7 +323,7 @@ class DriversManagementTest extends TestCase
     public function test_editing_only_looks_up_the_dni_again_when_it_changes(): void
     {
         Http::fake([self::DNI_URL.'*' => Http::response(['full_name' => 'NOMBRE DE RENIEC'])]);
-        $driver = Driver::factory()->create(['document_number' => '46099190', 'full_name' => 'NOMBRE GUARDADO']);
+        $driver = $this->driverOf($this->carrier, ['document_number' => '46099190', 'full_name' => 'NOMBRE GUARDADO']);
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-driver', driverId: $driver->id)

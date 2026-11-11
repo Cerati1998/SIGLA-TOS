@@ -1,4 +1,8 @@
 <div x-data="{ id: {{ $carrier->id }}, name: @js($carrier->business_name) }" class="flex items-center gap-1 [&_button]:max-md:size-11">
+    <x-wire-button primary x-on:click="$dispatch('show-carrier-drivers', { carrierId: id })" title="Conductores" aria-label="Conductores" xs>
+        <i class="fa-solid fa-users text-sm" aria-hidden="true"></i>
+    </x-wire-button>
+
     <x-wire-button positive x-on:click="$dispatch('edit-carrier', { carrierId: id })" title="Editar" aria-label="Editar" xs>
         <i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>
     </x-wire-button>

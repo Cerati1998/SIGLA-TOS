@@ -61,17 +61,12 @@
         [
             'name' => 'Transporte',
             'icon' => 'navigation',
-            'active' => request()->routeIs('intranet.carriers.*', 'intranet.drivers.*', 'intranet.vehicles.*', 'intranet.vehicle-bodies.*'),
+            'active' => request()->routeIs('intranet.carriers.*','intranet.vehicles.*', 'intranet.vehicle-bodies.*'),
             'submenu' => [
                 [
                     'name' => 'Transportistas',
                     'route' => route('intranet.carriers.index'),
                     'active' => request()->routeIs('intranet.carriers.*'),
-                ],
-                [
-                    'name' => 'Conductores',
-                    'route' => route('intranet.drivers.index'),
-                    'active' => request()->routeIs('intranet.drivers.*'),
                 ],
                 [
                     'name' => 'Vehículos',
