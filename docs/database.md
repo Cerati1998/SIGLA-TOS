@@ -57,6 +57,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
 | `drivers` | E9 · H22 | `en código` | (no estaba en el ER) |
 | `vehicle_bodies` | E9 · H23 | `en código` | (no estaba en el ER) |
+| `carrier_driver` | E9 · H22 (T45) | `planeada (T45/H22)` | (no estaba en el ER) |
 | `vehicles` | E9 · H23 | `en código` | (no estaba en el ER) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
@@ -186,12 +187,14 @@ erDiagram
 
 ### 4.5 Transportistas, conductores y vehículos (E9)
 
-Catálogos independientes: transportistas, conductores y vehículos no se relacionan entre sí. La relación se guardará en cada certificación (H17). Cada vehículo tiene una carrocería del catálogo `vehicle_bodies`.
+Transportistas, conductores y vehículos son catálogos propios. Los conductores van por transportista con la tabla puente `carrier_driver` (T45): un conductor puede estar en varios y se desactiva en cada uno por separado. Los vehículos no se relacionan con los transportistas; la relación se guardará en cada certificación (H17). Cada vehículo tiene una carrocería del catálogo `vehicle_bodies`.
 
 ```mermaid
 erDiagram
   identities ||--o{ carriers : "tipo de documento (RUC)"
   identities ||--o{ drivers : "tipo de documento (DNI)"
+  carriers ||--o{ carrier_driver : "sus conductores"
+  drivers ||--o{ carrier_driver : "sus transportistas"
   vehicle_bodies ||--o{ vehicles : "carrocería"
 
   carriers {
@@ -207,6 +210,12 @@ erDiagram
     string document_number "UK con identity_id"
     string full_name
     string license UK
+    datetime deleted_at
+  }
+  carrier_driver {
+    bigint id PK
+    bigint carrier_id FK "UK con driver_id"
+    bigint driver_id FK
     datetime deleted_at
   }
   vehicle_bodies {
@@ -409,7 +418,7 @@ Transportistas (empresas). Global, sin sucursal. Independiente de conductores y 
 
 ### 5.14 `drivers` · `en código`
 
-Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y el brevete son datos personales: hasta H24 los ve cualquier usuario con sesión, y nunca van en URLs ni en logs (la búsqueda de su tabla no viaja en la URL).
+Conductores. Global, sin sucursal. Se registran una sola vez y se enlazan con sus transportistas en `carrier_driver` (T45). Su `deleted_at` queda sin uso en pantalla: se desactivan por transportista. El DNI y el brevete son datos personales: hasta H24 los ve cualquier usuario con sesión, y nunca van en URLs ni en logs (la búsqueda de su tabla no viaja en la URL).
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -419,6 +428,17 @@ Conductores. Global, sin sucursal. No se ligan a ningún transportista. El DNI y
 | `full_name` | varchar(255) | Índice. Nombres y apellidos en un solo campo, como los entrega la API de SIGLA 1.0 (decisión del usuario del 2026-11-11). |
 | `license` | varchar(15) | UK, aunque esté desactivado. Brevete obligatorio, texto libre en mayúsculas y sin espacios, para servir también a extranjeros (aprobado el 2026-11-11). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (H22, criterio 5). |
+
+### 5.14b `carrier_driver` · `planeada (T45/H22)`
+
+Los conductores de cada transportista (corrección de H22 del 2026-11-11, pensando en la extranet). Un conductor puede estar en varios transportistas.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | Lleva `id` propio para desactivar y reactivar el enlace. |
+| `carrier_id` | bigint FK | Transportista. UK compuesta con `driver_id`. |
+| `driver_id` | bigint FK | Conductor. |
+| `timestamps`, `deleted_at` | | Desactivar el conductor **en ese transportista** = `deleted_at` del enlace. No toca a los demás transportistas. Agregar de nuevo un enlace desactivado lo reactiva. |
 
 ### 5.15 `vehicle_bodies` · `en código`
 
