@@ -48,7 +48,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - `security_certifications` guarda horas de inicio y cierre sin fecha: revisar. (Resuelto el 2026-11-04: pasan a fecha y hora.)
 - `kits_dispatches` guarda receptor y quien asigna como trabajadores (`workers`), pero el receptor es un inspector certificado con cuenta de usuario: reconsiderar ese vínculo. (Resuelto el 2026-11-04: el receptor es un trabajador, H25; quien entrega es el usuario que despacha.)
 - La certificación debe guardar la copia de los datos de la solicitud y referencias a transportista, conductor, remolcador y semirremolque (el ER aún no lo trae).
-- Traducir el texto del tipo de vehículo a los tres valores del catálogo; si no coincide, crear igual y marcar para revisión (por confirmar).
+- Traducir el texto del tipo de vehículo a los tres valores del catálogo; si no coincide, crear igual y marcar para revisión (por confirmar). (Resuelto el 2026-11-11 en H23: el tipo es remolcador o semirremolque según venga de `placa_tracto` o `placa_carreta`, la carrocería va a un catálogo gestionable y el vehículo se registra directo, sin marca de revisión.)
 - Pendiente: qué significan la semana y la zona de patio del kit, y si la zona se elige al crear el kit. (Resuelto el 2026-11-04: ver H14.)
 - Pendiente: cómo se reconoce la naviera que trae la API contra el catálogo de E8 y qué pasa si no existe. (Resuelto el 2026-11-04: ver H17.)
 - Tipos de contenedor: por ahora solo 40'; supuesto de que la lista se carga una vez, sin pantalla de gestión.
@@ -428,18 +428,20 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 **H23 · Gestionar vehículos**
-- Como admin, quiero crear, editar y desactivar vehículos (remolcadores y semirremolques), para tener su registro ordenado y poder enlazarlos a cada certificación.
+- Como admin, quiero crear, editar y desactivar vehículos (remolcadores y semirremolques), para tener su registro ordenado y poder enlazarlos a cada certificación. (Cambiado el 2026-11-11 en T42: por ahora la usa cualquier usuario con sesión; la parte de roles pasa a H24.)
 - Criterios de aceptación:
-  1. El admin crea un vehículo con placa, marca, categoría (N1, N2, N3, O1, O2, O3…) y tipo de vehículo (remolcador, semirremolque plataforma o semirremolque contenedora).
-  2. No se pueden crear dos vehículos con la misma placa.
+  1. El admin crea un vehículo con placa, marca, tipo (remolcador o semirremolque), carrocería, categoría y color. El color es opcional y de texto libre, en mayúsculas (agregado a pedido del usuario el 2026-11-11). La carrocería se elige de un catálogo gestionable, con su propia pantalla para crear, editar, desactivar y reactivar; una desactivada no se elige en vehículos nuevos, pero los que la tienen la conservan. La categoría es la lista fija de SIGLA 1.0: N1, N2, N3, O1, O2, O3, O4 y Otro, con N3 por defecto. (Cambiado el 2026-11-11 a pedido del usuario: antes eran tres tipos fijos, remolcador, semirremolque plataforma y semirremolque contenedora.)
+  2. No se pueden crear dos vehículos con la misma placa, aunque uno esté desactivado. La placa se guarda en mayúsculas, sin espacios ni guiones, como `ABC123`, igual que SIGLA 1.0 (decisión del usuario del 2026-11-11).
   3. El admin edita los datos de un vehículo.
-  4. El admin desactiva un vehículo en vez de borrarlo. Uno con certificaciones no se puede eliminar (por confirmar).
-  5. Hay una lista con búsqueda por placa o marca, y filtros por categoría y tipo de vehículo.
-  6. Un vehículo se crea solo al iniciar una certificación si viene de SIGLA 1.0 y todavía no existe (H17), con el tipo ya completo.
-  7. Si el texto del tipo no coincide con ninguno del catálogo, el vehículo se crea igual y queda marcado para revisión (por confirmar).
-  8. Solo el admin crea, edita y desactiva (por confirmar).
+  4. El admin desactiva un vehículo en vez de borrarlo, con Soft Deletes, y lo reactiva desde la lista. Como nunca se borra, uno con certificaciones tampoco se elimina (resuelto el 2026-11-11 en T42: no hay botón de eliminar).
+  5. Hay una lista, ordenada por placa, con búsqueda por placa o marca y filtros por tipo, carrocería, categoría y estado.
+  6. Un vehículo se crea solo al iniciar una certificación si viene de SIGLA 1.0 y todavía no existe (H17). H23 deja listo el Service `VehicleRegistry`, que lo busca por placa y, si no existe, lo registra con su marca, categoría, tipo, carrocería y color; si la carrocería tampoco existe, la crea. H17 solo lo llama.
+  7. Ya no hay marca "por revisar": lo que manda SIGLA 1.0 va directo al catálogo (cambiado el 2026-11-11 a pedido del usuario).
+  8. Solo el admin crea, edita y desactiva: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa (decisión del 2026-11-03).
   9. La pantalla se puede usar bien desde el celular.
 - El vehículo no queda ligado a ningún transportista.
+- En el menú van Vehículos y Carrocerías en Maestros → Transporte, debajo de Conductores.
+- Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 ### E5 · Certificación del contenedor
 - Que el inspector certificado certifique el contenedor con su kit. Aprobado hasta aquí: iniciar la certificación con la solicitud de retiro y la funda del kit (H17). Lo posterior (colocar los dispositivos, fotos por sección, cerrar, consultar, PDF y reinspección) está EN REVISIÓN.
