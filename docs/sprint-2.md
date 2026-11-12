@@ -57,7 +57,7 @@ Con T25 a T37 ya construidas, el usuario pidió sumar más trabajo para el miér
 - [x] **T42** · H23 · Gestionar vehículos. Quién: Claude Code. 2 h. Usa las listas fijas de categoría y tipo de `docs/database.md`. (Hecho el 2026-11-11, PR #48. La marca entró en un PR aparte porque no alcanzó a ir en el #48.)
 - [ ] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
 - [ ] **T44** · H26 · Gestionar zonas de patio. Quién: Claude Code. 2 h. **H26 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
-- [ ] **T45** · H22 · Corrección: conductores por transportista (tabla puente `carrier_driver`, modal desde Transportistas, agregar por DNI y desactivar por empresa). Quién: Claude Code. 3 h. Agregada el 2026-11-11 a pedido del usuario, pensando en la extranet.
+- [x] **T45** · H22 · Corrección: conductores por transportista (tabla puente `carrier_driver`, modal desde Transportistas, agregar por DNI y desactivar por empresa). Quién: Claude Code. 3 h. Agregada el 2026-11-11 a pedido del usuario, pensando en la extranet. (Hecho el 2026-11-11, PR #50)
 
 ## Total estimado
 | Bloque | Tareas | Horas |

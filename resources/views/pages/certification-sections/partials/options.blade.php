@@ -3,5 +3,5 @@
         <i class="fa-solid fa-sort text-sm" aria-hidden="true"></i>
         Ordenar
     </flux:button>
-    <x-panel.create-button x-on:click="$openModal('certification-section-create')">Nueva sección</x-panel.create-button>
+    <x-panel.create-button x-on:click="$openModal('certification-section-create')">Nueva</x-panel.create-button>
 </div>
