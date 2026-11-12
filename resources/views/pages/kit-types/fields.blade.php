@@ -20,7 +20,7 @@
 >
     <div class="flex min-w-0 flex-col gap-6">
         <section class="flex flex-col gap-4" aria-labelledby="{{ $idPrefix }}-step-1">
-            <x-pages::kit-types.step number="1" id="{{ $idPrefix }}-step-1" title="Datos del tipo de kit" text="Así lo elegirá bodega al armar un kit." />
+            <x-panel.form-step number="1" id="{{ $idPrefix }}-step-1" title="Datos del tipo de kit" text="Así lo elegirá bodega al armar un kit." />
 
             <div class="grid gap-4 md:grid-cols-2 lg:ps-10">
                 <x-wire-input id="{{ $idPrefix }}-name" wire:model="form.name" label="Nombre" type="text" maxlength="100" required autocomplete="off" />
@@ -29,7 +29,7 @@
         </section>
 
         <section class="flex flex-col gap-4" aria-labelledby="{{ $idPrefix }}-step-2">
-            <x-pages::kit-types.step number="2" id="{{ $idPrefix }}-step-2" title="¿Qué lleva el kit?" text="Enciende cada dispositivo que lleva el kit e indica cuántos." />
+            <x-panel.form-step number="2" id="{{ $idPrefix }}-step-2" title="¿Qué lleva el kit?" text="Enciende cada dispositivo que lleva el kit e indica cuántos." />
 
             <div class="flex flex-col gap-2 lg:ps-10">
                 <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">

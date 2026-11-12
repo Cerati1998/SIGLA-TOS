@@ -21,7 +21,7 @@ class EditModal extends Component
     {
         $this->form->reset();
         $this->form->resetValidation();
-        $this->form->setCertificationSection(CertificationSection::withTrashed()->findOrFail($certificationSectionId));
+        $this->form->setCertificationSection(CertificationSection::withTrashed()->with('securityDeviceTypes')->findOrFail($certificationSectionId));
         $this->form->openModal = true;
     }
 
@@ -38,12 +38,14 @@ class EditModal extends Component
     }
 
     /**
-     * Render the component.
+     * Render the component with the security device types to choose from, plus the ones the section already
+     * carries if they were deactivated.
      */
     public function render(): View
     {
         return view('pages.certification-sections.edit-modal', [
             'types' => CertificationSectionType::options(),
+            'deviceTypes' => $this->form->deviceTypeOptions(),
         ]);
     }
 }

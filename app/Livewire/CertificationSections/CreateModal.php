@@ -33,12 +33,13 @@ class CreateModal extends Component
     }
 
     /**
-     * Render the component.
+     * Render the component with the security device types to choose from.
      */
     public function render(): View
     {
         return view('pages.certification-sections.create-modal', [
             'types' => CertificationSectionType::options(),
+            'deviceTypes' => $this->form->deviceTypeOptions(),
         ]);
     }
 }
