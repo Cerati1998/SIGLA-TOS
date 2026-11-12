@@ -41,7 +41,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 
 ## Notas para la Construcción (desde el ER del usuario)
 - Falta qué dispositivos y cuántos pide cada sección (H12). El ER ya trae la tabla con su cantidad y clave compuesta. Se podría renombrar `certificacion_criteria_items` (el ER nuevo ya lo llama `certification_criteria_items`). (Resuelto el 2026-11-04: se llamará `certification_sections`.)
-- El tipo de kit guarda la cantidad por tipo de dispositivo en el ER nuevo (apoya H13, criterio 7, que sigue por confirmar).
+- El tipo de kit guarda la cantidad por tipo de dispositivo en el ER nuevo (apoya H13, criterio 7). (Confirmado por el usuario el 2026-11-12.)
 - Índices únicos individuales en `type_kits_has_security_device_types` y `branches_has_users`: probablemente deberían ser compuestos. (Resuelto el 2026-11-04: `branches_has_users` se descarta y el tipo de kit usa una clave compuesta con cantidad.)
 - `security_certifications` tiene `gate_out_request_id` único: definir si la reinspección reabre la certificación o crea otra. (Resuelto el 2026-11-04: la reabre.)
 - `security_certifications` guarda zona de patio, pero la gestión de patio está fuera del Product Goal: definir de dónde sale ese dato. (Resuelto el 2026-11-04: lo elige el inspector al iniciar, de un catálogo de zonas, H26.)
@@ -307,11 +307,14 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   2. Solo se pueden elegir tipos de dispositivo activos.
   3. No se repite el mismo tipo de dispositivo dentro de un tipo de kit.
   4. No se pueden crear dos tipos de kit con el mismo nombre.
-  5. El admin edita un tipo de kit. El cambio no modifica los kits ya creados (por confirmar).
-  6. El admin desactiva un tipo de kit en vez de borrarlo. Uno desactivado no aparece al crear kits.
-  7. Cantidad (por confirmar): cada tipo de dispositivo del tipo de kit lleva cuántos, por ejemplo 6 precintos.
-  8. Solo el admin usa esta pantalla (por confirmar).
+  5. El admin edita un tipo de kit. El cambio no modifica los kits ya creados.
+  6. El admin desactiva un tipo de kit en vez de borrarlo, y lo reactiva desde la lista. Uno desactivado no aparece al crear kits.
+  7. Cada tipo de dispositivo del tipo de kit lleva su cantidad, un entero mayor que cero, por ejemplo 6 precintos. Un tipo de kit lleva al menos un tipo de dispositivo.
+  8. Solo el admin usa esta pantalla. Hasta H24, cualquier usuario con sesión.
   9. La pantalla se puede usar bien desde el celular.
+- Decisiones del usuario del 2026-11-12 (T34): la cantidad va en el tipo de kit (criterio 7) y editar no toca los kits ya armados (criterio 5). La pantalla va en Bodega → Tipos de kit. Desactivar un tipo de dispositivo no se bloquea aunque un tipo de kit lo use: el tipo de kit lo conserva, marcado, hasta que lo quiten. Los tipos de contenedor se cargan por seeder (15, dados por el usuario) y no tienen pantalla.
+- Diseño: página "E4 · Kits" del lienzo (T34, aprobado por el usuario el 2026-11-12): lista con el contenido desplegable y modal en dos pasos, con un interruptor y una cantidad por tipo de dispositivo y un resumen al lado.
+- Supuestos de la construcción: el nombre se guarda como se escribe, sin pasarlo a mayúsculas; la cantidad llega hasta 999.
 
 **H25 · Gestionar trabajadores** (propuesta del 2026-11-04, sin aprobar)
 - Como admin, quiero crear, editar y desactivar trabajadores, propios o de un proveedor, para elegirlos como receptores al despachar kits.
