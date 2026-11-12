@@ -8,4 +8,6 @@
 
     <livewire:carriers.create-modal />
     <livewire:carriers.edit-modal />
+    <livewire:carriers.drivers-modal />
+    <livewire:drivers.edit-modal />
 </x-layouts::app>

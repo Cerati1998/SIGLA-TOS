@@ -32,8 +32,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('carriers', 'pages.carriers.index')->name('carriers.index');
 
-    Route::view('drivers', 'pages.drivers.index')->name('drivers.index');
-
     Route::view('vehicles', 'pages.vehicles.index')->name('vehicles.index');
 
     Route::view('vehicle-bodies', 'pages.vehicle-bodies.index')->name('vehicle-bodies.index');

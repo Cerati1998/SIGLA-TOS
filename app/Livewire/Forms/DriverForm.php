@@ -2,17 +2,23 @@
 
 namespace App\Livewire\Forms;
 
+use App\Actions\Drivers\AddDriverToCarrier;
 use App\Concerns\LooksUpDocuments;
+use App\Models\Carrier;
+use App\Models\CarrierDriver;
 use App\Models\Driver;
 use App\Models\Identity;
 use App\Services\SunatLookupResult;
+use App\Services\SunatService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Form;
 
 class DriverForm extends Form
 {
-    use LooksUpDocuments;
+    use LooksUpDocuments {
+        lookup as lookUpInService;
+    }
 
     /**
      * The digits of a DNI.
@@ -23,6 +29,18 @@ class DriverForm extends Form
 
     #[Locked]
     public ?int $driverId = null;
+
+    /**
+     * The carrier the driver is added to, when the form adds one.
+     */
+    #[Locked]
+    public ?int $carrierId = null;
+
+    /**
+     * The driver already registered with the DNI, whose data is shown but not changed when it is added.
+     */
+    #[Locked]
+    public ?int $registeredDriverId = null;
 
     /**
      * A driver is always identified by the DNI.
@@ -97,13 +115,90 @@ class DriverForm extends Form
     }
 
     /**
-     * Create the driver.
+     * Look up the DNI to add a driver to the carrier: first among the registered drivers, and only when it is not
+     * there, in the external service. Outside a carrier it only looks in the external service.
      */
-    public function store(): void
+    public function lookup(SunatService $sunat, bool $force = false): void
     {
-        $this->validateNormalized();
+        if ($this->carrierId === null) {
+            $this->lookUpInService($sunat, $force);
 
-        Driver::query()->create($this->driverAttributes());
+            return;
+        }
+
+        $this->lookupStatus = null;
+        $this->documentNumber = trim($this->documentNumber);
+        $this->validate($this->lookupRules(), $this->messages(), $this->validationAttributes());
+
+        $driver = $this->registeredDriver();
+
+        if ($driver === null) {
+            $this->forgetRegisteredDriver();
+            $this->lookUpInService($sunat, $force);
+
+            return;
+        }
+
+        $this->registeredDriverId = $driver->id;
+        $this->fullName = $driver->full_name;
+        $this->license = $driver->license;
+        $this->rememberLookedUpDocument();
+
+        $link = CarrierDriver::withTrashed()->where('carrier_id', $this->carrierId)->where('driver_id', $driver->id)->first();
+
+        $this->lookupStatus = match (true) {
+            $link === null => 'registered',
+            $link->trashed() => 'inactive_in_carrier',
+            default => 'in_carrier',
+        };
+
+        if ($this->lookupStatus === 'in_carrier') {
+            $this->addError('documentNumber', 'Este conductor ya está en este transportista.');
+        }
+    }
+
+    /**
+     * Add the driver to the carrier: the registered one keeps its data, a new one is created with the form data.
+     */
+    public function storeForCarrier(AddDriverToCarrier $addDriverToCarrier): void
+    {
+        $this->documentNumber = trim($this->documentNumber);
+        $this->validate($this->lookupRules(), $this->messages(), $this->validationAttributes());
+
+        if ($this->registeredDriver() === null) {
+            $this->validateNormalized();
+        }
+
+        $addDriverToCarrier->handle(
+            Carrier::withTrashed()->findOrFail($this->carrierId),
+            $this->documentNumber,
+            ['full_name' => $this->fullName, 'license' => $this->license],
+        );
+    }
+
+    /**
+     * Forget the driver found among the registered ones, and its data, when the DNI changed to one that is not registered.
+     */
+    public function forgetRegisteredDriver(): void
+    {
+        if ($this->registeredDriverId === null) {
+            return;
+        }
+
+        $this->registeredDriverId = null;
+        $this->fullName = '';
+        $this->license = '';
+    }
+
+    /**
+     * Get the driver already registered with the DNI of the form, if there is one.
+     */
+    private function registeredDriver(): ?Driver
+    {
+        return Driver::withTrashed()
+            ->where('identity_id', Identity::DNI)
+            ->where('document_number', $this->documentNumber)
+            ->first();
     }
 
     /**

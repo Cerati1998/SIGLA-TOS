@@ -57,6 +57,7 @@ Con T25 a T37 ya construidas, el usuario pidió sumar más trabajo para el miér
 - [x] **T42** · H23 · Gestionar vehículos. Quién: Claude Code. 2 h. Usa las listas fijas de categoría y tipo de `docs/database.md`. (Hecho el 2026-11-11, PR #48. La marca entró en un PR aparte porque no alcanzó a ir en el #48.)
 - [ ] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
 - [ ] **T44** · H26 · Gestionar zonas de patio. Quién: Claude Code. 2 h. **H26 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
+- [ ] **T45** · H22 · Corrección: conductores por transportista (tabla puente `carrier_driver`, modal desde Transportistas, agregar por DNI y desactivar por empresa). Quién: Claude Code. 3 h. Agregada el 2026-11-11 a pedido del usuario, pensando en la extranet.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
@@ -74,10 +75,10 @@ Capacidad para tareas: unas 18 h. Sin T26 queda 1 h de margen. Con T26 el compro
 | --- | --- | --- |
 | Compromiso original con T26 | T25 a T33, T36, T37 | 20 h |
 | Adelanto ya construido | T35 | 2.5 h |
-| Extensión (E3, E4, E9) | T34, T38, T39, T40, T41, T42, T43, T44 | 17 h |
-| **Total del sprint** | | **39.5 h** |
+| Extensión (E3, E4, E9) | T34, T38, T39, T40, T41, T42, T43, T44, T45 | 20 h |
+| **Total del sprint** | | **42.5 h** |
 
-La capacidad declarada sigue en unas 18 h para tareas, así que el sprint ya pasa de ella: el original con T35 sumaba 22.5 h y la extensión añade 17 h. Es una decisión del usuario, igual que T36 y T37. Para saber cuánto rinde Claude Code de verdad, se registran las horas reales de cada tarea (ver "Temas a resolver"). Lo que no entre antes del viernes pasa al Sprint 3.
+La capacidad declarada sigue en unas 18 h para tareas, así que el sprint ya pasa de ella: el original con T35 sumaba 22.5 h y la extensión añade 20 h (17 h, más 3 h de T45, agregada el 2026-11-11). Es una decisión del usuario, igual que T36 y T37. Para saber cuánto rinde Claude Code de verdad, se registran las horas reales de cada tarea (ver "Temas a resolver"). Lo que no entre antes del viernes pasa al Sprint 3.
 
 Referencia: el Sprint 1 terminó 31.5 h estimadas con esa misma capacidad, pero con un compromiso que se infló durante la semana. Este plan se queda en la capacidad declarada para que el compromiso no cambie a mitad de sprint.
 

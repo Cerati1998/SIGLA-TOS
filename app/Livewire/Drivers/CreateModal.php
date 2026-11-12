@@ -2,17 +2,30 @@
 
 namespace App\Livewire\Drivers;
 
+use App\Actions\Drivers\AddDriverToCarrier;
 use App\Livewire\Forms\DriverForm;
+use App\Models\Carrier;
 use App\Services\SunatService;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
+/**
+ * Add a driver to a carrier: a registered one is linked, a new one is created first.
+ */
 class CreateModal extends Component
 {
     public DriverForm $form;
 
     /**
-     * Look up the DNI and fill in the data the service finds.
+     * Fix the carrier the drivers are added to.
+     */
+    public function mount(int $carrierId): void
+    {
+        $this->form->carrierId = $carrierId;
+    }
+
+    /**
+     * Look up the DNI and fill in the data that is found.
      */
     public function lookup(SunatService $sunat, bool $force = false): void
     {
@@ -20,14 +33,14 @@ class CreateModal extends Component
     }
 
     /**
-     * Create the driver and refresh the table.
+     * Add the driver to the carrier and refresh the tables.
      */
-    public function save(): void
+    public function save(AddDriverToCarrier $addDriverToCarrier): void
     {
-        $this->form->store();
-        $this->form->reset();
+        $this->form->storeForCarrier($addDriverToCarrier);
+        $this->form->reset('openModal', 'registeredDriverId', 'documentNumber', 'fullName', 'license', 'lookupStatus', 'lookedUpDocument');
 
-        $this->dispatch('toast', icon: 'success', title: 'Conductor creado', text: 'El conductor se creó correctamente.');
+        $this->dispatch('toast', icon: 'success', title: 'Conductor agregado', text: 'El conductor se agregó al transportista.');
         $this->dispatch('refreshDatatable');
     }
 
@@ -37,7 +50,7 @@ class CreateModal extends Component
     public function clearErrors(): void
     {
         $this->form->resetValidation();
-        $this->form->reset('lookedUpDocument');
+        $this->form->reset('lookedUpDocument', 'registeredDriverId');
     }
 
     /**
@@ -45,6 +58,8 @@ class CreateModal extends Component
      */
     public function render(): View
     {
-        return view('pages.drivers.create-modal');
+        return view('pages.drivers.create-modal', [
+            'carrierName' => Carrier::withTrashed()->whereKey($this->form->carrierId)->value('business_name'),
+        ]);
     }
 }
