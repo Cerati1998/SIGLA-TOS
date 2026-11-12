@@ -39,6 +39,7 @@ class CertificationSectionsTable extends BaseTable
     public function builder(): Builder
     {
         return CertificationSection::withTrashed()
+            ->with('securityDeviceTypes')
             ->orderByRaw('certification_sections.sort_order is null')
             ->orderBy('certification_sections.sort_order')
             ->orderBy('certification_sections.name');
@@ -57,6 +58,8 @@ class CertificationSectionsTable extends BaseTable
             Column::make('Nombre', 'name')->searchable(),
             Column::make('Tipo', 'type')
                 ->format(fn ($value, CertificationSection $row): View => view('pages.certification-sections.partials.type', ['certificationSection' => $row])),
+            Column::make('Lleva')
+                ->label(fn (CertificationSection $row): View => view('pages.certification-sections.partials.devices', ['certificationSection' => $row])),
             Column::make('Estado', 'deleted_at')
                 ->format(fn ($value, CertificationSection $row): View => view('pages.certification-sections.partials.status', ['certificationSection' => $row])),
             Column::make('Acciones')

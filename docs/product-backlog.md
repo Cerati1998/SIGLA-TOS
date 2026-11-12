@@ -269,32 +269,35 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   1. El admin crea una sección con nombre y tipo (interna o externa), por ejemplo "Fotografía de evaporadores".
   2. No se pueden crear dos secciones con el mismo nombre.
   3. El admin edita el nombre y el tipo de una sección.
-  4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación (por confirmar).
-  5. El admin desactiva una sección en vez de borrarla. Una desactivada no aparece en certificaciones nuevas, pero se conserva en las ya hechas (por confirmar).
+  4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación. Es un solo orden para internas y externas.
+  5. El admin desactiva una sección en vez de borrarla. Una desactivada sale del orden y no aparece en certificaciones nuevas, pero se conserva en las ya hechas. Una nueva o reactivada va al final.
   6. Hay una lista que se puede filtrar por interna o externa.
   7. Cambiar las secciones no modifica certificaciones ya cerradas.
-  8. Solo el admin usa esta pantalla (por confirmar).
+  8. Solo el admin usa esta pantalla. Hasta H24, cualquier usuario con sesión.
   9. La pantalla se puede usar bien desde el celular.
 - Riesgo: agregar o desactivar una sección a mitad de una certificación en curso puede dejar el sistema inconsistente.
-- Duda abierta (en revisión): el formato de la certificación agrupa en tres zonas (exteriores, interiores, puertas); falta saber si las puertas son un tercer tipo.
-- Construida el 2026-11-10 (T35) con supuestos que quedan por confirmar en T34, a pedido del usuario: las puertas no son un tipo (solo interna o externa, P1 de `database.md`); el orden es uno solo para internas y externas y es el de los pasos (criterio 4); una sección desactivada sale del orden y no aparece en certificaciones nuevas (criterio 5); una nueva o reactivada va al final; el nombre no se repite aunque una esté desactivada; por ahora, cualquier usuario con sesión usa la pantalla (criterio 8, hasta H24). Se ordena arrastrando en escritorio y con subir y bajar en el teléfono, y se guarda al momento.
+- Resuelto el 2026-11-12 (T34): las puertas no son un tercer tipo; son una sección externa más, con sus cintas y precintos (P1 de `database.md`). El usuario confirmó todos los supuestos de la construcción.
+- Construida el 2026-11-10 (T35) con supuestos que se confirmaron en T34 el 2026-11-12: las puertas no son un tipo (solo interna o externa, P1 de `database.md`); el orden es uno solo para internas y externas y es el de los pasos (criterio 4); una sección desactivada sale del orden y no aparece en certificaciones nuevas (criterio 5); una nueva o reactivada va al final; el nombre no se repite aunque una esté desactivada; por ahora, cualquier usuario con sesión usa la pantalla (criterio 8, hasta H24). Se ordena arrastrando en escritorio y con subir y bajar en el teléfono, y se guarda al momento.
 
 **H12 · Definir qué dispositivos lleva cada sección**
 - Como admin, quiero indicar para cada sección qué tipos de dispositivo lleva y cuántos de cada uno, para que el inspector sepa qué colocar en cada sección durante la certificación.
 - Criterios de aceptación:
-  1. Al editar una sección, el admin agrega uno o más tipos de dispositivo con su cantidad. Ejemplo: "Fotografía de evaporadores" lleva 2 sellos.
+  1. Al crear o editar una sección, el admin agrega uno o más tipos de dispositivo con su cantidad. Ejemplo: "Fotografía de evaporadores" lleva 2 sellos.
   2. Solo se pueden elegir tipos de dispositivo activos.
   3. Una sección puede llevar más de un tipo (ejemplo: 1 sello y 1 cinta).
-  4. Una sección puede no llevar ningún dispositivo, por ejemplo si solo pide una foto (por confirmar).
+  4. Una sección puede no llevar ningún dispositivo, por ejemplo si solo pide una foto. En la lista se ve como «Solo foto».
   5. La cantidad es un número entero mayor que cero.
   6. No se puede repetir el mismo tipo dos veces en una sección; se cambia su cantidad.
   7. El admin puede quitar un tipo de una sección o cambiar su cantidad.
   8. En la lista de secciones se ve qué lleva cada una de un vistazo.
   9. Cambiar lo que lleva una sección no modifica certificaciones ya cerradas.
   10. Esta regla es igual para todos los contenedores de 40'.
-  11. Solo el admin usa esta pantalla (por confirmar).
+  11. Solo el admin usa esta pantalla. Hasta H24, cualquier usuario con sesión.
   12. La pantalla se puede usar bien desde el celular.
-- Duda: algunos dispositivos podrían ir en un punto único del contenedor (por ejemplo la puerta) y no por sección; ver si entra en esta lista.
+- Resuelto el 2026-11-12 (T34): no hay un punto único del contenedor. La puerta es una sección externa más y lleva sus dispositivos como cualquier otra.
+- Decisiones del usuario del 2026-11-12: una sección puede ir sin dispositivos (criterio 4); el paso de los dispositivos va también al crear la sección, no solo al editar (criterio 1); desactivar un tipo de dispositivo no se bloquea aunque una sección lo use: la sección lo conserva, marcado, hasta que lo quiten.
+- Diseño: página "E3 · Secciones del contenedor" del lienzo (T34, aprobado por el usuario el 2026-11-12): paso 2 en los modales de H11, con filas de tipo y cantidad, vista previa de lo que verá el inspector y columna «Lleva» en la lista.
+- Supuesto de la construcción: la cantidad llega hasta 999, como en los tipos de kit.
 
 ### E4 · Kits
 - Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte.

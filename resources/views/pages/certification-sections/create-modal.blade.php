@@ -2,13 +2,13 @@
     <x-wire-modal-card
         title="Nueva sección"
         name="certification-section-create"
+        width="sm:max-w-4xl"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.type = ''"
+        x-on:open="$wire.form.name = ''; $wire.form.type = ''; $wire.form.devices = []"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
-        <form id="certification-section-create-form" wire:submit="save" class="grid gap-4">
-            @include('pages.certification-sections.fields', ['prefix' => 'certification-section-create'])
-            <span class="text-sm text-ink-muted">La sección nueva queda al final del orden.</span>
+        <form id="certification-section-create-form" wire:submit="save">
+            @include('pages.certification-sections.fields', ['prefix' => 'certification-section-create', 'hint' => 'La sección nueva queda al final del orden.'])
         </form>
 
         <x-slot:footer>

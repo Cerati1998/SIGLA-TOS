@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\CertificationSectionType;
 use App\Models\CertificationSection;
+use App\Models\SecurityDeviceType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,6 +24,14 @@ class CertificationSectionFactory extends Factory
             'type' => fake()->randomElement(CertificationSectionType::cases()),
             'sort_order' => fake()->unique()->numberBetween(1, 1000),
         ];
+    }
+
+    /**
+     * A section that carries the given quantity of the given security device type.
+     */
+    public function carrying(SecurityDeviceType $securityDeviceType, int $quantity): static
+    {
+        return $this->hasAttached($securityDeviceType, ['quantity' => $quantity], 'securityDeviceTypes');
     }
 
     /**

@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H13, H21, H22, H23) · **Última revisión:** 2026-11-12 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H12, H13, H21, H22, H23) · **Última revisión:** 2026-11-12 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -54,6 +54,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
+| `certification_section_security_device_type` | E3 · H12 | `planeada (T38/H12)` | (nueva; en el ER, la cantidad iba en `certification_criteria_items`) |
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
 | `drivers` | E9 · H22 | `en código` | (no estaba en el ER) |
 | `vehicle_bodies` | E9 · H23 | `en código` | (no estaba en el ER) |
@@ -175,16 +176,24 @@ erDiagram
 
 ### 4.4 Secciones de certificación (E3)
 
-Todavía no se relaciona con otras tablas: H12 le sumará los tipos de dispositivo que lleva cada sección.
+Cada sección dice qué tipos de dispositivo lleva y cuántos de cada uno (H12). Puede no llevar ninguno: solo pide fotos. Las puertas no son un tipo de sección: son una sección externa más (decisión del usuario del 2026-11-12, cierra P1).
 
 ```mermaid
 erDiagram
+  certification_sections ||--o{ certification_section_security_device_type : "lo que lleva"
+  security_device_types ||--o{ certification_section_security_device_type : "tipo de dispositivo"
+
   certification_sections {
     bigint id PK
     string name UK
     string type "internal, external"
     smallint sort_order "null si está desactivada"
     datetime deleted_at
+  }
+  certification_section_security_device_type {
+    bigint certification_section_id PK, FK
+    bigint security_device_type_id PK, FK
+    smallint quantity "1 a 999"
   }
 ```
 
@@ -441,6 +450,18 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
+### 5.12b `certification_section_security_device_type` · `planeada (T38/H12)`
+
+Lo que el inspector coloca en cada sección: cuántos dispositivos de cada tipo (H12). Tabla puente pura, sin marcas de tiempo. Se escribe junto con `certification_sections`, en una transacción, al crear o editar la sección.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `certification_section_id` | bigint FK | PK compuesta con `security_device_type_id`: un tipo de dispositivo va una sola vez en una sección (criterio 6). Llaves con nombre corto, porque el automático pasa los 64 caracteres de MariaDB. |
+| `security_device_type_id` | bigint FK | Tipo de dispositivo (`security_device_types`). Solo se eligen los activos, pero se conserva uno desactivado que la sección ya llevaba (decisión del usuario del 2026-11-12). |
+| `quantity` | smallint sin signo | Entero de 1 a 999 (criterio 5). |
+
+Una sección sin filas aquí solo pide fotos («Solo foto», criterio 4). Cambiar lo que lleva no toca las certificaciones cerradas (criterio 9): H17 guardará en cada certificación lo que pidió cada sección.
+
 ### 5.13 `carriers` · `en código`
 
 Transportistas (empresas). Global, sin sucursal. Independiente de conductores y vehículos (decisión confirmada por el usuario el 2026-11-11).
@@ -558,7 +579,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `certification_section_security_device_type` | H12 | PK compuesta `(section, device type)` + `quantity`. Las «puertas» no son un tipo: son una ubicación configurada (P1). |
 | `yard_zones` (`yard_zones`) | H26 (nueva) | Se gestiona con historia nueva, antes de H14. `branch_id`, `name`, `capacity`, `softDeletes`. |
 | `kits` (`kits`) | H14 | `series_code` UK. `status`: `built`, `dispatched`, `used`. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
@@ -576,7 +596,7 @@ Tablas de roles y permisos: se definen al aprobar H24.
 
 | # | Tema | Detalle |
 | --- | --- | --- |
-| P1 | «Puertas» | Dónde se guarda la ubicación configurada que dice a qué punto va cada tipo de dispositivo del kit. Se resuelve con H12. |
+| P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
 | P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
 | P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
