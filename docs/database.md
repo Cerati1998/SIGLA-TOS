@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H21, H22, H23) · **Última revisión:** 2026-11-11 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H13, H21, H22, H23) · **Última revisión:** 2026-11-12 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -59,6 +59,9 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `vehicle_bodies` | E9 · H23 | `en código` | (no estaba en el ER) |
 | `carrier_driver` | E9 · H22 (T45) | `planeada (T45/H22)` | (no estaba en el ER) |
 | `vehicles` | E9 · H23 | `en código` | (no estaba en el ER) |
+| `container_types` | E4 · H13 | `planeada (T39/H13)` | `container_types` |
+| `kit_types` | E4 · H13 | `planeada (T39/H13)` | `type_kits` |
+| `kit_type_security_device_type` | E4 · H13 | `planeada (T39/H13)` | (nueva; el ER traía los ids sueltos) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -232,6 +235,40 @@ erDiagram
     string category "N1 a O4, other"
     string color "null"
     datetime deleted_at
+  }
+```
+
+### 4.6 Tipos de kit (E4)
+
+Cada tipo de kit es para un tipo de contenedor y dice cuántos dispositivos de cada tipo lleva. La tabla puente incluye los tipos de dispositivo desactivados: desactivar uno no se bloquea aunque un tipo de kit lo use, y el tipo de kit lo conserva hasta que lo quiten (decisión del usuario del 2026-11-12). Los tipos de contenedor no tienen pantalla.
+
+```mermaid
+erDiagram
+  container_types ||--o{ kit_types : "para qué contenedor"
+  kit_types ||--|{ kit_type_security_device_type : "lo que lleva"
+  security_device_types ||--o{ kit_type_security_device_type : "tipo de dispositivo"
+
+  container_types {
+    bigint id PK
+    string code UK "40RF"
+    string iso_code UK "45R1"
+    string description
+    boolean is_reefer
+    decimal length
+    decimal width
+    decimal height
+    datetime deleted_at
+  }
+  kit_types {
+    bigint id PK
+    string name UK
+    bigint container_type_id FK
+    datetime deleted_at
+  }
+  kit_type_security_device_type {
+    bigint kit_type_id PK, FK
+    bigint security_device_type_id PK, FK
+    smallint quantity "1 a 999"
   }
 ```
 
@@ -467,6 +504,43 @@ Remolcadores y semirremolques. No se ligan a ningún transportista.
 
 Sin `needs_review`: el vehículo que llega de SIGLA 1.0 se registra directo en el catálogo con `VehicleRegistry` (decisión del usuario del 2026-11-11).
 
+### 5.17 `container_types` · `planeada (T39/H13)`
+
+Tipos de contenedor. Sin pantalla: `ContainerTypeSeeder` carga los 15 que dio el usuario el 2026-11-12 (estándar, high cube, hardtop, open top, reefer, flat rack y plataforma) y no toca los que ya existen. En pantalla se muestran como «código · descripción», por ejemplo «40RF · 40'-RFHC Reefer High Cube».
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `code` | varchar(6) | UK. Código interno, como `40RF`. |
+| `iso_code` | varchar(4) | UK. Código ISO 6346, como `45R1`. |
+| `description` | varchar(100) | Como `40'-RFHC Reefer High Cube`. |
+| `is_reefer` | boolean | Falso por defecto. |
+| `length`, `width`, `height` | decimal(8,2) | Medidas en metros. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. Un tipo de kit conserva su tipo de contenedor aunque se desactive. |
+
+### 5.18 `kit_types` · `planeada (T39/H13)`
+
+Tipos de kit (H13). Se gestionan en Bodega → Tipos de kit.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `name` | varchar(100) | UK, aunque esté desactivado (criterio 4). Se guarda como se escribe, sin espacios a los lados. |
+| `container_type_id` | bigint FK | Tipo de contenedor (`container_types`). Solo se eligen los activos. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 6). Uno desactivado no aparece al crear kits (H14). |
+
+### 5.19 `kit_type_security_device_type` · `planeada (T39/H13)`
+
+Lo que lleva cada tipo de kit: cuántos dispositivos de cada tipo (criterio 7). Tabla puente pura, sin marcas de tiempo. Se escribe junto con `kit_types`, en una transacción.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `kit_type_id` | bigint FK | PK compuesta con `security_device_type_id`: un tipo de dispositivo no se repite en un tipo de kit (criterio 3). |
+| `security_device_type_id` | bigint FK | Tipo de dispositivo (`security_device_types`). Solo se eligen los activos, pero se conserva uno desactivado que el tipo de kit ya llevaba. |
+| `quantity` | smallint sin signo | Entero de 1 a 999. Cada tipo de kit lleva al menos un tipo de dispositivo. |
+
+Editar un tipo de kit no cambia los kits ya armados (criterio 5): H14 guardará en cada kit lo que lleva.
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -483,9 +557,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
 | `certification_section_security_device_type` | H12 | PK compuesta `(section, device type)` + `quantity`. Las «puertas» no son un tipo: son una ubicación configurada (P1). |
-| `container_types` (`container_types`) | H13 | Definida con el volcado del usuario: `code` varchar(6) UK, `iso_code` varchar(4) UK, `description`, `is_reefer`, `length/width/height` decimal(8,2), `deleted_at`. Seeder con 15 de 16 filas (se omite `20ST`/`22G0`). Sin pantalla. |
-| `kit_types` (`type_kits`) | H13 | Se desactiva con `deleted_at` (sin `status`). |
-| `kit_type_security_device_type` | H13 | PK compuesta + `quantity`. Los dos únicos sueltos del ER bloqueaban el uso. |
 | `yard_zones` (`yard_zones`) | H26 (nueva) | Se gestiona con historia nueva, antes de H14. `branch_id`, `name`, `capacity`, `softDeletes`. |
 | `kits` (`kits`) | H14 | `series_code` UK. `status`: `built`, `dispatched`, `used`. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
