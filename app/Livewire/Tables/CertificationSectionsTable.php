@@ -24,7 +24,7 @@ class CertificationSectionsTable extends BaseTable
             ->setSearchPlaceholder('Buscar por nombre')
             ->setEmptyMessage(CertificationSection::withTrashed()->exists()
                 ? 'No encontramos secciones con estos filtros.'
-                : 'Todavía no hay secciones. Crea la primera con «Nueva sección».')
+                : 'Todavía no hay secciones. Crea la primera con «Nueva».')
             ->setConfigurableAreas([
                 'toolbar-right-end' => 'pages.certification-sections.partials.options',
                 'after-wrapper' => 'partials.panel.table-footer',

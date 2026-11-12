@@ -8,6 +8,7 @@ use App\Livewire\SecurityDeviceTypes\EditModal;
 use App\Livewire\Tables\SecurityDeviceTypesTable;
 use App\Models\SecurityDeviceType;
 use App\Models\User;
+use Database\Seeders\SecurityDeviceTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -21,6 +22,19 @@ class SecurityDeviceTypesManagementTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->create());
+    }
+
+    public function test_the_seeder_loads_the_initial_types_without_repeating_them(): void
+    {
+        SecurityDeviceType::factory()->trashed()->create(['name' => 'Sello cable', 'kind' => SecurityDeviceKind::Seal]);
+
+        $this->seed(SecurityDeviceTypeSeeder::class);
+        $this->seed(SecurityDeviceTypeSeeder::class);
+
+        $this->assertDatabaseCount('security_device_types', 9);
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta externa', 'kind' => SecurityDeviceKind::Tape->value]);
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Precinto de naviera', 'kind' => SecurityDeviceKind::ContainerSeal->value]);
+        $this->assertSoftDeleted('security_device_types', ['name' => 'Sello cable']);
     }
 
     public function test_guests_cannot_open_the_screen(): void

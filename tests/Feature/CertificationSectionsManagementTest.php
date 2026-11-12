@@ -47,7 +47,7 @@ class CertificationSectionsManagementTest extends TestCase
     public function test_an_empty_list_invites_to_create_the_first_section(): void
     {
         Livewire::test(CertificationSectionsTable::class)
-            ->assertSeeText('Todavía no hay secciones. Crea la primera con «Nueva sección».');
+            ->assertSeeText('Todavía no hay secciones. Crea la primera con «Nueva».');
 
         $this->section('Evaporadores', 1);
 
