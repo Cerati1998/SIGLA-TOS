@@ -13,6 +13,12 @@
             'route' => route('intranet.security-device-lots.index'),
             'active' => request()->routeIs('intranet.security-device-lots.*'),
         ],
+        [
+            'name' => 'Tipos de kit',
+            'icon' => 'box',
+            'route' => route('intranet.kit-types.index'),
+            'active' => request()->routeIs('intranet.kit-types.*'),
+        ],
         ['header' => 'Certificación'],
         [
             'name' => 'Solicitudes de retiro',
