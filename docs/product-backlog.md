@@ -2,7 +2,7 @@
 
 **Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17).
 
-**Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Sus "por confirmar" se cerraron en T46 el 2026-11-13; falta que el usuario las apruebe antes de construirlas.
+**Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Sus "por confirmar" se cerraron en T46 y el usuario las aprobó el 2026-11-13.
 
 **En revisión desde el 2026-10-28:** el proceso posterior a la asignación del kit a la certificación (H18, H19 y H20 de E5, y toda E6). El límite acordado es H17: se queda lo que llega hasta iniciar la certificación y asignarle el kit. Lo posterior se vuelve a revisar con el usuario antes de darlo por aprobado. Lo conversado queda marcado y no se borra.
 
@@ -262,7 +262,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
 
-**H29 · Activar dispositivos para despacho** (propuesta del 2026-11-13, pedida por el usuario; sus "por confirmar" se cerraron en T46 el 2026-11-13)
+**H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero activar para despacho un rango de dispositivos cuando la naviera confirma que los activó, para que solo se armen kits y se despachen dispositivos que la naviera ya activó.
 - Criterios de aceptación:
   1. Bodega envía las series a la naviera por correo, fuera de SIGLA. SIGLA no envía el correo ni lo guarda: solo registra la activación cuando llega la respuesta positiva.
@@ -323,7 +323,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Supuesto de la construcción: la cantidad llega hasta 999, como en los tipos de kit.
 
 ### E4 · Kits
-- Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte. Desde el 2026-11-13 también despacha dispositivos sueltos, a granel (H30, propuesta).
+- Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte. Desde el 2026-11-13 también despacha dispositivos sueltos, a granel (H30).
 - Depende de: E1, E2, E3, E8. La necesita E5.
 
 **H13 · Gestionar tipos de kit**
@@ -426,7 +426,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Estados de un kit (T46, 2026-11-13): Armando (incompleto), Armado (completo, listo para despachar), Despachado (en un despacho, H15) y Usado (en una certificación, H17).
 - Falta una historia de E4, que se escribe al llegar a E6: reasignar dispositivos a una unidad en reinspección (en revisión junto con E6).
 
-**H30 · Despachar dispositivos a granel** (propuesta del 2026-11-13, pedida por el usuario; sus "por confirmar" se cerraron en T46 el 2026-11-13)
+**H30 · Despachar dispositivos a granel** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero despachar dispositivos sueltos a un trabajador, sin armar un kit, para reponer dispositivos y para la reinspección.
 - Criterios de aceptación:
   1. Se elige el trabajador que recibe los dispositivos, de la lista de trabajadores activos (H25), como en H15. Quién entrega es el usuario que despacha, y queda registrado solo.
@@ -562,4 +562,4 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Los inspectores siempre tienen internet.
 - SIGLA solo registra el resultado del checkpoint; el aviso de cinta rota se hace fuera del sistema.
 - Cómo se migra lo que hoy está en BUMMOCK, y si hacen falta reportes o historial por contenedor.
-- Si el despacho de dispositivos sueltos a una zona de patio (que aparece en el ER) sirve para la reinspección. (Desde el 2026-11-13 el despacho a granel es la historia H30, propuesta; esta duda pasa a sus "por confirmar".)
+- Si el despacho de dispositivos sueltos a una zona de patio (que aparece en el ER) sirve para la reinspección. (Resuelto el 2026-11-13: el despacho a granel es la historia H30 y va a un trabajador, no a una zona de patio; su uso en la reinspección se define al revisar E6.)

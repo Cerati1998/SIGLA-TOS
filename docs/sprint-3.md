@@ -13,17 +13,17 @@ Al cierre del Sprint 2 están en `main` 20 historias: E1, E7, E8, E2, E3 y E9 co
 
 El 2026-11-13 el usuario sumó dos historias que no estaban al inicio:
 - **H29 · Activar dispositivos para despacho (E2).** Bodega envía las series a la naviera por correo, fuera de SIGLA. Cuando la naviera responde que sí, en SIGLA se activan para despacho, por rango. La activación es obligatoria para armar un kit y para todo despacho.
-- **H30 · Despachar dispositivos a granel (E4).** Es un despacho de dispositivos sueltos, sin kit. Es una propuesta y se aprueba antes de construirla.
+- **H30 · Despachar dispositivos a granel (E4).** Es un despacho de dispositivos sueltos, sin kit. Aprobada el 2026-11-13, en T46.
 
 ## Sprint Goal
 Dejar construido el recorrido del kit en bodega: activar los dispositivos para despacho por rango, armar kits solo con dispositivos activados, despacharlos a un trabajador o a granel, y consultar kits y despachos. Con esto se cierra E4.
 
 ## Historias del sprint
-- **H29** · Activar dispositivos para despacho (nueva del 2026-11-13, T47 y T48).
+- **H29** · Activar dispositivos para despacho (nueva del 2026-11-13, aprobada en T46, T47 y T48).
 - **H14** · Crear un kit y agregarle dispositivos (T49).
 - **H15** · Despachar kits (T50).
 - **H16** · Consultar kits y despachos (T51).
-- **H30** · Despachar dispositivos a granel (nueva del 2026-11-13, propuesta por aprobar, T47 y T52).
+- **H30** · Despachar dispositivos a granel (nueva del 2026-11-13, aprobada en T46, T47 y T52).
 - **Adelanto opcional:** H17 · Iniciar una certificación (T53) y la revisión de lo posterior a la asignación del kit (T54).
 
 Sigue el orden de épicas aprobado: E1, E7, E8, E2, E3, E4, E9, E5, E6. H29 es de E2, pero se construye primero porque H14 y los despachos la necesitan.
@@ -44,7 +44,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 - [ ] **T49** · H14 · Crear un kit y agregarle dispositivos (solo dispositivos activados). Incluye la tabla `kits` y su relación con los dispositivos. Quién: Claude Code. 4 h. Parte de la rama de T48: no espera su merge.
 - [ ] **T50** · H15 · Despachar kits. Quién: Claude Code. 3 h. Parte de la rama de T49.
 - [ ] **T51** · H16 · Consultar kits y despachos. Quién: Claude Code. 2.5 h. Parte de la rama de T50.
-- [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. **H30 es una propuesta sin aprobar:** el Scrum Master la aprueba en T46 antes de construir. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
+- [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. H30 se aprobó en T46 el 2026-11-13. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
@@ -92,6 +92,6 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 - (Resueltas en T46 el 2026-11-13: el escáner funciona como teclado y termina con Enter; el despacho a granel va a un trabajador.)
 
 ## Temas a resolver durante el sprint
-- Aprobar H29 y H30 en el backlog (T46).
+- Aprobar H29 y H30 en el backlog (T46). (Resuelto el 2026-11-13: el usuario las aprobó.)
 - Registrar las horas reales de cada tarea (acuerdo 1).
 - Lo posterior a la asignación del kit (H18 a H20 y E6) sigue en revisión (T54).
