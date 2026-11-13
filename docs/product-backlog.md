@@ -2,6 +2,8 @@
 
 **Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17).
 
+**Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Se aprueban en el Sprint 3 (T46) antes de construirlas.
+
 **En revisión desde el 2026-10-28:** el proceso posterior a la asignación del kit a la certificación (H18, H19 y H20 de E5, y toda E6). El límite acordado es H17: se queda lo que llega hasta iniciar la certificación y asignarle el kit. Lo posterior se vuelve a revisar con el usuario antes de darlo por aprobado. Lo conversado queda marcado y no se borra.
 
 Product Goal: ver `docs/product-goal.md`.
@@ -33,6 +35,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Lo que pide cada sección (tipo de dispositivo y cantidad) no existe en BUMMOCK; el técnico lo tiene interiorizado. Es una oportunidad de mejora de SIGLA 2.0.
 - Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un trabajador (H25), (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
 - Una certificación usa un solo kit. "El ticket" que se asigna al iniciar es la solicitud de retiro.
+- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
@@ -192,7 +195,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
 
 ### E2 · Dispositivos de seguridad
-- Que bodega registre dispositivos por lote y consulte su estado.
+- Que bodega registre dispositivos por lote, consulte su estado y los active para despacho cuando la naviera lo confirma (H29, agregado el 2026-11-13).
 - Depende de: E1 y E8 (H07 usa naviera y proveedor). La necesitan E4 y E5.
 - Un anuncio es el origen del lote (de quién viene y cómo se identifican sus series); se crea uno por cada lote, así que bodega no lo gestiona aparte.
 - Cada dispositivo es único. Un segundo lote con la misma serie tiene otro rango.
@@ -259,6 +262,24 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
 
+**H29 · Activar dispositivos para despacho** (propuesta del 2026-11-13, pedida por el usuario; las reglas de los criterios 1, 2, 3, 6, 7 y 9 las dio el usuario ese día)
+- Como usuario de bodega, quiero activar para despacho un rango de dispositivos cuando la naviera confirma que los activó, para que solo se armen kits y se despachen dispositivos que la naviera ya activó.
+- Criterios de aceptación:
+  1. Bodega envía las series a la naviera por correo, fuera de SIGLA. SIGLA no envía el correo ni lo guarda: solo registra la activación cuando llega la respuesta positiva.
+  2. «Activado para despacho» es una marca aparte del estado: el dispositivo conserva su estado (Disponible, En un kit, Usado o Dañado).
+  3. Se activa por rango, de dos formas: desde el detalle de un lote (H08), el lote entero o un tramo del correlativo inicial al final; o escribiendo o escaneando la serie inicial y la final, aunque el rango abarque varios lotes con el mismo inicio de serie y la misma naviera.
+  4. Antes de activar se muestra una vista previa con cuántos dispositivos se activan, la primera serie, la última y cuántos del rango ya estaban activados.
+  5. La activación es todo o nada.
+  6. El rango sirve únicamente para activar. Una activación no se deshace en SIGLA: si la naviera responde que no, simplemente no se activa.
+  7. Por cada dispositivo queda registrado quién lo activó y cuándo. No se registra nada más.
+  8. En el detalle del lote (H08) y en la búsqueda por serie se ve si cada dispositivo está activado, y en el lote, cuántos lo están.
+  9. La marca es obligatoria para armar un kit (H14) y para todo despacho, de un kit (H15) o a granel (H30).
+  10. Por ahora, cualquier usuario con sesión activa dispositivos. Los roles pasan a H24.
+  11. La pantalla se puede usar bien desde el celular.
+- Por confirmar en T46: si un dispositivo ya activado dentro del rango se deja como está y solo se cuenta (propuesta: sí); si se activan dispositivos Usados o Dañados (propuesta: solo Disponible o En un kit); qué pasa si la serie inicial o la final no existe (propuesta: no se activa nada y se avisa); el máximo de dispositivos por activación (propuesta: 10 000, como H07), y si la lista de lotes muestra o filtra cuántos están activados.
+- Diseño: por crear y aprobar en el lienzo (T47), página "E2 · Dispositivos de seguridad".
+- Los dispositivos ingresados antes de H29 quedan sin activar: bodega los activa por rango antes de armar kits con ellos.
+
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
 - Depende de: E1 (y de H06 para H12). La necesitan E4, E5 y E6.
@@ -300,7 +321,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Supuesto de la construcción: la cantidad llega hasta 999, como en los tipos de kit.
 
 ### E4 · Kits
-- Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte.
+- Que bodega arme kits con dispositivos escaneados, los despache a un trabajador y los consulte. Desde el 2026-11-13 también despacha dispositivos sueltos, a granel (H30, propuesta).
 - Depende de: E1, E2, E3, E8. La necesita E5.
 
 **H13 · Gestionar tipos de kit**
@@ -360,7 +381,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   4. Los dispositivos se agregan escaneando uno por uno. Cada escaneo llena el campo y se agrega solo al kit, sin botón de guardar. El guardado es asíncrono (regla común).
   5. Solo se aceptan dispositivos de los tipos que permite el tipo de kit; si es de otro tipo, mensaje claro y no se agrega.
   6. Un dispositivo solo puede estar en un kit; si ya está en otro, se muestra en cuál.
-  7. Solo se aceptan dispositivos disponibles, no usados ni dañados (estados exactos por confirmar).
+  7. Solo se aceptan dispositivos disponibles, no usados ni dañados (estados exactos por confirmar), y activados para despacho (H29); si no lo está, mensaje claro y no se agrega (propuesta de cambio del 2026-11-13, pedida por el usuario).
   8. Se ve la lista de lo escaneado, con qué se guardó y qué falló, para reintentar.
   9. Mientras el kit no esté despachado, bodega puede quitar un dispositivo, que vuelve a quedar disponible.
   10. Si el tipo de kit define cantidades (H13, criterio 7), se muestra el avance (ejemplo: "4 de 6 precintos") y se avisa si falta alguno (por confirmar si deja guardar el kit incompleto).
@@ -382,6 +403,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   9. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
   10. La pantalla se puede usar bien desde el celular.
   11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
+  12. Solo se despacha un kit si todos sus dispositivos están activados para despacho (H29). Como H14 solo acepta dispositivos activados y una activación no se deshace, la regla se cumple sola; se deja escrita porque la marca es obligatoria para todo despacho (propuesta de cambio del 2026-11-13, pedida por el usuario).
 - Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
@@ -397,6 +419,17 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. La pantalla se puede usar bien desde el celular.
 - Pendiente: estados de un kit (por confirmar: armado, despachado, usado).
 - Falta una historia de E4, que se escribe al llegar a E6: reasignar dispositivos a una unidad en reinspección (en revisión junto con E6).
+
+**H30 · Despachar dispositivos a granel** (propuesta del 2026-11-13, pedida por el usuario; sin aprobar)
+- Como usuario de bodega, quiero despachar dispositivos sueltos, sin armar un kit, para entregarlos cuando no hace falta un kit (para qué se usan, por confirmar).
+- Criterios de aceptación conversados:
+  1. Solo se despachan dispositivos activados para despacho (H29); si alguno no lo está, se muestra cuál y no se despacha (decisión del usuario del 2026-11-13).
+  2. Un dispositivo que está en un kit no se despacha a granel.
+  3. Queda registrado quién hizo el despacho y cuándo.
+  4. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
+  5. La pantalla se puede usar bien desde el celular.
+- Por confirmar en T46, antes de construir: a quién se despacha (un trabajador de H25, como en H15, o una zona de patio, como trae el ER); cómo se eligen los dispositivos (escaneo uno por uno, por rango o los dos); en qué estado quedan (un estado nuevo, por ejemplo Despachado, o Usado); si comparte la lista de despachos de H15 y la consulta de H16, y si sirve para la reinspección de E6, que está en revisión.
+- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
 
 ### E9 · Transportistas, conductores y vehículos
 - Los catálogos de transportistas (empresas), conductores y vehículos (remolcador y semirremolque), con sus pantallas de gestión. También se crean solos al iniciar una certificación, cuando vienen de SIGLA 1.0 y no existen todavía.
@@ -516,4 +549,4 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Los inspectores siempre tienen internet.
 - SIGLA solo registra el resultado del checkpoint; el aviso de cinta rota se hace fuera del sistema.
 - Cómo se migra lo que hoy está en BUMMOCK, y si hacen falta reportes o historial por contenedor.
-- Si el despacho de dispositivos sueltos a una zona de patio (que aparece en el ER) sirve para la reinspección.
+- Si el despacho de dispositivos sueltos a una zona de patio (que aparece en el ER) sirve para la reinspección. (Desde el 2026-11-13 el despacho a granel es la historia H30, propuesta; esta duda pasa a sus "por confirmar".)
