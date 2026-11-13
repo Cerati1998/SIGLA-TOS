@@ -3,7 +3,7 @@
 **Sprint:** 2 · lunes 9 al viernes 13 de noviembre de 2026 (1 semana).
 **Fecha del reporte:** viernes 13 de noviembre de 2026.
 **Fuente:** `docs/sprint-2.md`, `docs/product-backlog.md`, `docs/database.md`, `.ai/rules/` y los PR #36 a #59 de GitHub.
-**Estado:** borrador para revisión del Scrum Master. La sección 9 (Retrospectiva) se completa con el equipo.
+**Estado:** Review y Retrospectiva hechas con el Scrum Master el 2026-11-13.
 
 ## 1. Resumen
 
@@ -135,7 +135,7 @@ Con eso el sprint sumó 42.5 h estimadas contra unas 18 h de capacidad para tare
 
 ## 9. Retrospectiva
 
-Esta sección se completa con el equipo. Incluye la retrospectiva del Sprint 1, que quedó pendiente.
+Hecha con el Scrum Master el 2026-11-13. Incluye la retrospectiva del Sprint 1, que había quedado pendiente.
 
 ### 9.1 Observaciones para conversar
 
@@ -153,16 +153,21 @@ Son lecturas de los datos; la retrospectiva la decide el equipo.
 - **Historias construidas como propuesta.** H27 llegó al cierre del Sprint 2 sin aprobar; H11 se construyó antes de cerrar sus supuestos (T34). Al final se resolvieron, pero conviene aprobar antes de construir.
 - **Pruebas en celular.** El asistente no siempre puede revisar la pantalla a 390 px desde el navegador; la revisión en teléfono depende del usuario.
 
-### 9.2 Temas abiertos del Sprint 1 (por decidir con el equipo)
+### 9.2 Temas abiertos del Sprint 1, decididos el 2026-11-13
 
 | Tema | Decisión |
 | --- | --- |
-| Reparto de tareas entre el Scrum Master y el asistente | Por completar |
-| Quién prueba el trabajo del asistente | Por completar |
-| Si alcanzan las pruebas automáticas que pide la Definition of Done | Por completar |
-| Qué se hizo el 5 y el 6 de noviembre que no quedó marcado en `docs/sprint-1.md` | Por completar |
-| Cómo registrar las horas reales de cada tarea | Por completar |
+| Reparto de tareas entre el Scrum Master y el asistente | Se mantiene: el Scrum Master decide, aprueba los diseños y prueba lo construido; el asistente diseña, construye, escribe las pruebas y mantiene la documentación. |
+| Quién prueba el trabajo del asistente | El Scrum Master, también en el celular. El asistente corre las pruebas automáticas, Pint y Larastan, y revisa la pantalla en el navegador. |
+| Si alcanzan las pruebas automáticas que pide la Definition of Done | Sí: PHPUnit con el camino normal y los errores principales, al menos una prueba por criterio. Sin pruebas de navegador. |
+| Qué se hizo el 5 y el 6 de noviembre que no quedó marcado en `docs/sprint-1.md` | Nada: fueron días sin avance por problemas de salud del equipo. |
+| Cómo registrar las horas reales de cada tarea | Desde los commits: las horas entre el primer commit de la rama y el visto bueno del usuario. |
 
 ### 9.3 Acuerdos para el Sprint 3
 
-Por completar con el equipo.
+Aceptados por el Scrum Master el 2026-11-13.
+
+1. **Horas reales.** Al marcar una tarea se anotan, junto a la fecha y el PR, las horas entre el primer commit de su rama y el visto bueno del usuario. Es una aproximación: incluye pausas.
+2. **Marca en el mismo PR.** La marca de la tarea en `docs/sprint-N.md` va siempre en el PR de su historia, no en uno aparte.
+3. **Aprobar antes de construir.** No se construye una historia propuesta o con supuestos abiertos hasta que el usuario la apruebe.
+4. **Capacidad del Sprint 3.** Se planifica con horas estimadas, como hasta ahora, y al cierre se comparan con las reales para calibrar la capacidad.
