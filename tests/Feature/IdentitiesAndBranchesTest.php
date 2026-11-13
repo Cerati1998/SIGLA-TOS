@@ -29,10 +29,9 @@ class IdentitiesAndBranchesTest extends TestCase
         $this->assertDatabaseHas('identities', ['id' => '-', 'description' => 'Sin documento']);
         $this->assertDatabaseCount('companies', 1);
         $this->assertDatabaseHas('companies', ['ruc' => '20474360955', 'business_name' => 'MACROMAR LOGISTICS']);
-        $this->assertDatabaseCount('branches', 2);
-        $this->assertDatabaseHas('branches', ['code' => '0000', 'name' => 'Sede Principal']);
+        $this->assertDatabaseCount('branches', 1);
         $this->assertDatabaseHas('branches', ['code' => '0001', 'name' => 'Depot Paita - Macromar']);
-        $this->assertSame(2, Branch::query()->whereRelation('company', 'ruc', CompanySeeder::RUC)->count());
+        $this->assertSame(1, Branch::query()->whereRelation('company', 'ruc', CompanySeeder::RUC)->count());
     }
 
     public function test_the_seeders_load_no_credentials_and_keep_what_was_edited_on_the_screen(): void
@@ -50,7 +49,7 @@ class IdentitiesAndBranchesTest extends TestCase
         $this->seed([CompanySeeder::class, BranchSeeder::class]);
 
         $this->assertSame('Editada en pantalla', Company::query()->sole()->business_name);
-        $this->assertSame(2, Branch::query()->where('company_id', $company->id)->count());
+        $this->assertSame(1, Branch::query()->where('company_id', $company->id)->count());
     }
 
     public function test_the_branch_seeder_keeps_what_was_managed_on_the_screen(): void
@@ -59,13 +58,18 @@ class IdentitiesAndBranchesTest extends TestCase
 
         $main = Branch::query()->where('code', BranchSeeder::MAIN_BRANCH_CODE)->firstOrFail();
         $main->update(['name' => 'Editada en pantalla']);
-        Branch::query()->where('code', '0001')->firstOrFail()->delete();
 
         $this->seed(BranchSeeder::class);
 
         $this->assertSame('Editada en pantalla', $main->refresh()->name);
         $this->assertSame(1, Branch::query()->count());
-        $this->assertSame(2, Branch::withTrashed()->count());
+
+        $main->delete();
+
+        $this->seed(BranchSeeder::class);
+
+        $this->assertSame(0, Branch::query()->count());
+        $this->assertSame(1, Branch::withTrashed()->count());
     }
 
     public function test_the_main_seeder_creates_the_first_user_with_a_dni_and_the_main_branch(): void
@@ -75,7 +79,7 @@ class IdentitiesAndBranchesTest extends TestCase
         $user = User::query()->where('email', 'eddy.barranzuela@grupomacromar.com')->firstOrFail();
 
         $this->assertSame('DNI', $user->identity?->description);
-        $this->assertSame('Sede Principal', $user->branch?->name);
+        $this->assertSame('Depot Paita - Macromar', $user->branch?->name);
     }
 
     public function test_the_migration_fills_the_users_that_already_exist(): void

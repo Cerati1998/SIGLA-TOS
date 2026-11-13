@@ -2,7 +2,7 @@
 
 Este documento es la **fuente de verdad del modelo de datos**. Crece con el producto: solo tiene diagrama y diccionario de las tablas que existen o que entran en el sprint en curso. Lo que viene después queda como decisiones guardadas (sección 7), sin diagrama, y se promueve al diccionario cuando su historia entra a un sprint.
 
-**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H12, H13, H21, H22, H23) · **Última revisión:** 2026-11-12 · **Estado:** aprobado por el usuario el 2026-11-04.
+**Alcance actual:** Sprint 1 (2026-11-02 a 2026-11-06) y Sprint 2 (H10, H07, H11, H12, H13, H21, H22, H23, H25, H26) · **Última revisión:** 2026-11-13 · **Estado:** aprobado por el usuario el 2026-11-04.
 
 Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones del repo y el cuestionario de la tarea T18. Si el ER y este documento difieren, manda este documento.
 
@@ -303,6 +303,23 @@ erDiagram
   }
 ```
 
+### 4.8 Zonas de patio (E4)
+
+Zonas del patio de cada sucursal (H26). El inspector elige una al iniciar una certificación (H17). La capacidad es solo informativa: no se controla la ocupación (decisión del usuario del 2026-11-13).
+
+```mermaid
+erDiagram
+  branches ||--o{ yard_zones : "sucursal"
+
+  yard_zones {
+    bigint id PK
+    bigint branch_id FK
+    string name "UK con branch_id"
+    int capacity
+    datetime deleted_at
+  }
+```
+
 ## 5. Diccionario de tablas
 
 Notación: `UK` único · `FK` llave foránea. Todo es `NOT NULL` salvo donde dice «null».
@@ -346,7 +363,7 @@ Reglas: en usuarios (y luego en trabajadores) se puede elegir cualquier código.
 
 ### 5.4 `branches` · `en código`
 
-El seeder carga las primeras si no hay ninguna: `0000` Sede Principal y `0001` Depot Paita - Macromar. Después se gestionan en su pantalla (H27).
+El seeder carga una sola si no hay ninguna: `0001` Depot Paita - Macromar (cambiado por el usuario el 2026-11-13; antes cargaba también `0000` Sede Principal). Después se gestionan en su pantalla (H27).
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -603,6 +620,18 @@ Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajad
 
 Sin llave hacia `users` (criterio 6): H15 y H17 comparan `identity_id` + `document_number` del usuario y del trabajador.
 
+### 5.21 `yard_zones` · `planeada (T44/H26)`
+
+Zonas de patio (H26). Se gestionan en Maestros → Zonas de patio. El seeder carga una sola si no hay ninguna: «Zona certificación», con capacidad 50, en la sucursal `0001` (pedido del usuario del 2026-11-13).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `branch_id` | bigint FK → `branches.id` | Obligatoria. Al crear y editar solo se ofrecen sucursales activas; se conserva una desactivada que la zona ya tenía. |
+| `name` | varchar(100) | UK compuesta con `branch_id`, aunque la zona esté desactivada (criterio 2). El mismo nombre puede repetirse en otra sucursal. |
+| `capacity` | int unsigned | Obligatoria, entero mayor que 0, en contenedores. Solo informativa (criterio 6). |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Una desactivada no aparece al iniciar una certificación, pero la conservan las ya hechas. |
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -618,7 +647,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `yard_zones` (`yard_zones`) | H26 (nueva) | Se gestiona con historia nueva, antes de H14. `branch_id`, `name`, `capacity`, `softDeletes`. |
 | `kits` (`kits`) | H14 | `series_code` UK. `status`: `built`, `dispatched`, `used`. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
