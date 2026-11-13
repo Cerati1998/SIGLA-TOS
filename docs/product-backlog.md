@@ -391,6 +391,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. La pantalla se puede usar bien desde el celular, con el cursor listo en el campo de escaneo después de cada lectura.
   13. Solo se aceptan dispositivos de lotes de la misma naviera del kit; si es de otra, mensaje claro y no se agrega. Cada naviera activa sus propias series (T46, 2026-11-13).
   14. El kit está Armando mientras le falten dispositivos y pasa solo a Armado al completarse. Si se le quita un dispositivo, vuelve a Armando (T46, 2026-11-13).
+- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
 - La semana no se escribe: es la semana ISO de la fecha de creación del kit, en hora de Lima, y se usa para listar y filtrar en H16. La zona de patio no va en el kit: la elige el inspector al iniciar la certificación, H17 (decisión del 2026-11-04).
 
 **H15 · Despachar kits**
@@ -409,6 +410,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
   12. Solo se despacha un kit si todos sus dispositivos están activados para despacho (H29). Como H14 solo acepta dispositivos activados y una activación no se deshace, la regla se cumple sola; se deja escrita porque la marca es obligatoria para todo despacho (pedido por el usuario el 2026-11-13).
   13. Al despacharse, el kit pasa a Despachado. Sus dispositivos siguen En un kit (T46, 2026-11-13).
+- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
 - Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
@@ -423,6 +425,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
   9. La lista de despachos muestra también los despachos a granel (H30), marcados «A granel», con sus dispositivos (T46, 2026-11-13).
+- Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio (decisión del usuario del 2026-11-13, T46).
 - Estados de un kit (T46, 2026-11-13): Armando (incompleto), Armado (completo, listo para despachar), Despachado (en un despacho, H15) y Usado (en una certificación, H17).
 - Falta una historia de E4, que se escribe al llegar a E6: reasignar dispositivos a una unidad en reinspección (en revisión junto con E6).
 
