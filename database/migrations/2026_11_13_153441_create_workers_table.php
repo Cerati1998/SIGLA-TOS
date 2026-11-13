@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('identity_id', 50);
             $table->string('document_number', 15);
             $table->string('full_name', 255);
+            $table->string('position', 100)->nullable();
             $table->boolean('is_own');
             $table->foreignId('provider_id')->nullable()->constrained('providers');
             $table->timestamps();

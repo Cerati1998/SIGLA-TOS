@@ -296,6 +296,7 @@ erDiagram
     string identity_id FK
     string document_number "UK con identity_id"
     string full_name
+    string position "null"
     boolean is_own
     bigint provider_id FK "null si is_own"
     datetime deleted_at
@@ -595,8 +596,9 @@ Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajad
 | `identity_id` | varchar(50) FK | Tipo de documento: cualquiera del catálogo `identities`, como en usuarios. |
 | `document_number` | varchar(15) | UK compuesta con `identity_id`, aunque el trabajador esté desactivado (criterio 2). Con DNI, 8 dígitos. |
 | `full_name` | varchar(255) | Nombres y apellidos en un solo campo, como en `drivers`. Con DNI se completa desde RENIEC al crear. |
+| `position` | varchar(100) (null) | Cargo, opcional y en texto libre (pedido del usuario del 2026-11-13). Vacío se guarda como null. |
 | `is_own` | boolean | `true` si es propio (criterio 1). |
-| `provider_id` | bigint FK (null) | Proveedor (`providers`). Null si `is_own`. Solo se eligen los activos, pero se conserva uno desactivado que el trabajador ya tenía. |
+| `provider_id` | bigint FK (null) | Proveedor (`providers`). Null si `is_own`. Se elige con un selector que busca en el servidor (solo activos), o se crea ahí mismo con «Agregar»; se conserva uno desactivado que el trabajador ya tenía. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Uno desactivado no aparece al despachar kits (H15). |
 
 Sin llave hacia `users` (criterio 6): H15 y H17 comparan `identity_id` + `document_number` del usuario y del trabajador.

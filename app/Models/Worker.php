@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $identity_id
  * @property string $document_number
  * @property string $full_name
+ * @property string|null $position
  * @property bool $is_own
  * @property int|null $provider_id
  * @property Carbon|null $created_at
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property-read Identity $identity
  * @property-read Provider|null $provider
  */
-#[Fillable(['identity_id', 'document_number', 'full_name', 'is_own', 'provider_id'])]
+#[Fillable(['identity_id', 'document_number', 'full_name', 'position', 'is_own', 'provider_id'])]
 class Worker extends Model
 {
     /** @use HasFactory<WorkerFactory> */

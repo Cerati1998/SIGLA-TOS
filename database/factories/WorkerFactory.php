@@ -23,6 +23,7 @@ class WorkerFactory extends Factory
             'identity_id' => fn (): string => Identity::query()->firstOrCreate(['id' => Identity::DNI], ['description' => 'DNI'])->id,
             'document_number' => fake()->unique()->numerify('########'),
             'full_name' => fake()->name(),
+            'position' => fake()->jobTitle(),
             'is_own' => true,
             'provider_id' => null,
         ];
