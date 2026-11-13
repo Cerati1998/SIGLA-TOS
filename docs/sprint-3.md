@@ -1,6 +1,6 @@
 # Sprint 3 · SIGLA 2.0 (TOS)
 
-**Estado:** propuesta del 2026-11-13, por aprobar por el Scrum Master en el Sprint Planning.
+**Estado:** aprobado por el Scrum Master el 2026-11-13.
 **Fechas:** lunes 16 al viernes 20 de noviembre de 2026 (1 semana).
 **Capacidad:** 20 horas en total (10 del Scrum Master y 10 del asistente desarrollador). Unas 2 horas se reservan para los eventos del sprint; quedan unas 18 para tareas.
 **Unidad de estimación:** horas.
@@ -15,10 +15,10 @@ El 2026-11-13 el usuario sumó dos historias que no estaban al inicio:
 - **H29 · Activar dispositivos para despacho (E2).** Bodega envía las series a la naviera por correo, fuera de SIGLA. Cuando la naviera responde que sí, en SIGLA se activan para despacho, por rango. La activación es obligatoria para armar un kit y para todo despacho.
 - **H30 · Despachar dispositivos a granel (E4).** Es un despacho de dispositivos sueltos, sin kit. Es una propuesta y se aprueba antes de construirla.
 
-## Sprint Goal (propuesta)
+## Sprint Goal
 Dejar construido el recorrido del kit en bodega: activar los dispositivos para despacho por rango, armar kits solo con dispositivos activados, despacharlos a un trabajador o a granel, y consultar kits y despachos. Con esto se cierra E4.
 
-## Historias del sprint (propuesta)
+## Historias del sprint
 - **H29** · Activar dispositivos para despacho (nueva del 2026-11-13, T47 y T48).
 - **H14** · Crear un kit y agregarle dispositivos (T49).
 - **H15** · Despachar kits (T50).
