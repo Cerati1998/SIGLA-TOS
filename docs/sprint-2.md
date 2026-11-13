@@ -114,7 +114,7 @@ Para no tocar los mismos archivos a la vez: T25 y T31 tocan proveedores y usuari
 - Cuántas series trae el lote más grande: define si T32 necesita procesar en cola.
 
 ## Temas a resolver durante el sprint
-- Aprobar H27 en el backlog (está construida como propuesta). H25 y H26 siguen como propuestas.
+- Aprobar H27 en el backlog (está construida como propuesta). H25 y H26 siguen como propuestas. (Resuelto el 2026-11-13: el usuario aprobó H25, H26 y H27.)
 - Registrar horas reales de cada tarea para calibrar cuánto rinde la capacidad de 20 h con Claude Code.
 - Confirmar qué se hizo el 5 y el 6 de noviembre y no quedó marcado en `docs/sprint-1.md`.
 - Temas abiertos del Sprint 1: reparto de tareas entre el Scrum Master y el asistente, quién prueba el trabajo del asistente y si alcanzan las pruebas automáticas de la Definition of Done.
