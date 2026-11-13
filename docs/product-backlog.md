@@ -336,17 +336,20 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Cambios pedidos por el usuario el 2026-11-13, al revisar la construcción: el trabajador lleva un cargo, opcional y en texto libre (hasta 100 caracteres), que también se ve en la lista; el proveedor se elige con un selector que busca en el servidor mientras se escribe (por razón social o documento, solo activos), sin que lo buscado viaje en la URL; y un botón «Agregar» junto al campo Proveedor, en crear y en editar, abre encima el modal «Nuevo proveedor» de H10 y deja elegido el proveedor creado. Diseño actualizado en el lienzo.
 - Supuestos aprobados con el diseño: nombres y apellidos en un solo campo, como en H22; la lista se ordena por nombres y apellidos y la búsqueda no viaja en la URL, para que el documento no quede en ella; la consulta de DNI solo se hace al crear, como en usuarios; si se desactiva el proveedor de un trabajador, este lo conserva, y al editar solo se ofrecen los proveedores activos más el que ya tenía.
 
-**H26 · Gestionar zonas de patio** (propuesta del 2026-11-04, sin aprobar)
+**H26 · Gestionar zonas de patio** (propuesta del 2026-11-04, aprobada el 2026-11-13)
 - Como admin, quiero crear, editar y desactivar las zonas de patio de cada sucursal, para que el inspector elija una al iniciar una certificación.
 - Criterios de aceptación:
   1. El admin crea una zona con sucursal, nombre y capacidad.
-  2. No se pueden crear dos zonas con el mismo nombre en la misma sucursal (por confirmar).
+  2. No se pueden crear dos zonas con el mismo nombre en la misma sucursal, aunque la otra esté desactivada (decisión del usuario del 2026-11-13).
   3. El admin edita los datos de una zona.
   4. El admin desactiva una zona en vez de borrarla. Una desactivada no aparece al iniciar una certificación, pero se conserva en las ya hechas.
   5. Hay una lista que se puede buscar por nombre y filtrar por sucursal.
-  6. La capacidad es un dato informativo: el sistema no controla cuánto hay en cada zona (por confirmar). La gestión de patio sigue fuera del Product Goal.
-  7. Solo el admin usa esta pantalla (por confirmar).
+  6. La capacidad es obligatoria, un número entero mayor que 0, y solo informativa: el sistema no controla cuánto hay en cada zona (decisión del usuario del 2026-11-13). La gestión de patio sigue fuera del Product Goal.
+  7. Hasta culminar E6, cualquier usuario con sesión usa esta pantalla, por la regla de roles; quién la usa después se define con H24.
   8. La pantalla se puede usar bien desde el celular.
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo: lista con tabla en Maestros → Zonas de patio (nombre, sucursal, capacidad y estado; filtros de sucursal y estado) y modal de crear y editar.
+- Supuestos aprobados con el diseño: la capacidad se cuenta en contenedores; la lista se ordena por sucursal y nombre; al crear y editar solo se ofrecen sucursales activas, y al editar también la que la zona ya tenía.
+- Pedido del usuario al aprobarla, el 2026-11-13: un seeder deja una sola zona por defecto, «Zona certificación», con capacidad 50, en la única sucursal del seeder de sucursales, que pasa a ser solo `0001` Depot Paita - Macromar.
 
 **H14 · Crear un kit y agregarle dispositivos**
 - Como usuario de bodega, quiero crear un kit y agregarle dispositivos escaneándolos, para dejarlo listo para despacharlo.
