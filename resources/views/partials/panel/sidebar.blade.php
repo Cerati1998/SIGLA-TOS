@@ -59,6 +59,12 @@
             'active' => request()->routeIs('intranet.workers.*'),
         ],
         [
+            'name' => 'Zonas de patio',
+            'icon' => 'map',
+            'route' => route('intranet.yard-zones.index'),
+            'active' => request()->routeIs('intranet.yard-zones.*'),
+        ],
+        [
             'name' => 'Tipos de dispositivo',
             'icon' => 'shield',
             'route' => route('intranet.security-device-types.index'),
