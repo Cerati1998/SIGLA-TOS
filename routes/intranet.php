@@ -16,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('providers', 'pages.providers.index')->name('providers.index');
 
+    Route::view('workers', 'pages.workers.index')->name('workers.index');
+
     Route::view('security-device-lots', 'pages.security-device-lots.index')->name('security-device-lots.index');
 
     Route::view('security-device-lots/create', 'pages.security-device-lots.create')->name('security-device-lots.create');
