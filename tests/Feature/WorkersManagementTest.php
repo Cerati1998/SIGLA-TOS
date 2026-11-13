@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Forms\WorkerForm;
+use App\Livewire\Providers\CreateModal as ProviderCreateModal;
 use App\Livewire\Tables\WorkersTable;
 use App\Livewire\Workers\CreateModal;
 use App\Livewire\Workers\EditModal;
@@ -50,7 +51,7 @@ class WorkersManagementTest extends TestCase
     public function test_the_menu_leads_to_the_list_with_own_provider_and_deactivated_workers(): void
     {
         $provider = Provider::factory()->create(['business_name' => 'Precintos del Norte S.A.C.']);
-        Worker::factory()->create(['document_number' => '10000001', 'full_name' => 'Ana Propia']);
+        Worker::factory()->create(['document_number' => '10000001', 'full_name' => 'Ana Propia', 'position' => 'Operaria de bodega']);
         Worker::factory()->fromProvider($provider)->create(['full_name' => 'Beto Externo']);
         Worker::factory()->trashed()->create(['full_name' => 'Carla Inactiva']);
 
@@ -59,10 +60,12 @@ class WorkersManagementTest extends TestCase
             ->assertSeeInOrder(['Maestros', 'Proveedores', 'Trabajadores', 'Tipos de dispositivo'])
             ->assertSee(route('intranet.workers.index'))
             ->assertSeeText('DNI 10000001')
+            ->assertSeeText('Operaria de bodega')
             ->assertSeeText('Propio')
             ->assertSeeText('Precintos del Norte S.A.C.')
             ->assertSeeText('Carla Inactiva')
-            ->assertSeeText('Inactivo');
+            ->assertSeeText('Inactivo')
+            ->assertSeeLivewire(ProviderCreateModal::class);
     }
 
     public function test_each_row_gets_the_id_of_its_worker(): void
@@ -110,8 +113,9 @@ class WorkersManagementTest extends TestCase
             ->set('form.identityId', Identity::DNI)
             ->set('form.documentNumber', ' 12345678 ')
             ->set('form.fullName', ' Ana Propia ')
+            ->set('form.position', ' Operaria de bodega ')
             ->set('form.origin', WorkerForm::OWN)
-            ->set('form.providerId', (string) $provider->id)
+            ->set('form.providerId', $provider->id)
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
@@ -122,9 +126,75 @@ class WorkersManagementTest extends TestCase
             'identity_id' => Identity::DNI,
             'document_number' => '12345678',
             'full_name' => 'Ana Propia',
+            'position' => 'Operaria de bodega',
             'is_own' => true,
             'provider_id' => null,
         ]);
+    }
+
+    public function test_the_position_is_optional_and_stored_empty_when_left_blank(): void
+    {
+        Livewire::test(CreateModal::class)
+            ->set('form.documentNumber', '12345678')
+            ->set('form.fullName', 'Ana Propia')
+            ->set('form.position', '   ')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('workers', ['document_number' => '12345678', 'position' => null]);
+
+        Livewire::test(CreateModal::class)
+            ->set('form.documentNumber', '87654321')
+            ->set('form.fullName', 'Beto Propio')
+            ->set('form.position', str_repeat('a', 101))
+            ->call('save')
+            ->assertHasErrors(['form.position' => 'max']);
+    }
+
+    public function test_the_provider_window_tells_the_worker_form_which_provider_it_created(): void
+    {
+        Livewire::test(ProviderCreateModal::class)
+            ->set('form.identityId', Identity::RUC)
+            ->set('form.documentNumber', '20123456789')
+            ->set('form.businessName', 'Proveedor Nuevo S.A.C.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('provider-created', providerId: Provider::query()->value('id'));
+    }
+
+    public function test_the_provider_select_searches_the_active_providers_without_the_search_in_the_url(): void
+    {
+        Provider::factory()->create(['document_number' => '20000000011', 'business_name' => 'Precintos del Sur S.A.C.']);
+        Provider::factory()->create(['document_number' => '20000000022', 'business_name' => 'Sellos del Norte S.A.C.']);
+        Provider::factory()->trashed()->create(['document_number' => '20000000033', 'business_name' => 'Precintos Cerrados S.A.C.']);
+
+        $this->postJson(route('intranet.providers.options'), ['search' => 'precintos'])
+            ->assertOk()
+            ->assertExactJson([['id' => Provider::query()->where('business_name', 'Precintos del Sur S.A.C.')->value('id'), 'name' => 'Precintos del Sur S.A.C.', 'description' => 'RUC 20000000011']]);
+
+        $this->postJson(route('intranet.providers.options'), ['search' => '20000000022'])
+            ->assertOk()
+            ->assertJsonPath('0.name', 'Sellos del Norte S.A.C.')
+            ->assertJsonCount(1);
+
+        $this->getJson(route('intranet.providers.options').'?search=precintos')->assertMethodNotAllowed();
+    }
+
+    public function test_the_provider_select_shows_the_chosen_provider_even_if_it_was_deactivated(): void
+    {
+        $provider = Provider::factory()->trashed()->create(['business_name' => 'Proveedor Cerrado']);
+
+        $this->postJson(route('intranet.providers.options'), ['selected' => [$provider->id]])
+            ->assertOk()
+            ->assertJsonPath('0.id', $provider->id)
+            ->assertJsonPath('0.name', 'Proveedor Cerrado (desactivado)');
+    }
+
+    public function test_guests_cannot_search_providers(): void
+    {
+        auth()->logout();
+
+        $this->postJson(route('intranet.providers.options'), ['search' => 'precintos'])->assertUnauthorized();
     }
 
     public function test_a_worker_of_a_provider_is_created_with_an_active_provider(): void
@@ -136,7 +206,7 @@ class WorkersManagementTest extends TestCase
             ->set('form.documentNumber', '000000000003')
             ->set('form.fullName', 'Beto Externo')
             ->set('form.origin', WorkerForm::FROM_PROVIDER)
-            ->set('form.providerId', (string) $provider->id)
+            ->set('form.providerId', $provider->id)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -159,7 +229,7 @@ class WorkersManagementTest extends TestCase
             ->call('save')
             ->assertHasErrors(['form.providerId' => 'required'])
             ->assertSee('Elige el proveedor del trabajador.')
-            ->set('form.providerId', (string) $deactivatedProvider->id)
+            ->set('form.providerId', $deactivatedProvider->id)
             ->call('save')
             ->assertHasErrors(['form.providerId' => 'exists']);
 
@@ -231,13 +301,12 @@ class WorkersManagementTest extends TestCase
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-worker', workerId: $worker->id)
-            ->assertSee('Proveedor Cerrado (desactivado)')
-            ->assertDontSee('Otro Cerrado')
+            ->assertSet('form.providerId', $savedProvider->id)
             ->set('form.fullName', 'Nombre Corregido')
             ->call('save')
             ->assertHasNoErrors()
             ->dispatch('edit-worker', workerId: $worker->id)
-            ->set('form.providerId', (string) $otherDeactivatedProvider->id)
+            ->set('form.providerId', $otherDeactivatedProvider->id)
             ->call('save')
             ->assertHasErrors(['form.providerId' => 'exists']);
 

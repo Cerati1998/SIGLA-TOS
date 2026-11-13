@@ -55,6 +55,8 @@ class WorkersTable extends BaseTable
                 ->searchable()
                 ->format(fn ($value, Worker $row): View => view('pages.workers.partials.document', ['worker' => $row])),
             Column::make('Nombres y apellidos', 'full_name')->searchable(),
+            Column::make('Cargo', 'position')
+                ->format(fn (?string $value): string => $value ?? '—'),
             Column::make('Procedencia')
                 ->label(fn (Worker $row): View => view('pages.workers.partials.origin', ['worker' => $row])),
             Column::make('Estado', 'deleted_at')

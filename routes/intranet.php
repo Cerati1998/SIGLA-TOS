@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProviderOptionsController;
 use App\Http\Controllers\SecurityDeviceLotController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('shipping-lines', 'pages.shipping-lines.index')->name('shipping-lines.index');
 
     Route::view('providers', 'pages.providers.index')->name('providers.index');
+
+    Route::post('providers/options', ProviderOptionsController::class)->name('providers.options');
 
     Route::view('workers', 'pages.workers.index')->name('workers.index');
 

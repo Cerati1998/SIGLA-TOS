@@ -110,13 +110,13 @@ class ProviderForm extends Form
     }
 
     /**
-     * Create the provider.
+     * Create the provider and return it.
      */
-    public function store(): void
+    public function store(): Provider
     {
         $this->validateTrimmed();
 
-        Provider::query()->create($this->providerAttributes());
+        return Provider::query()->create($this->providerAttributes());
     }
 
     /**

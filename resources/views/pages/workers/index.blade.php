@@ -8,4 +8,7 @@
 
     <livewire:workers.create-modal />
     <livewire:workers.edit-modal />
+
+    {{-- After the worker windows, so that it opens on top of them from «Agregar». --}}
+    <livewire:providers.create-modal />
 </x-layouts::app>

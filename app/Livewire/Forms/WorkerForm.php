@@ -49,9 +49,11 @@ class WorkerForm extends Form
 
     public string $fullName = '';
 
+    public string $position = '';
+
     public string $origin = self::OWN;
 
-    public string $providerId = '';
+    public ?int $providerId = null;
 
     /**
      * Fill the form with the worker being edited.
@@ -63,8 +65,9 @@ class WorkerForm extends Form
         $this->identityId = $worker->identity_id;
         $this->documentNumber = $worker->document_number;
         $this->fullName = $worker->full_name;
+        $this->position = (string) $worker->position;
         $this->origin = $worker->is_own ? self::OWN : self::FROM_PROVIDER;
-        $this->providerId = (string) $worker->provider_id;
+        $this->providerId = $worker->provider_id;
         $this->rememberLookedUpDocument();
     }
 
@@ -87,6 +90,7 @@ class WorkerForm extends Form
                 Rule::unique(Worker::class, 'document_number')->where('identity_id', $this->identityId)->ignore($this->workerId),
             ],
             'fullName' => ['required', 'string', 'max:255'],
+            'position' => ['nullable', 'string', 'max:100'],
             'origin' => ['required', Rule::in([self::OWN, self::FROM_PROVIDER])],
             'providerId' => [
                 'exclude_unless:origin,'.self::FROM_PROVIDER,
@@ -124,6 +128,7 @@ class WorkerForm extends Form
             'identityId' => 'tipo de documento',
             'documentNumber' => 'número de documento',
             'fullName' => 'nombres y apellidos',
+            'position' => 'cargo',
             'origin' => 'procedencia',
             'providerId' => 'proveedor',
         ];
@@ -137,23 +142,6 @@ class WorkerForm extends Form
     public function identities(): Collection
     {
         return Identity::query()->orderBy('id')->get(['id', 'description']);
-    }
-
-    /**
-     * Get the providers to choose from: the active ones and the one the worker already had.
-     *
-     * @return array<int, string>
-     */
-    public function providers(): array
-    {
-        return Provider::withTrashed()
-            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhere('id', $this->savedProviderId))
-            ->orderBy('business_name')
-            ->get(['id', 'business_name', 'deleted_at'])
-            ->mapWithKeys(fn (Provider $provider): array => [
-                $provider->id => $provider->trashed() ? "{$provider->business_name} (desactivado)" : $provider->business_name,
-            ])
-            ->all();
     }
 
     /**
@@ -208,6 +196,7 @@ class WorkerForm extends Form
     {
         $this->documentNumber = trim($this->documentNumber);
         $this->fullName = trim($this->fullName);
+        $this->position = trim($this->position);
 
         $this->validate();
     }
@@ -215,7 +204,7 @@ class WorkerForm extends Form
     /**
      * Get the columns of the worker that this form writes: an own worker has no provider.
      *
-     * @return array{identity_id: string, document_number: string, full_name: string, is_own: bool, provider_id: int|null}
+     * @return array{identity_id: string, document_number: string, full_name: string, position: string|null, is_own: bool, provider_id: int|null}
      */
     private function workerAttributes(): array
     {
@@ -225,8 +214,9 @@ class WorkerForm extends Form
             'identity_id' => $this->identityId,
             'document_number' => $this->documentNumber,
             'full_name' => $this->fullName,
+            'position' => $this->position === '' ? null : $this->position,
             'is_own' => $isOwn,
-            'provider_id' => $isOwn ? null : (int) $this->providerId,
+            'provider_id' => $isOwn ? null : $this->providerId,
         ];
     }
 }

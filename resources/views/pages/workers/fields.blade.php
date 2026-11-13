@@ -1,7 +1,6 @@
 @props([
     'idPrefix',
     'identities',
-    'providers',
     'lookup' => false,
 ])
 
@@ -26,6 +25,8 @@
     <x-wire-input id="{{ $idPrefix }}-full-name" wire:model="form.fullName" label="Nombres y apellidos" type="text" maxlength="255" required autocomplete="off" />
 @endif
 
+<x-wire-input id="{{ $idPrefix }}-position" wire:model="form.position" label="Cargo (opcional)" type="text" maxlength="100" autocomplete="off" />
+
 <fieldset class="m-0 flex flex-col gap-1.75 border-0 p-0">
     <legend class="mb-1.75 p-0 text-sm font-medium text-ink">Procedencia</legend>
     <div class="grid grid-cols-2 gap-2.5">
@@ -39,7 +40,25 @@
     <flux:error name="form.origin" />
 </fieldset>
 
-<div x-show="$wire.form.origin === '{{ \App\Livewire\Forms\WorkerForm::FROM_PROVIDER }}'" x-cloak class="grid gap-1.75">
-    <x-wire-native-select id="{{ $idPrefix }}-provider" wire:model="form.providerId" label="Proveedor" placeholder="Elige un proveedor" :options="$providers" option-key-value />
+{{-- A provider created with «Agregar» is chosen here: the provider window tells its id with the provider-created event. --}}
+<div
+    x-show="$wire.form.origin === '{{ \App\Livewire\Forms\WorkerForm::FROM_PROVIDER }}'"
+    x-cloak
+    x-on:provider-created.window="$wire.form.providerId = $event.detail.providerId"
+    class="grid gap-1.75"
+>
+    <x-wire-select
+        id="{{ $idPrefix }}-provider"
+        wire:model="form.providerId"
+        label="Proveedor"
+        placeholder="Busca por razón social o documento"
+        :async-data="['api' => route('intranet.providers.options'), 'method' => 'POST']"
+        option-label="name"
+        option-value="id"
+    >
+        <x-slot:corner>
+            <x-panel.create-button size="sm" class="max-md:h-11 max-md:w-auto!" x-on:click.stop="$openModal('provider-create')">Agregar</x-panel.create-button>
+        </x-slot:corner>
+    </x-wire-select>
     <span class="text-sm text-ink-muted">Solo proveedores activos.</span>
 </div>
