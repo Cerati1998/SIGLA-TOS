@@ -55,7 +55,7 @@ Con T25 a T37 ya construidas, el usuario pidió sumar más trabajo para el miér
 - [x] **T40** · H21 · Gestionar transportistas, con la consulta de RUC. Quién: Claude Code. 2 h. Sin decisiones abiertas; sigue el patrón de H10. (Hecho el 2026-11-11, PR #46. La marca entró con el PR de H22 porque no alcanzó a ir en el #46.)
 - [x] **T41** · H22 · Gestionar conductores, con la consulta de DNI. Quién: Claude Code. 2 h. Sin decisiones abiertas; cuáles roles ven DNI y brevete se resuelve en H24. (Hecho el 2026-11-11, PR #47. La marca entró en un PR aparte porque no alcanzó a ir en el #47.)
 - [x] **T42** · H23 · Gestionar vehículos. Quién: Claude Code. 2 h. Usa las listas fijas de categoría y tipo de `docs/database.md`. (Hecho el 2026-11-11, PR #48. La marca entró en un PR aparte porque no alcanzó a ir en el #48.)
-- [ ] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
+- [x] **T43** · H25 · Gestionar trabajadores. Quién: Claude Code. 2 h. **H25 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir. (Hecho el 2026-11-13, PR #56. H25 se aprobó ese día, con el cargo, el buscador de proveedores y «+ Agregar» pedidos al revisarla.)
 - [ ] **T44** · H26 · Gestionar zonas de patio. Quién: Claude Code. 2 h. **H26 sigue como propuesta sin aprobar:** el Scrum Master la aprueba antes de construir.
 - [x] **T45** · H22 · Corrección: conductores por transportista (tabla puente `carrier_driver`, modal desde Transportistas, agregar por DNI y desactivar por empresa). Quién: Claude Code. 3 h. Agregada el 2026-11-11 a pedido del usuario, pensando en la extranet. (Hecho el 2026-11-11, PR #50)
 
