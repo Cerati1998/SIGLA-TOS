@@ -53,6 +53,12 @@
             'active' => request()->routeIs('intranet.providers.*'),
         ],
         [
+            'name' => 'Trabajadores',
+            'icon' => 'user-check',
+            'route' => route('intranet.workers.index'),
+            'active' => request()->routeIs('intranet.workers.*'),
+        ],
+        [
             'name' => 'Tipos de dispositivo',
             'icon' => 'shield',
             'route' => route('intranet.security-device-types.index'),

@@ -63,6 +63,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `container_types` | E4 · H13 | `planeada (T39/H13)` | `container_types` |
 | `kit_types` | E4 · H13 | `planeada (T39/H13)` | `type_kits` |
 | `kit_type_security_device_type` | E4 · H13 | `planeada (T39/H13)` | (nueva; el ER traía los ids sueltos) |
+| `workers` | E4 · H25 | `en código` | `workers` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -278,6 +279,27 @@ erDiagram
     bigint kit_type_id PK, FK
     bigint security_device_type_id PK, FK
     smallint quantity "1 a 999"
+  }
+```
+
+### 4.7 Trabajadores (E4)
+
+Quienes reciben los kits (H15). Un trabajador es propio o de un proveedor. No tiene llave hacia `users`: el inspector se reconoce porque su usuario y su trabajador tienen el mismo tipo y número de documento (decisión del usuario del 2026-11-04).
+
+```mermaid
+erDiagram
+  identities ||--o{ workers : "tipo de documento"
+  providers |o--o{ workers : "proveedor"
+
+  workers {
+    bigint id PK
+    string identity_id FK
+    string document_number "UK con identity_id"
+    string full_name
+    string position "null"
+    boolean is_own
+    bigint provider_id FK "null si is_own"
+    datetime deleted_at
   }
 ```
 
@@ -564,6 +586,23 @@ Lo que lleva cada tipo de kit: cuántos dispositivos de cada tipo (criterio 7). 
 
 Editar un tipo de kit no cambia los kits ya armados (criterio 5): H14 guardará en cada kit lo que lleva.
 
+### 5.20 `workers` · `en código`
+
+Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajadores.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `identity_id` | varchar(50) FK | Tipo de documento: cualquiera del catálogo `identities`, como en usuarios. |
+| `document_number` | varchar(15) | UK compuesta con `identity_id`, aunque el trabajador esté desactivado (criterio 2). Con DNI, 8 dígitos. |
+| `full_name` | varchar(255) | Nombres y apellidos en un solo campo, como en `drivers`. Con DNI se completa desde RENIEC al crear. |
+| `position` | varchar(100) (null) | Cargo, opcional y en texto libre (pedido del usuario del 2026-11-13). Vacío se guarda como null. |
+| `is_own` | boolean | `true` si es propio (criterio 1). |
+| `provider_id` | bigint FK (null) | Proveedor (`providers`). Null si `is_own`. Se elige con un selector que busca en el servidor (solo activos), o se crea ahí mismo con «Agregar»; se conserva uno desactivado que el trabajador ya tenía. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Uno desactivado no aparece al despachar kits (H15). |
+
+Sin llave hacia `users` (criterio 6): H15 y H17 comparan `identity_id` + `document_number` del usuario y del trabajador.
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -582,7 +621,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `yard_zones` (`yard_zones`) | H26 (nueva) | Se gestiona con historia nueva, antes de H14. `branch_id`, `name`, `capacity`, `softDeletes`. |
 | `kits` (`kits`) | H14 | `series_code` UK. `status`: `built`, `dispatched`, `used`. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
-| `workers` (`workers`) | H25 (nueva) | Recibe los kits. Propio o de proveedor (`provider_id` null si `is_own`). Con `identity_id` + `document_number` UK. **Sin llave hacia `users`:** el inspector se reconoce comparando `identity_id` + `document_number` de su usuario y del trabajador; si no coinciden, no ve kits (decisión del usuario del 2026-11-04). |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
 | `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |

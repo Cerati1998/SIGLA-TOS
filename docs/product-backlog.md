@@ -319,7 +319,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E4 · Kits" del lienzo (T34, aprobado por el usuario el 2026-11-12): lista con el contenido desplegable y modal en dos pasos, con un interruptor y una cantidad por tipo de dispositivo y un resumen al lado.
 - Supuestos de la construcción: el nombre se guarda como se escribe, sin pasarlo a mayúsculas; la cantidad llega hasta 999.
 
-**H25 · Gestionar trabajadores** (propuesta del 2026-11-04, sin aprobar)
+**H25 · Gestionar trabajadores** (propuesta del 2026-11-04, aprobada por el usuario el 2026-11-13)
 - Como admin, quiero crear, editar y desactivar trabajadores, propios o de un proveedor, para elegirlos como receptores al despachar kits.
 - Criterios de aceptación:
   1. El admin crea un trabajador con nombre, tipo y número de documento, e indica si es propio o de un proveedor. Si es de un proveedor, elige uno activo (H10).
@@ -328,9 +328,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   4. El admin desactiva un trabajador en vez de borrarlo, y lo reactiva desde la lista. Uno desactivado no aparece al despachar kits, pero se conserva en los despachos ya hechos.
   5. Hay una lista que se puede buscar por nombre o número de documento.
   6. Un trabajador no se enlaza directamente a un usuario. Para que un inspector vea los kits que le despacharon, su usuario y su trabajador deben tener el mismo tipo y número de documento.
-  7. El número de documento solo lo ven los roles que lo necesitan. No es asesoría legal.
-  8. Solo el admin usa esta pantalla (por confirmar).
+  7. El número de documento solo lo ven los roles que lo necesitan. Cuáles son se resuelve en H24; hasta entonces lo ve cualquier usuario con sesión, como en H22 (decisión del usuario del 2026-11-13). No es asesoría legal.
+  8. Solo el admin usa esta pantalla: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa, como en H22 (decisión del usuario del 2026-11-13).
   9. La pantalla se puede usar bien desde el celular.
+- Decisiones del usuario del 2026-11-13 (T43): con DNI, al crear, se consulta RENIEC al completar los 8 dígitos o con la lupa y se completa el nombre, que se puede corregir; si el servicio falla, se llena a mano (la misma regla de H04, criterio 12). Con otro tipo de documento no hay consulta. La pantalla va en Maestros → Trabajadores, debajo de Proveedores.
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo: lista con tabla (documento, nombres y apellidos, procedencia y estado; filtros de procedencia y estado) y modal de crear y editar.
+- Cambios pedidos por el usuario el 2026-11-13, al revisar la construcción: el trabajador lleva un cargo, opcional y en texto libre (hasta 100 caracteres), que también se ve en la lista; el proveedor se elige con un selector que busca en el servidor mientras se escribe (por razón social o documento, solo activos), sin que lo buscado viaje en la URL; y un botón «Agregar» junto al campo Proveedor, en crear y en editar, abre encima el modal «Nuevo proveedor» de H10 y deja elegido el proveedor creado. Diseño actualizado en el lienzo.
+- Supuestos aprobados con el diseño: nombres y apellidos en un solo campo, como en H22; la lista se ordena por nombres y apellidos y la búsqueda no viaja en la URL, para que el documento no quede en ella; la consulta de DNI solo se hace al crear, como en usuarios; si se desactiva el proveedor de un trabajador, este lo conserva, y al editar solo se ofrecen los proveedores activos más el que ya tenía.
 
 **H26 · Gestionar zonas de patio** (propuesta del 2026-11-04, sin aprobar)
 - Como admin, quiero crear, editar y desactivar las zonas de patio de cada sucursal, para que el inspector elija una al iniciar una certificación.

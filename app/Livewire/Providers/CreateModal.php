@@ -20,15 +20,17 @@ class CreateModal extends Component
     }
 
     /**
-     * Create the provider and refresh the table.
+     * Create the provider, refresh the table and tell the page which provider was created, so that a form that opened
+     * this window (as the worker form) can choose it.
      */
     public function save(): void
     {
-        $this->form->store();
+        $provider = $this->form->store();
         $this->form->reset();
 
         $this->dispatch('toast', icon: 'success', title: 'Proveedor creado', text: 'El proveedor se creó correctamente.');
         $this->dispatch('refreshDatatable');
+        $this->dispatch('provider-created', providerId: $provider->id);
     }
 
     /**

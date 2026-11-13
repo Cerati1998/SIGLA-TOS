@@ -83,3 +83,9 @@ Todo enlace de un correo va en un botón; la URL no se escribe de forma explíci
 
 ## Título de la pestaña
 El `<title>` de toda pantalla con sesión iniciada es `Pantalla | Empresa | Nombre de la app`, con la empresa tomada de `session('company.name')`; la sucursal no va en el título. Las pantallas sin sesión (iniciar sesión, recuperar contraseña) usan `Pantalla | Nombre de la app`. Razón: que cada pestaña muestre en qué pantalla y en qué empresa se está trabajando.
+
+## Acciones junto al título de un campo
+Una acción sobre un campo, como «+ Agregar», va al otro extremo de su título, en el slot `corner` del input o select de WireUI, con el componente `x-label-link`: un enlace `<a>` de solo texto, sin forma de botón ni icono; el «+» se escribe como parte del texto, para que se lea como uno solo. Esto aplica solo a estos enlaces sobre el título de un campo; los botones siguen con su icono Font Awesome. Razón: que estas acciones se vean igual en todos los formularios y no compitan con los botones del modal.
+
+## Selectores de catálogos en modales
+Cuando un campo elige un registro de otro catálogo que puede crecer, se usa el select async de WireUI (`x-wire-select` con `async-data` por POST): busca en el servidor y solo ofrece los activos, sin que lo buscado viaje en la URL. Si el usuario puede crear ese registro, junto al título va el enlace «+ Agregar» (`x-label-link`), que abre encima el modal de creación de ese catálogo y deja elegido lo creado. Razón: elegir rápido entre muchos registros y crear el que falta sin salir del formulario.
