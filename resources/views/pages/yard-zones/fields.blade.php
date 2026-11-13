@@ -7,7 +7,4 @@
 
 <x-wire-input id="{{ $idPrefix }}-name" wire:model="form.name" label="Nombre" description="No se repite en la misma sucursal. Hasta 100 caracteres." type="text" maxlength="100" required autocomplete="off" />
 
-<div class="md:max-w-50">
-    <x-wire-input id="{{ $idPrefix }}-capacity" wire:model="form.capacity" label="Capacidad (contenedores)" type="text" inputmode="numeric" maxlength="5" required autocomplete="off" />
-</div>
-<p class="-mt-2 text-sm text-ink-muted">Número entero mayor que 0. Es solo informativa: el sistema no controla cuánto hay en la zona.</p>
+<x-wire-input id="{{ $idPrefix }}-capacity" wire:model="form.capacity" label="Capacidad (contenedores)" description="Número entero mayor que 0. Es solo informativa: el sistema no controla cuánto hay en la zona." type="text" inputmode="numeric" maxlength="5" required autocomplete="off" />
