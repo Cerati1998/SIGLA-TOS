@@ -112,7 +112,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
-**H27 · Modificar la empresa y gestionar sus sucursales** (propuesta del 2026-11-04, sin aprobar; las sucursales se sumaron a pedido del usuario el mismo día)
+**H27 · Modificar la empresa y gestionar sus sucursales** (propuesta del 2026-11-04, aprobada el 2026-11-13, ya construida; las sucursales se sumaron a pedido del usuario el 2026-11-04)
 - Como admin, quiero modificar los datos de la empresa, incluidos los de facturación electrónica, para mantenerlos correctos y tenerlos listos si el producto llega a facturar.
 - Criterios de aceptación:
   1. Hay una pantalla con los datos de la única empresa. No se crea ni se elimina desde aquí.
