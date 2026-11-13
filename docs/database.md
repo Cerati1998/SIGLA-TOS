@@ -346,7 +346,7 @@ Reglas: en usuarios (y luego en trabajadores) se puede elegir cualquier código.
 
 ### 5.4 `branches` · `en código`
 
-El seeder carga las primeras si no hay ninguna: `0000` Sede Principal y `0001` Depot Paita - Macromar. Después se gestionan en su pantalla (H27).
+El seeder carga una sola si no hay ninguna: `0001` Depot Paita - Macromar (cambiado por el usuario el 2026-11-13; antes cargaba también `0000` Sede Principal). Después se gestionan en su pantalla (H27).
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
