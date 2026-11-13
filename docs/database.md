@@ -647,13 +647,14 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `kits` (`kits`) | H14 | `series_code` UK. `status`: `built`, `dispatched`, `used`. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
+| `security_devices` (ya en código) | H29, H30 | Columnas nuevas `activated_at` y `activated_by` (→ `users`), nulas mientras no se active: la activación para despacho es una marca aparte del estado. `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). |
+| `kits` (`kits`) | H14 | `series_code` UK. `shipping_line_id` obligatorio: solo acepta dispositivos de lotes de esa naviera. `status`: `building` (Armando), `built` (Armado), `dispatched`, `used` (`building` agregado el 2026-11-13, T46). La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
 | `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
-| `device_dispatches`, `device_dispatches_units` | E6 | `por decidir` hasta revisar E6. |
+| `device_dispatches`, `device_dispatches_units` | H30 | Despacho a granel a un trabajador (`workers`), decidido el 2026-11-13 (T46). Si se une con `kit_dispatches` o va en tablas propias se decide al construir T52. Su uso en la reinspección se define al revisar E6. |
 | `affectations`, `clients`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
 Tablas de roles y permisos: se definen al aprobar H24.

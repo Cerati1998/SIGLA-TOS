@@ -44,7 +44,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 - [ ] **T49** · H14 · Crear un kit y agregarle dispositivos (solo dispositivos activados). Incluye la tabla `kits` y su relación con los dispositivos. Quién: Claude Code. 4 h. Parte de la rama de T48: no espera su merge.
 - [ ] **T50** · H15 · Despachar kits. Quién: Claude Code. 3 h. Parte de la rama de T49.
 - [ ] **T51** · H16 · Consultar kits y despachos. Quién: Claude Code. 2.5 h. Parte de la rama de T50.
-- [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. **H30 es una propuesta sin aprobar:** el Scrum Master la aprueba en T46 antes de construir. Parte de la rama de T50 si comparte el despacho de H15, o de la de T48 si no (se decide en T46).
+- [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. **H30 es una propuesta sin aprobar:** el Scrum Master la aprueba en T46 antes de construir. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
@@ -72,12 +72,12 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 4 | T49 · H14 | `feature/H14-crear-kit` | rama de T48 | nada |
 | 5 | T50 · H15 | `feature/H15-despachar-kits` | rama de T49 | nada |
 | 6 | T51 · H16 | `feature/H16-consultar-kits` | rama de T50 | nada |
-| 7 | T52 · H30 | `feature/H30-despachar-granel` | rama de T50 o de T48 | H30 aprobada |
+| 7 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada |
 | 8 | T53 · H17 (adelanto) | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
-- **Orden de merge:** T48, T49, T50 y T51, en ese orden. T52 después de su base.
+- **Orden de merge:** T48, T49, T50, T51 y T52, en ese orden.
 - **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a las ramas encadenadas antes de pedir su visto bueno.
 - **Viernes:** Sprint Review y Retrospectiva; reporte en `docs/sprint-3-report.md`, con las horas estimadas y las reales de cada tarea.
 
@@ -87,9 +87,9 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 - **H17:** depende de la decisión sobre la naviera de la API y de H18, que sigue en revisión (criterio 10).
 
 ## Incertidumbres
-- El escáner de códigos como teclado (regla común de escaneo) sigue por confirmar. Afecta a H14, H15, H16 y H30. Conviene confirmarlo en T46, antes de construir H14.
 - Licencia de la plantilla de ThemeForest: revisar qué permite antes de usarla como referencia en producción. Arrastrada del Sprint 1.
-- Despacho a granel: a quién se despacha (trabajador o zona de patio) y si sirve para la reinspección de E6, que está en revisión.
+- Cómo se usan los dispositivos despachados a granel en la reinspección: se define al revisar E6 (T54).
+- (Resueltas en T46 el 2026-11-13: el escáner funciona como teclado y termina con Enter; el despacho a granel va a un trabajador.)
 
 ## Temas a resolver durante el sprint
 - Aprobar H29 y H30 en el backlog (T46).
