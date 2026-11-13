@@ -57,7 +57,7 @@
         option-value="id"
     >
         <x-slot:corner>
-            <x-label-link x-on:click="$openModal('provider-create')">Agregar</x-label-link>
+            <x-label-link icon="plus" x-on:click="$openModal('provider-create')">Agregar</x-label-link>
         </x-slot:corner>
     </x-wire-select>
     <span class="text-sm text-ink-muted">Solo proveedores activos.</span>
