@@ -14,11 +14,12 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property SecurityDeviceKind $kind
+ * @property bool $splits_internal_external
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['name', 'kind'])]
+#[Fillable(['name', 'kind', 'splits_internal_external'])]
 class SecurityDeviceType extends Model
 {
     /** @use HasFactory<SecurityDeviceTypeFactory> */
@@ -33,6 +34,7 @@ class SecurityDeviceType extends Model
     {
         return [
             'kind' => SecurityDeviceKind::class,
+            'splits_internal_external' => 'boolean',
         ];
     }
 }

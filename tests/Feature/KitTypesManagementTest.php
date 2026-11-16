@@ -32,7 +32,7 @@ class KitTypesManagementTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         $this->reefer = ContainerType::factory()->reefer()->create(['code' => '40RF']);
-        $this->tape = SecurityDeviceType::factory()->create(['name' => 'Cinta externa', 'kind' => SecurityDeviceKind::Tape]);
+        $this->tape = SecurityDeviceType::factory()->create(['name' => 'Cinta puerta full', 'kind' => SecurityDeviceKind::Tape]);
         $this->seal = SecurityDeviceType::factory()->create(['name' => 'Sello botella', 'kind' => SecurityDeviceKind::Seal]);
     }
 
@@ -67,7 +67,7 @@ class KitTypesManagementTest extends TestCase
             ->assertSeeText('Kit de seguridad reefer')
             ->assertSeeText("40RF · 40'-RFHC Reefer High Cube")
             ->assertSeeText('8 dispositivos · 2 tipos')
-            ->assertSeeText('Cinta externa')
+            ->assertSeeText('Cinta puerta full')
             ->assertSeeText('Kit antiguo')
             ->assertSeeText('Desactivado');
     }
@@ -132,6 +132,86 @@ class KitTypesManagementTest extends TestCase
         $this->assertTrue($kitType->containerType->is($this->reefer));
         $this->assertDatabaseCount('kit_type_security_device_type', 1);
         $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $this->tape->id, 'quantity' => 6]);
+    }
+
+    public function test_the_inspection_tape_is_split_between_the_internal_and_the_external_assignment(): void
+    {
+        $inspectionTape = SecurityDeviceType::factory()->splitsInternalExternal()->create(['name' => 'Cinta de inspección', 'kind' => SecurityDeviceKind::Tape]);
+
+        Livewire::test(CreateModal::class)
+            ->assertSet("form.devices.{$inspectionTape->id}", ['on' => false, 'internal' => 0, 'external' => 0])
+            ->assertSet("form.devices.{$this->seal->id}", ['on' => false, 'quantity' => 1])
+            ->set('form.name', 'Kit de seguridad reefer')
+            ->set('form.containerTypeId', (string) $this->reefer->id)
+            ->set("form.devices.{$inspectionTape->id}.on", true)
+            ->set("form.devices.{$inspectionTape->id}.internal", '4')
+            ->set("form.devices.{$inspectionTape->id}.external", '2')
+            ->set("form.devices.{$this->seal->id}.on", true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $kitType = KitType::query()->sole();
+
+        $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $inspectionTape->id, 'quantity' => 6, 'internal_quantity' => 4, 'external_quantity' => 2]);
+        $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $this->seal->id, 'quantity' => 1, 'internal_quantity' => null, 'external_quantity' => null]);
+
+        $this->get(route('intranet.kit-types.index'))
+            ->assertSeeText('7 dispositivos · 2 tipos')
+            ->assertSeeText('(4 interna · 2 externa)');
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-kit-type', kitTypeId: $kitType->id)
+            ->assertSet("form.devices.{$inspectionTape->id}", ['on' => true, 'internal' => 4, 'external' => 2])
+            ->set("form.devices.{$inspectionTape->id}.external", '0')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('kit_type_security_device_type', ['security_device_type_id' => $inspectionTape->id, 'quantity' => 4, 'internal_quantity' => 4, 'external_quantity' => 0]);
+    }
+
+    public function test_the_split_takes_whole_numbers_from_zero_that_add_up_to_at_least_one(): void
+    {
+        $inspectionTape = SecurityDeviceType::factory()->splitsInternalExternal()->create(['name' => 'Cinta de inspección']);
+
+        $create = fn (string $internal, string $external) => Livewire::test(CreateModal::class)
+            ->set('form.name', 'Kit de prueba')
+            ->set('form.containerTypeId', (string) $this->reefer->id)
+            ->set("form.devices.{$inspectionTape->id}.on", true)
+            ->set("form.devices.{$inspectionTape->id}.internal", $internal)
+            ->set("form.devices.{$inspectionTape->id}.external", $external)
+            ->call('save');
+
+        $create('0', '0')
+            ->assertHasErrors(["form.devices.{$inspectionTape->id}"])
+            ->assertSeeText('Reparte al menos una entre interna y externa.');
+
+        $create('-1', '2')
+            ->assertHasErrors(["form.devices.{$inspectionTape->id}.internal"])
+            ->assertSeeText('Escribe cuántas van a la asignación interna, desde cero.');
+
+        $create('3', '1.5')
+            ->assertHasErrors(["form.devices.{$inspectionTape->id}.external"])
+            ->assertSeeText('Escribe cuántas van a la asignación externa, desde cero.');
+
+        $create('600', '400')
+            ->assertHasErrors(["form.devices.{$inspectionTape->id}"])
+            ->assertSeeText('Entre interna y externa no pueden pasar de 999.');
+
+        $this->assertDatabaseCount('kit_types', 0);
+    }
+
+    public function test_a_device_type_that_starts_to_be_split_asks_for_its_split_when_the_kit_type_is_edited(): void
+    {
+        $kitType = KitType::factory()->for($this->reefer)->carrying($this->tape, 6)->create();
+        $this->tape->update(['splits_internal_external' => true]);
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-kit-type', kitTypeId: $kitType->id)
+            ->assertSet("form.devices.{$this->tape->id}", ['on' => true, 'internal' => 0, 'external' => 0])
+            ->call('save')
+            ->assertHasErrors(["form.devices.{$this->tape->id}"]);
+
+        $this->assertDatabaseHas('kit_type_security_device_type', ['security_device_type_id' => $this->tape->id, 'quantity' => 6, 'internal_quantity' => null]);
     }
 
     public function test_a_kit_type_needs_a_name_a_container_type_and_at_least_one_device(): void

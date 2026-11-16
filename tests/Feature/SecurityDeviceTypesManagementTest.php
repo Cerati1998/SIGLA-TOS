@@ -31,8 +31,11 @@ class SecurityDeviceTypesManagementTest extends TestCase
         $this->seed(SecurityDeviceTypeSeeder::class);
         $this->seed(SecurityDeviceTypeSeeder::class);
 
-        $this->assertDatabaseCount('security_device_types', 9);
-        $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta externa', 'kind' => SecurityDeviceKind::Tape->value]);
+        $this->assertDatabaseCount('security_device_types', 8);
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta de inspección', 'kind' => SecurityDeviceKind::Tape->value, 'splits_internal_external' => true]);
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta puerta empty', 'kind' => SecurityDeviceKind::Tape->value, 'splits_internal_external' => false]);
+        $this->assertDatabaseMissing('security_device_types', ['name' => 'Cinta externa']);
+        $this->assertDatabaseMissing('security_device_types', ['name' => 'Cinta interna']);
         $this->assertDatabaseHas('security_device_types', ['name' => 'Precinto de naviera', 'kind' => SecurityDeviceKind::ContainerSeal->value]);
         $this->assertSoftDeleted('security_device_types', ['name' => 'Sello cable']);
     }
@@ -104,8 +107,21 @@ class SecurityDeviceTypesManagementTest extends TestCase
                 ->assertDispatched('toast', icon: 'success', title: 'Tipo de dispositivo creado')
                 ->assertDispatched('refreshDatatable');
 
-            $this->assertDatabaseHas('security_device_types', ['name' => "Tipo {$kind->value}", 'kind' => $kind->value]);
+            $this->assertDatabaseHas('security_device_types', ['name' => "Tipo {$kind->value}", 'kind' => $kind->value, 'splits_internal_external' => false]);
         }
+    }
+
+    public function test_a_type_can_be_created_split_between_the_internal_and_the_external_assignment(): void
+    {
+        Livewire::test(CreateModal::class)
+            ->assertSeeText('Se reparte entre asignación interna y externa')
+            ->set('form.name', 'Cinta de inspección')
+            ->set('form.kind', SecurityDeviceKind::Tape->value)
+            ->set('form.splitsInternalExternal', true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta de inspección', 'splits_internal_external' => true]);
     }
 
     public function test_the_create_modal_offers_the_kinds_in_spanish(): void
@@ -151,7 +167,7 @@ class SecurityDeviceTypesManagementTest extends TestCase
         $this->assertDatabaseCount('security_device_types', 1);
     }
 
-    public function test_the_name_of_a_type_can_be_edited_but_not_its_kind(): void
+    public function test_the_name_and_the_split_of_a_type_can_be_edited_but_not_its_kind(): void
     {
         $securityDeviceType = SecurityDeviceType::factory()->create(['name' => 'Nombre Anterior', 'kind' => SecurityDeviceKind::Tape]);
 
@@ -160,7 +176,9 @@ class SecurityDeviceTypesManagementTest extends TestCase
             ->assertSet('form.openModal', true)
             ->assertSet('form.name', 'Nombre Anterior')
             ->assertSet('form.kindLabel', 'Cinta')
+            ->assertSet('form.splitsInternalExternal', false)
             ->set('form.name', 'Nombre Nuevo')
+            ->set('form.splitsInternalExternal', true)
             ->set('form.kind', SecurityDeviceKind::Seal->value)
             ->call('save')
             ->assertHasNoErrors()
@@ -172,6 +190,7 @@ class SecurityDeviceTypesManagementTest extends TestCase
 
         $this->assertSame('Nombre Nuevo', $securityDeviceType->name);
         $this->assertSame(SecurityDeviceKind::Tape, $securityDeviceType->kind);
+        $this->assertTrue($securityDeviceType->splits_internal_external);
     }
 
     public function test_a_type_can_keep_its_name_but_not_take_one_in_use(): void

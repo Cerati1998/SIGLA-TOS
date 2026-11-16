@@ -132,6 +132,7 @@ erDiagram
     bigint id PK
     string name UK
     string kind "seal, container_seal, tape, other"
+    boolean splits_internal_external
     datetime deleted_at
   }
 ```
@@ -279,6 +280,8 @@ erDiagram
     bigint kit_type_id PK, FK
     bigint security_device_type_id PK, FK
     smallint quantity "1 a 999"
+    smallint internal_quantity "null si no se reparte"
+    smallint external_quantity "null si no se reparte"
   }
 ```
 
@@ -430,9 +433,10 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
 | `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
+| `splits_internal_external` | boolean | Por defecto `false`. Si está marcado, en el tipo de kit su cantidad se reparte entre la asignación interna y la externa (casilla en crear y editar; corrección del 2026-11-16, T55). Se puede cambiar al editar: los tipos de kit ya guardados conservan sus cantidades hasta que se editen. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
-`SecurityDeviceTypeSeeder` carga los 9 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta externa, interna, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Si un tipo ya existe, aunque esté desactivado, no lo toca.
+`SecurityDeviceTypeSeeder` carga los 8 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
 
 ### 5.9 `security_device_announcements` · `en código`
 
@@ -599,7 +603,9 @@ Lo que lleva cada tipo de kit: cuántos dispositivos de cada tipo (criterio 7). 
 | --- | --- | --- |
 | `kit_type_id` | bigint FK | PK compuesta con `security_device_type_id`: un tipo de dispositivo no se repite en un tipo de kit (criterio 3). |
 | `security_device_type_id` | bigint FK | Tipo de dispositivo (`security_device_types`). Solo se eligen los activos, pero se conserva uno desactivado que el tipo de kit ya llevaba. |
-| `quantity` | smallint sin signo | Entero de 1 a 999. Cada tipo de kit lleva al menos un tipo de dispositivo. |
+| `quantity` | smallint sin signo | Entero de 1 a 999. Cada tipo de kit lleva al menos un tipo de dispositivo. En un tipo de dispositivo que se reparte, es la suma de la interna y la externa. |
+| `internal_quantity` | smallint sin signo (null) | Cuántas van a la asignación interna. Solo en un tipo de dispositivo con `splits_internal_external`; si no, null (corrección del 2026-11-16, T55). |
+| `external_quantity` | smallint sin signo (null) | Cuántas van a la asignación externa. Igual que la interna: enteros desde 0 que suman al menos 1. |
 
 Editar un tipo de kit no cambia los kits ya armados (criterio 5): H14 guardará en cada kit lo que lleva.
 

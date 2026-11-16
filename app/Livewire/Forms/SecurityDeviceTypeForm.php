@@ -23,6 +23,11 @@ class SecurityDeviceTypeForm extends Form
     public string $kind = '';
 
     /**
+     * Whether its quantity in a kit type is split between the internal and the external assignment.
+     */
+    public bool $splitsInternalExternal = false;
+
+    /**
      * Fill the form with the security device type being edited.
      */
     public function setSecurityDeviceType(SecurityDeviceType $securityDeviceType): void
@@ -30,6 +35,7 @@ class SecurityDeviceTypeForm extends Form
         $this->securityDeviceTypeId = $securityDeviceType->id;
         $this->kindLabel = $securityDeviceType->kind->label();
         $this->name = $securityDeviceType->name;
+        $this->splitsInternalExternal = $securityDeviceType->splits_internal_external;
     }
 
     /**
@@ -41,6 +47,7 @@ class SecurityDeviceTypeForm extends Form
     {
         $rules = [
             'name' => ['required', 'string', 'max:100', Rule::unique(SecurityDeviceType::class)->ignore($this->securityDeviceTypeId)],
+            'splitsInternalExternal' => ['boolean'],
         ];
 
         if ($this->securityDeviceTypeId === null) {
@@ -60,6 +67,7 @@ class SecurityDeviceTypeForm extends Form
         return [
             'name' => 'nombre',
             'kind' => 'tipo',
+            'splitsInternalExternal' => 'reparto entre interna y externa',
         ];
     }
 
@@ -73,17 +81,22 @@ class SecurityDeviceTypeForm extends Form
         SecurityDeviceType::create([
             'name' => $this->name,
             'kind' => $this->kind,
+            'splits_internal_external' => $this->splitsInternalExternal,
         ]);
     }
 
     /**
-     * Save the new name of the given security device type.
+     * Save the new name of the given security device type and whether it is split between internal and external. The
+     * kit types already saved keep their quantities until they are edited.
      */
     public function update(SecurityDeviceType $securityDeviceType): void
     {
         $this->validateWithTrimmedName();
 
-        $securityDeviceType->update(['name' => $this->name]);
+        $securityDeviceType->update([
+            'name' => $this->name,
+            'splits_internal_external' => $this->splitsInternalExternal,
+        ]);
     }
 
     /**

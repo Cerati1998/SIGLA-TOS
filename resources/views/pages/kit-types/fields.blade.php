@@ -10,7 +10,13 @@
         get selected() {
             return Object.entries($wire.form.devices ?? {})
                 .filter(([id, device]) => device.on)
-                .map(([id, device]) => ({ id: id, name: this.names[id], quantity: parseInt(device.quantity) || 0 }));
+                .map(([id, device]) => {
+                    const split = device.internal !== undefined;
+                    const internal = parseInt(device.internal) || 0;
+                    const external = parseInt(device.external) || 0;
+
+                    return { id: id, name: this.names[id], split: split, internal: internal, external: external, quantity: split ? internal + external : parseInt(device.quantity) || 0 };
+                });
         },
         get total() {
             return this.selected.reduce((sum, device) => sum + device.quantity, 0);

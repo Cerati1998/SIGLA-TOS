@@ -32,7 +32,7 @@ class EditModal extends Component
         $this->form->update(SecurityDeviceType::withTrashed()->findOrFail($this->form->securityDeviceTypeId));
         $this->form->openModal = false;
 
-        $this->dispatch('toast', icon: 'success', title: 'Tipo de dispositivo actualizado', text: 'El nombre del tipo de dispositivo se guardó correctamente.');
+        $this->dispatch('toast', icon: 'success', title: 'Tipo de dispositivo actualizado', text: 'Los cambios del tipo de dispositivo se guardaron correctamente.');
         $this->dispatch('refreshDatatable');
     }
 

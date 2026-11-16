@@ -3,12 +3,13 @@
         title="Nuevo tipo de dispositivo"
         name="security-device-type-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.kind = ''"
+        x-on:open="$wire.form.name = ''; $wire.form.kind = ''; $wire.form.splitsInternalExternal = false"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="security-device-type-create-form" wire:submit="save" class="grid gap-4">
             <x-wire-input id="security-device-type-create-name" wire:model="form.name" label="Nombre" type="text" maxlength="100" required autofocus autocomplete="off" />
             <x-wire-native-select id="security-device-type-create-kind" wire:model="form.kind" label="Tipo" placeholder="Selecciona" :options="$kinds" option-key-value required />
+            <x-pages::security-device-types.split-checkbox />
         </form>
 
         <x-slot:footer>

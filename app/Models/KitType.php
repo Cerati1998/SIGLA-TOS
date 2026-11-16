@@ -49,7 +49,7 @@ class KitType extends Model
     public function securityDeviceTypes(): BelongsToMany
     {
         return $this->belongsToMany(SecurityDeviceType::class)
-            ->withPivot('quantity')
+            ->withPivot('quantity', 'internal_quantity', 'external_quantity')
             ->withTrashed()
             ->orderBy('security_device_types.name');
     }
