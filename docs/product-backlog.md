@@ -226,7 +226,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   5. Al guardar, el sistema genera todas las series uniendo la serie y el correlativo, sin separador, completando con ceros a la izquierda según el mínimo de dígitos. Ejemplo: serie GSW, mínimo 7 dígitos, del 200 al 399 da GSW0000200 a GSW0000399. Si un correlativo tiene más dígitos que el mínimo, se deja completo (confirmado por el usuario el 2026-11-09, T27). Si hay final de serie, va pegado al final: inicio GWF, mínimo 5 dígitos, del 100 al 200 y final A da GWF00100A a GWF00200A (pedido por el usuario el 2026-11-10).
   6. Si alguna serie ya existe en el sistema, no se guarda nada y se muestra cuáles chocan.
   7. El guardado es todo o nada.
-  8. Las unidades quedan en estado Disponible, listas para armar kits (confirmado el 2026-11-09, T27).
+  8. Las unidades quedan en estado Inactivo hasta que se registre la aprobación de la naviera (H29). (Cambiado el 2026-11-16 en H29; antes quedaban Disponibles, confirmado el 2026-11-09 en T27.)
   9. Queda registrado quién ingresó el lote y cuándo.
   10. Un lote trae como máximo 10 000 series: el sistema no deja ingresar un rango mayor. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando (confirmado el 2026-11-09, T27).
   11. La pantalla se puede usar bien desde el celular.
@@ -246,7 +246,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Se ve cuántos dispositivos hay por estado en cada lote.
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
-- Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27). Desde el 2026-11-13 (T46) hay un quinto estado, Despachado, para los dispositivos despachados a granel (H30). La activación para despacho es una marca aparte, no un estado (H29).
+- Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27). Desde el 2026-11-13 (T46) hay un quinto estado, Despachado, para los dispositivos despachados a granel (H30). Desde el 2026-11-16 (H29) hay un estado Inactivo, con el que nace cada dispositivo hasta que se registra la aprobación de la naviera; reemplaza a la marca aparte de activación que se había acordado el 2026-11-13.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
 - Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
 
@@ -255,7 +255,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. El detalle del lote tiene un botón "Editar", y cada fila de la lista de lotes tiene uno al lado de "Ver" (pedido por el usuario el 2026-11-10). Los dos abren el formulario de H07 con los datos del lote.
   2. Naviera, proveedor, tipo de dispositivo, fecha de recepción, guía y observaciones se pueden corregir siempre.
-  3. Inicio de serie, mínimo de dígitos, correlativos y final de serie solo se pueden corregir si ningún dispositivo del lote cambió de estado (todos siguen Disponible). Si alguno cambió, esos campos se muestran bloqueados con un aviso que explica por qué.
+  3. Inicio de serie, mínimo de dígitos, correlativos y final de serie solo se pueden corregir si ningún dispositivo del lote cambió de estado (todos siguen Inactivos; antes de H29, Disponibles). Si alguno cambió, esos campos se muestran bloqueados con un aviso que explica por qué.
   4. Al cambiar la serie, el sistema rehace todas las series del lote con las reglas de H07: vista previa, correlativo inicial no mayor que el final, máximo 10 000 series y, si alguna serie nueva ya existe en otro lote, no se guarda nada y se muestra cuáles chocan.
   5. El guardado es todo o nada.
   6. Al guardar, se vuelve al detalle del lote con un aviso.
@@ -264,24 +264,26 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
 
 **H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
-- Como usuario de bodega, quiero activar para despacho un rango de dispositivos cuando la naviera confirma que los activó, para que solo se armen kits y se despachen dispositivos que la naviera ya activó.
-- Criterios de aceptación:
-  1. Bodega envía las series a la naviera por correo, fuera de SIGLA. SIGLA no envía el correo ni lo guarda: solo registra la activación cuando llega la respuesta positiva.
-  2. «Activado para despacho» es una marca aparte del estado: el dispositivo conserva su estado (Disponible, En un kit, Despachado, Usado o Dañado).
-  3. Se activa por rango, de dos formas: desde el detalle de un lote (H08), el lote entero o un tramo del correlativo inicial al final; o escribiendo o escaneando la serie inicial y la final, aunque el rango abarque varios lotes con el mismo inicio de serie y la misma naviera.
-  4. Con serie inicial y final, las dos deben existir en SIGLA; si una no existe, no se activa nada y se avisa. Los huecos dentro del rango (series que no se ingresaron) se ignoran: se activan las que sí existen (T46).
-  5. Solo se activan dispositivos Disponibles. Los que ya estaban activados se dejan como están, con su fecha y su usuario, y solo se cuentan, en cualquier estado. Si el rango trae un dispositivo sin activar que no está Disponible, no se activa nada y se muestra cuál (T46).
-  6. Un rango tiene como máximo 10 000 dispositivos, como H07. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando (T46).
-  7. Antes de activar se muestra una vista previa con cuántos dispositivos se activan, la primera serie, la última y cuántos del rango ya estaban activados.
-  8. La activación es todo o nada.
-  9. El rango sirve para activar y para despachar a granel (H30); armar un kit y despacharlo es por escaneo. Una activación no se deshace en SIGLA: si la naviera responde que no, simplemente no se activa. (Cambiado el 2026-11-13 en T46: antes el rango era únicamente para activar.)
-  10. Por cada dispositivo queda registrado quién lo activó y cuándo. No se registra nada más.
-  11. En el detalle del lote (H08) y en la búsqueda por serie se ve si cada dispositivo está activado. La lista de lotes muestra una columna «Activados» con cuántos lo están (por ejemplo, 120 de 200) y un filtro: sin activar, a medias y todos activados (T46).
-  12. La marca es obligatoria para armar un kit (H14) y para todo despacho, de un kit (H15) o a granel (H30).
-  13. Por ahora, cualquier usuario con sesión activa dispositivos. Los roles pasan a H24.
-  14. La pantalla se puede usar bien desde el celular.
-- Diseño: por crear y aprobar en el lienzo (T47), página "E2 · Dispositivos de seguridad".
-- Los dispositivos ingresados antes de H29 quedan sin activar: bodega los activa por rango antes de armar kits con ellos.
+- Como usuario de bodega, quiero registrar la aprobación de la naviera por tramos de un lote, para que solo se armen kits y se despachen dispositivos que la naviera ya aprobó.
+- Criterios de aceptación (cambiados el 2026-11-16, a pedido del usuario, antes de construir):
+  1. Bodega envía las series a la naviera por correo, fuera de SIGLA. SIGLA no envía el correo ni lo guarda: solo registra la aprobación cuando llega la respuesta positiva.
+  2. Un dispositivo nace **Inactivo** al ingresar su lote (H07): no está disponible. Al registrar la aprobación de la naviera pasa a **Disponible**. Inactivo es un estado más, no una marca aparte: Inactivo → Disponible → En un kit → Usado (o Despachado, H30, o Dañado).
+  3. La aprobación se registra solo desde el detalle del lote (H08), con el correlativo inicial y el final de un tramo del lote. Ejemplo: de un lote de 500, del 100 al 149, y esos 50 pasan a Disponible. Un lote se aprueba por partes, en varios registros. No hay aprobación por serie ni desde la lista de lotes.
+  4. El tramo debe estar dentro del lote y el correlativo inicial no puede ser mayor que el final; si no, no se registra nada y se avisa.
+  5. Solo pasan a Disponible los dispositivos Inactivos del tramo. Los que ya estaban aprobados, en cualquier estado, se dejan como están y solo se cuentan.
+  6. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando. Un lote no pasa de 10 000 dispositivos (H07), así que un tramo tampoco.
+  7. Antes de registrar se muestra una vista previa con cuántos dispositivos pasan a Disponible, la primera serie, la última y cuántos del tramo ya estaban aprobados. Si todos ya lo estaban, no hay nada que registrar.
+  8. El registro es todo o nada.
+  9. Una aprobación no se deshace en SIGLA: si la naviera responde que no, simplemente no se registra.
+  10. Cada registro queda en una bitácora de aprobaciones del lote: fecha y hora, quién lo registró, el tramo (correlativo y serie, inicial y final) y cuántos pasaron a Disponible. Cada dispositivo aprobado queda enlazado a su registro.
+  11. En el detalle del lote, «Historial de aprobaciones» abre un panel lateral con la bitácora de ese lote, del más reciente al más antiguo. No hay pantalla aparte.
+  12. El detalle del lote cuenta los Inactivos junto a los demás estados, y la lista de lotes muestra una columna «Aprobados» con cuántos dispositivos ya no están Inactivos (por ejemplo, 120 de 200), con un filtro: sin aprobar, a medias y todo aprobado.
+  13. Armar un kit (H14) y todo despacho, de un kit (H15) o a granel (H30), solo aceptan dispositivos Disponibles, es decir, ya aprobados.
+  14. Por ahora, cualquier usuario con sesión registra aprobaciones. Los roles pasan a H24.
+  15. La pantalla se puede usar bien desde el celular.
+- Cambios del 2026-11-16, pedidos por el usuario antes de construir: la activación deja de ser una marca aparte y pasa a ser el estado Inactivo, con el que nacen los dispositivos; se quitan la aprobación del lote entero de una vez y la aprobación por serie inicial y final desde la lista de lotes (y con ellas la regla de huecos y la de varios lotes); se suma la bitácora de aprobaciones con su panel lateral en el detalle del lote. Si el tramo trae dispositivos ya aprobados, se aprueban solo los Inactivos y se cuentan los demás. Esto también cambia H07 (los dispositivos nacen Inactivos), H08 (el conteo y la columna) y H28 (un lote se corrige solo si todos sus dispositivos siguen Inactivos).
+- Diseño: aprobado el 2026-11-13 en la página "E2 · Dispositivos de seguridad" del lienzo (T47). Se actualiza con los cambios del 2026-11-16 y espera una nueva aprobación.
+- Los dispositivos ingresados antes de H29 pasan a Inactivos: bodega registra su aprobación por tramos antes de armar kits con ellos.
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
