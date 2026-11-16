@@ -107,7 +107,7 @@ class SecurityDeviceLotCorrectionTest extends TestCase
             ->assertHasNoErrors()
             ->assertRedirect(route('intranet.security-device-lots.show', $this->lot));
 
-        $this->assertSame('Se rehicieron sus 50 dispositivos, todos disponibles.', session('toast.text'));
+        $this->assertSame('Se rehicieron sus 50 dispositivos, todos inactivos.', session('toast.text'));
 
         $this->lot->refresh();
         $serialNumbers = $this->lot->devices()->orderBy('id')->pluck('serial_number');
@@ -117,7 +117,7 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $this->assertCount(50, $serialNumbers);
         $this->assertSame('GWF00100A', $serialNumbers->first());
         $this->assertSame('GWF00149A', $serialNumbers->last());
-        $this->assertSame(50, $this->lot->devices()->where('status', SecurityDeviceStatus::Available)->count());
+        $this->assertSame(50, $this->lot->devices()->where('status', SecurityDeviceStatus::Inactive)->count());
         $this->assertSame(50, SecurityDevice::query()->count());
     }
 
