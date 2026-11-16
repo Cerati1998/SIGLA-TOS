@@ -30,42 +30,25 @@
         </p>
     @endif
 
-    <div x-show="$wire.form.devices[id]?.on" x-cloak class="flex items-center justify-between gap-2">
-        <span class="text-sm font-medium text-badge-info-ink">Cantidad</span>
-        <span class="inline-flex items-center overflow-hidden rounded-control border border-control bg-white">
-            <button
-                type="button"
-                x-on:click="$wire.form.devices[id].quantity = Math.max(1, (parseInt($wire.form.devices[id].quantity) || 1) - 1)"
-                x-bind:disabled="(parseInt($wire.form.devices[id]?.quantity) || 1) <= 1"
-                class="inline-flex size-8 cursor-pointer items-center justify-center text-brand disabled:cursor-not-allowed disabled:text-control max-md:size-11"
-                aria-label="Quitar uno de {{ $deviceType->name }}"
-            >
-                <i class="fa-solid fa-minus text-xs" aria-hidden="true"></i>
-            </button>
-            <input
-                type="number"
-                min="1"
-                max="{{ \App\Livewire\Forms\KitTypeForm::MAX_QUANTITY }}"
-                step="1"
-                inputmode="numeric"
-                wire:model="form.devices.{{ $deviceType->id }}.quantity"
-                class="h-8 w-12 border-x border-line text-center font-heading text-base font-medium text-ink [appearance:textfield] focus:outline-none max-md:h-11 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                aria-label="Cantidad de {{ $deviceType->name }}"
-            >
-            <button
-                type="button"
-                x-on:click="$wire.form.devices[id].quantity = Math.min({{ \App\Livewire\Forms\KitTypeForm::MAX_QUANTITY }}, (parseInt($wire.form.devices[id].quantity) || 0) + 1)"
-                class="inline-flex size-8 cursor-pointer items-center justify-center text-brand max-md:size-11"
-                aria-label="Agregar uno de {{ $deviceType->name }}"
-            >
-                <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
-            </button>
-        </span>
+    <div x-show="$wire.form.devices[id]?.on" x-cloak class="flex flex-col gap-2">
+        @if ($deviceType->splits_internal_external)
+            <x-pages::kit-types.quantity-stepper :device-type="$deviceType" field="internal" label="Interna" min="0" />
+            <x-pages::kit-types.quantity-stepper :device-type="$deviceType" field="external" label="Externa" min="0" />
+
+            <p class="flex justify-between gap-2 border-t border-line pt-2 text-sm text-badge-info-ink">
+                <span>Total</span>
+                <span class="font-heading font-medium text-brand" x-text="(parseInt($wire.form.devices[id]?.internal) || 0) + (parseInt($wire.form.devices[id]?.external) || 0)"></span>
+            </p>
+
+            @error("form.devices.{$deviceType->id}")
+                <p class="text-sm text-danger">{{ $message }}</p>
+            @enderror
+        @else
+            <x-pages::kit-types.quantity-stepper :device-type="$deviceType" field="quantity" label="Cantidad" min="1" />
+        @endif
     </div>
 
-    <span x-show="! $wire.form.devices[id]?.on" class="text-sm text-ink-muted">No lo lleva</span>
-
-    @error("form.devices.{$deviceType->id}.quantity")
-        <p class="text-sm text-danger">{{ $message }}</p>
-    @enderror
+    <span x-show="! $wire.form.devices[id]?.on" class="text-sm text-ink-muted">
+        No lo lleva{{ $deviceType->splits_internal_external ? ' · se reparte entre interna y externa' : '' }}
+    </span>
 </div>

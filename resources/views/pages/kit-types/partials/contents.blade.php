@@ -23,6 +23,9 @@
             ])>
                 <span class="font-heading font-medium text-brand">{{ $deviceType->pivot->quantity }}</span>
                 {{ $deviceType->name }}{{ $deviceType->trashed() ? ' (desactivado)' : '' }}
+                @if ($deviceType->pivot->internal_quantity !== null)
+                    <span class="text-ink-muted">({{ $deviceType->pivot->internal_quantity }} interna · {{ $deviceType->pivot->external_quantity }} externa)</span>
+                @endif
             </li>
         @endforeach
     </ul>
