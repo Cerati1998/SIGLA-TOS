@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\KitController;
 use App\Http\Controllers\ProviderOptionsController;
 use App\Http\Controllers\SecurityDeviceLotController;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 
     Route::view('kit-types', 'pages.kit-types.index')->name('kit-types.index');
+
+    Route::view('kits', 'pages.kits.index')->name('kits.index');
+
+    Route::view('kits/create', 'pages.kits.create')->name('kits.create');
+
+    Route::get('kits/{kit}', [KitController::class, 'show'])->name('kits.show');
 
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
 

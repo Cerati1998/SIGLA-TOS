@@ -19,6 +19,12 @@
             'route' => route('intranet.kit-types.index'),
             'active' => request()->routeIs('intranet.kit-types.*'),
         ],
+        [
+            'name' => 'Kits',
+            'icon' => 'briefcase',
+            'route' => route('intranet.kits.index'),
+            'active' => request()->routeIs('intranet.kits.*'),
+        ],
         ['header' => 'Certificación'],
         [
             'name' => 'Solicitudes de retiro',
