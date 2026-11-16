@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Enums\SecurityDeviceStatus;
 use Database\Factories\SecurityDeviceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -20,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read SecurityDeviceLot $lot
  * @property-read SecurityDeviceLotApproval|null $approval
+ * @property-read Collection<int, Kit> $kits
  */
 #[Fillable(['security_device_lot_id', 'serial_number', 'status'])]
 class SecurityDevice extends Model
@@ -57,5 +60,15 @@ class SecurityDevice extends Model
     public function approval(): BelongsTo
     {
         return $this->belongsTo(SecurityDeviceLotApproval::class, 'security_device_lot_approval_id');
+    }
+
+    /**
+     * Get the kit the device is in, as a list of at most one: a device is only in one kit (H14, criterion 6).
+     *
+     * @return BelongsToMany<Kit, $this>
+     */
+    public function kits(): BelongsToMany
+    {
+        return $this->belongsToMany(Kit::class)->withPivot('id', 'assignment')->withTimestamps();
     }
 }

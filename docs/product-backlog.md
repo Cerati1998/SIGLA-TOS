@@ -395,7 +395,9 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. La pantalla se puede usar bien desde el celular, con el cursor listo en el campo de escaneo después de cada lectura.
   13. Solo se aceptan dispositivos de lotes de la misma naviera del kit; si es de otra, mensaje claro y no se agrega. Cada naviera activa sus propias series (T46, 2026-11-13).
   14. El kit está Armando mientras le falten dispositivos y pasa solo a Armado al completarse. Si se le quita un dispositivo, vuelve a Armando (T46, 2026-11-13).
-- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47), y cambiado a su pedido el 2026-11-16, tomando como referencia la pantalla de BUMMOCK: el paso 2 tiene un campo de escaneo por cada tipo de dispositivo que lleva el kit; la serie se escanea o se escribe en el campo de su tipo y se agrega con Enter, y si es de otro tipo se rechaza con el motivo. Al completarse un tipo, su campo se bloquea y el cursor pasa solo al siguiente. Al costado, el avance total, lo que falta y los últimos escaneos.
+- Cinta de inspección (cambio del usuario del 2026-11-16, por T55): tiene dos campos, primero **Externa** y después **Interna**, con las cantidades del tipo de kit, y cada cinta guarda a qué lado va. Suposición por confirmar: SIGLA no revisa que los correlativos de las externas sean menores que los de las internas.
+- Lista de kits (decisión del usuario del 2026-11-16): H14 deja una lista base en Bodega → Kits (funda, tipo de kit, naviera, semana, avance y estado, con «Nuevo» y abrir el kit), para retomar un kit Armando. H16 le suma filtros, búsqueda y el detalle del despacho.
 - La semana no se escribe: es la semana ISO de la fecha de creación del kit, en hora de Lima, y se usa para listar y filtrar en H16. La zona de patio no va en el kit: la elige el inspector al iniciar la certificación, H17 (decisión del 2026-11-04).
 
 **H15 · Despachar kits**
@@ -414,7 +416,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
   12. Solo se despacha un kit si todos sus dispositivos están activados para despacho (H29). Como H14 solo acepta dispositivos activados y una activación no se deshace, la regla se cumple sola; se deja escrita porque la marca es obligatoria para todo despacho (pedido por el usuario el 2026-11-13).
   13. Al despacharse, el kit pasa a Despachado. Sus dispositivos siguen En un kit (T46, 2026-11-13).
-- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
 - Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
@@ -449,7 +451,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   11. La pantalla se puede usar bien desde el celular.
 - Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; la selección es por escaneo y por rango; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
 - Fuera de esta historia: cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector) se define al revisar E6 y lo posterior a H17.
-- Diseño: por crear y aprobar en el lienzo (T47), página "E4 · Kits".
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
 
 ### E9 · Transportistas, conductores y vehículos
 - Los catálogos de transportistas (empresas), conductores y vehículos (remolcador y semirremolque), con sus pantallas de gestión. También se crean solos al iniciar una certificación, cuando vienen de SIGLA 1.0 y no existen todavía.
