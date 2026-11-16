@@ -74,11 +74,22 @@ class SecurityDeviceLot extends Model
     }
 
     /**
-     * Check that the series of the lot can still be corrected: none of its devices changed status (H28, criterion 3).
+     * Get the approvals log of the lot, the latest first (H29).
+     *
+     * @return HasMany<SecurityDeviceLotApproval, $this>
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(SecurityDeviceLotApproval::class)->latest('id');
+    }
+
+    /**
+     * Check that the series of the lot can still be corrected: none of its devices changed status, so all of them are
+     * still inactive (H28, criterion 3; inactive since H29).
      */
     public function seriesCanBeCorrected(): bool
     {
-        return ! $this->devices()->where('status', '!=', SecurityDeviceStatus::Available)->exists();
+        return ! $this->devices()->where('status', '!=', SecurityDeviceStatus::Inactive)->exists();
     }
 
     /**

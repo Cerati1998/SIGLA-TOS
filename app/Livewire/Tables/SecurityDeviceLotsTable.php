@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Tables;
 
+use App\Enums\SecurityDeviceStatus;
 use App\Models\Provider;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
@@ -35,7 +36,7 @@ class SecurityDeviceLotsTable extends BaseTable
     }
 
     /**
-     * Get the query of the table, the latest receptions first.
+     * Get the query of the table, the latest receptions first, with how many devices of each lot were approved (H29).
      *
      * @return Builder<SecurityDeviceLot>
      */
@@ -43,6 +44,7 @@ class SecurityDeviceLotsTable extends BaseTable
     {
         return SecurityDeviceLot::query()
             ->with('announcement')
+            ->withCount(['devices as approved_devices_count' => fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value)])
             ->orderByDesc('security_device_lots.received_at')
             ->orderByDesc('security_device_lots.id');
     }
@@ -63,6 +65,12 @@ class SecurityDeviceLotsTable extends BaseTable
                 ->label(fn (SecurityDeviceLot $row): string => $row->announcement->rangeLabel()),
             Column::make('Cantidad', 'quantity')
                 ->format(fn (int $value): string => number_format($value, 0, ',', ' ')),
+            Column::make('Aprobados')
+                ->label(fn (SecurityDeviceLot $row): string => sprintf(
+                    '%s de %s',
+                    number_format((int) $row->getAttribute('approved_devices_count'), 0, ',', ' '),
+                    number_format($row->quantity, 0, ',', ' '),
+                )),
             Column::make('Recepción', 'received_at')
                 ->format(fn ($value): string => $value->format('d/m/Y')),
             Column::make('Acciones')
@@ -71,13 +79,17 @@ class SecurityDeviceLotsTable extends BaseTable
     }
 
     /**
-     * Get the filters of the table: shipping line, provider, device type and reception dates.
+     * Get the filters of the table: shipping line, provider, device type, approval and reception dates.
      *
      * @return array<int, Filter>
      */
     public function filters(): array
     {
         return [
+            SelectFilter::make('Aprobación', 'approval')
+                ->options(['' => 'Todos', 'none' => 'Sin aprobar', 'partial' => 'A medias', 'full' => 'Todo aprobado'])
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(fn (Builder $builder, string $value) => $this->filterByApproval($builder, $value)),
             $this->announcementFilter('Naviera', 'shipping_line', 'shipping_line_id', ['' => 'Todas'] + ShippingLine::withTrashed()->orderBy('code')->pluck('code', 'id')->all()),
             $this->announcementFilter('Proveedor', 'provider', 'provider_id', ['' => 'Todos'] + Provider::withTrashed()->orderBy('business_name')->pluck('business_name', 'id')->all()),
             $this->announcementFilter('Tipo de dispositivo', 'security_device_type', 'security_device_type_id', ['' => 'Todos'] + SecurityDeviceType::withTrashed()->orderBy('name')->pluck('name', 'id')->all()),
@@ -88,6 +100,25 @@ class SecurityDeviceLotsTable extends BaseTable
                 ->setInputAttributes(self::CONTROL_ATTRIBUTES)
                 ->filter(fn (Builder $builder, string $value) => $builder->whereDate('security_device_lots.received_at', '<=', $value)),
         ];
+    }
+
+    /**
+     * Keep the lots with none, some or all of their devices approved (H29, criterion 12).
+     *
+     * @param  Builder<SecurityDeviceLot>  $builder
+     * @return Builder<SecurityDeviceLot>
+     */
+    private function filterByApproval(Builder $builder, string $value): Builder
+    {
+        $approved = fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value);
+        $inactive = fn (Builder $devices) => $devices->where('status', SecurityDeviceStatus::Inactive->value);
+
+        return match ($value) {
+            'none' => $builder->whereDoesntHave('devices', $approved),
+            'partial' => $builder->whereHas('devices', $approved)->whereHas('devices', $inactive),
+            'full' => $builder->whereDoesntHave('devices', $inactive),
+            default => $builder,
+        };
     }
 
     /**

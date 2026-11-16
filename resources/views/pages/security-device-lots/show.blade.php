@@ -11,6 +11,7 @@
         'Ingresado por' => $lot->creator->name.' · '.$lot->created_at?->timezone('America/Lima')->format('d/m/Y H:i'),
     ];
     $countStyles = [
+        'inactive' => 'border border-line bg-badge-neutral text-ink-muted',
         'available' => 'bg-badge-success text-badge-success-ink',
         'in_kit' => 'bg-badge-info text-badge-info-ink',
         'used' => 'border border-line bg-badge-neutral text-badge-neutral-ink',
@@ -50,7 +51,7 @@
             </div>
         </dl>
 
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
             @foreach (\App\Enums\SecurityDeviceStatus::cases() as $status)
                 <div class="flex flex-col gap-1 rounded-card px-4 py-3.5 {{ $countStyles[$status->value] }}">
                     <strong class="font-heading text-[1.75rem] leading-none font-medium">{{ number_format($deviceCounts[$status->value], 0, ',', ' ') }}</strong>
@@ -61,8 +62,27 @@
     </flux:card>
 
     <x-panel.list-card>
-        <h3 class="m-0 border-b border-line p-5.25 font-heading text-h3 font-normal">Dispositivos del lote</h3>
+        <div class="flex flex-wrap items-center gap-2 border-b border-line p-5.25">
+            <h3 class="m-0 flex-[1_1_12.5rem] font-heading text-h3 font-normal">Dispositivos del lote</h3>
+
+            <flux:modal.trigger name="lot-approvals">
+                <flux:button class="max-md:h-11 max-md:w-full">
+                    <i class="fa-solid fa-clock-rotate-left text-sm" aria-hidden="true"></i>
+                    Historial de aprobaciones
+                </flux:button>
+            </flux:modal.trigger>
+
+            <flux:button variant="primary" x-on:click="$openModal('security-device-lot-approve')" class="max-md:h-11 max-md:w-full">
+                <i class="fa-solid fa-shield-halved text-sm" aria-hidden="true"></i>
+                Registrar aprobación
+            </flux:button>
+        </div>
 
         <livewire:tables.security-devices-table :lot-id="$lot->id" />
     </x-panel.list-card>
+
+    <livewire:security-device-lots.approve-modal :lot="$lot" />
+
+    <x-pages::security-device-lots.approvals-flyout :lot="$lot" :approved="$lot->quantity - $deviceCounts['inactive']" />
+
 </x-layouts::app>

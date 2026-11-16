@@ -47,7 +47,7 @@ class SerialNumberSearch extends Component
         return view('pages.security-device-lots.serial-number-search', [
             'device' => $this->deviceId === null
                 ? null
-                : SecurityDevice::query()->with('lot.announcement')->find($this->deviceId),
+                : SecurityDevice::query()->with(['lot.announcement', 'approval.approver'])->find($this->deviceId),
         ]);
     }
 }
