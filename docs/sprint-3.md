@@ -46,6 +46,9 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 - [ ] **T51** · H16 · Consultar kits y despachos. Quién: Claude Code. 2.5 h. Parte de la rama de T50.
 - [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. H30 se aprobó en T46 el 2026-11-13. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
 
+### Corrección del Sprint 2
+- [ ] **T55** · H06 y H13 · Corrección: cinta de inspección. La cinta interna y la externa son un solo tipo de dispositivo, la cinta de inspección (seeder corregido). Una casilla en el tipo de dispositivo indica si se reparte entre asignación interna y externa, y el tipo de kit pide entonces cuántas van a cada una. Quién: Claude Code. 2 h. Agregada el 2026-11-16 a pedido del usuario, antes de empezar el compromiso.
+
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
 - [ ] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8).
@@ -55,9 +58,10 @@ Solo se hacen si sobra tiempo; no suman al total.
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
 | Compromiso | T46, T47, T48, T49, T50, T51, T52 | 19 h |
+| Corrección del Sprint 2 (agregada el 2026-11-16) | T55 | 2 h |
 | Adelanto opcional (no suma) | T53, T54 | 5 h |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 

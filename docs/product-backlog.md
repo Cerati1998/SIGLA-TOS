@@ -214,6 +214,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - En el menú va en el grupo "Maestros", debajo de "Líneas navieras" (decisión del usuario del 2026-11-04).
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
+- Corrección del 2026-11-16 (T55), pedida por el usuario: la cinta interna y la externa son un solo tipo, la **cinta de inspección**. El seeder carga solo esta. Al crear y editar un tipo hay una casilla, «Se reparte entre asignación interna y externa», que hace que el tipo de kit pida su cantidad repartida (H13). El seeder la marca solo en la cinta de inspección. Se puede cambiar al editar.
 
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
@@ -341,6 +342,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Decisiones del usuario del 2026-11-12 (T34): la cantidad va en el tipo de kit (criterio 7) y editar no toca los kits ya armados (criterio 5). La pantalla va en Bodega → Tipos de kit. Desactivar un tipo de dispositivo no se bloquea aunque un tipo de kit lo use: el tipo de kit lo conserva, marcado, hasta que lo quiten. Los tipos de contenedor se cargan por seeder (15, dados por el usuario) y no tienen pantalla.
 - Diseño: página "E4 · Kits" del lienzo (T34, aprobado por el usuario el 2026-11-12): lista con el contenido desplegable y modal en dos pasos, con un interruptor y una cantidad por tipo de dispositivo y un resumen al lado.
 - Supuestos de la construcción: el nombre se guarda como se escribe, sin pasarlo a mayúsculas; la cantidad llega hasta 999.
+- Corrección del 2026-11-16 (T55), pedida por el usuario: un tipo de dispositivo con la casilla «Se reparte entre asignación interna y externa» (H06), como la cinta de inspección, no lleva una sola cantidad. Su tarjeta muestra dos contadores, **Interna** y **Externa**, enteros desde 0 que suman al menos 1 y hasta 999. La cantidad es su suma, calculada sola. El resumen y la lista muestran el reparto. Si un tipo de dispositivo empieza a repartirse después de guardado el tipo de kit, al editarlo se pide el reparto desde 0.
 
 **H25 · Gestionar trabajadores** (propuesta del 2026-11-04, aprobada por el usuario el 2026-11-13)
 - Como admin, quiero crear, editar y desactivar trabajadores, propios o de un proveedor, para elegirlos como receptores al despachar kits.
