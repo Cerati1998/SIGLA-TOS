@@ -64,9 +64,9 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `container_types` | E4 · H13 | `planeada (T39/H13)` | `container_types` |
 | `kit_types` | E4 · H13 | `planeada (T39/H13)` | `type_kits` |
 | `kit_type_security_device_type` | E4 · H13 | `planeada (T39/H13)` | (nueva; el ER traía los ids sueltos) |
-| `kits` | E4 · H14 | `planeada (T49/H14)` | `kits` |
-| `kit_security_device_type` | E4 · H14 | `planeada (T49/H14)` | (nueva; copia de lo que lleva el tipo de kit) |
-| `kit_security_device` | E4 · H14 | `planeada (T49/H14)` | `kits_device_units` |
+| `kits` | E4 · H14 | `en código` | `kits` |
+| `kit_security_device_type` | E4 · H14 | `en código` | (nueva; copia de lo que lleva el tipo de kit) |
+| `kit_security_device` | E4 · H14 | `en código` | `kits_device_units` |
 | `workers` | E4 · H25 | `en código` | `workers` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
@@ -678,7 +678,7 @@ Lo que lleva cada tipo de kit: cuántos dispositivos de cada tipo (criterio 7). 
 
 Editar un tipo de kit no cambia los kits ya armados (criterio 5): cada kit guarda su copia en `kit_security_device_type` (H14).
 
-### 5.19b `kits` · `planeada (T49/H14)`
+### 5.19b `kits` · `en código`
 
 Kits que arma bodega (H14). Se crean en Bodega → Kits → Nuevo.
 
@@ -694,11 +694,11 @@ Kits que arma bodega (H14). Se crean en Bodega → Kits → Nuevo.
 
 Sin zona de patio: la elige el inspector al iniciar la certificación (H17).
 
-### 5.19c `kit_security_device_type` · `planeada (T49/H14)`
+### 5.19c `kit_security_device_type` · `en código`
 
 Copia de lo que lleva el tipo de kit al crear el kit, con las mismas columnas que `kit_type_security_device_type`: `kit_id` y `security_device_type_id` (PK compuesta), `quantity`, `internal_quantity` y `external_quantity`. Tabla puente pura, sin marcas de tiempo. Se escribe junto con `kits`, en una transacción.
 
-### 5.19d `kit_security_device` · `planeada (T49/H14)`
+### 5.19d `kit_security_device` · `en código`
 
 Dispositivos de cada kit.
 
