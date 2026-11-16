@@ -42,6 +42,16 @@
                 <dt class="text-xs tracking-wider text-ink-muted uppercase">Kit</dt>
                 <dd class="m-0">—</dd>
             </div>
+            <div class="col-span-full flex flex-col gap-0.5">
+                <dt class="text-xs tracking-wider text-ink-muted uppercase">Aprobado</dt>
+                <dd class="m-0">
+                    @if ($device->approval !== null)
+                        {{ $device->approval->created_at?->timezone('America/Lima')->format('d/m/Y H:i') }} · {{ $device->approval->approver->name }}
+                    @else
+                        —
+                    @endif
+                </dd>
+            </div>
         </dl>
     @elseif ($searchedSerialNumber !== null)
         <p role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">

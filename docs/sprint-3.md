@@ -47,7 +47,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 - [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. H30 se aprobó en T46 el 2026-11-13. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
 
 ### Corrección del Sprint 2
-- [x] **T55** · H06 y H13 · Corrección: cinta de inspección. La cinta interna y la externa son un solo tipo de dispositivo, la cinta de inspección (seeder corregido). Una casilla en el tipo de dispositivo indica si se reparte entre asignación interna y externa, y el tipo de kit pide entonces cuántas van a cada una. Quién: Claude Code. 2 h. Agregada el 2026-11-16 a pedido del usuario, antes de empezar el compromiso. (Hecho el 2026-11-16, PR por confirmar, unas 0.5 h reales contadas desde que se creó la rama, porque los commits llegaron al final.)
+- [x] **T55** · H06 y H13 · Corrección: cinta de inspección. La cinta interna y la externa son un solo tipo de dispositivo, la cinta de inspección (seeder corregido). Una casilla en el tipo de dispositivo indica si se reparte entre asignación interna y externa, y el tipo de kit pide entonces cuántas van a cada una. Quién: Claude Code. 2 h. Agregada el 2026-11-16 a pedido del usuario, antes de empezar el compromiso. (Hecho el 2026-11-16, PR #63, unas 0.5 h reales contadas desde que se creó la rama, porque los commits llegaron al final.)
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.

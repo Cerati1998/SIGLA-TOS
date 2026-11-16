@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum SecurityDeviceStatus: string
 {
+    case Inactive = 'inactive';
     case Available = 'available';
     case InKit = 'in_kit';
     case Used = 'used';
@@ -15,6 +16,7 @@ enum SecurityDeviceStatus: string
     public function label(): string
     {
         return match ($this) {
+            self::Inactive => 'Inactivo',
             self::Available => 'Disponible',
             self::InKit => 'En un kit',
             self::Used => 'Usado',
@@ -28,6 +30,7 @@ enum SecurityDeviceStatus: string
     public function pluralLabel(): string
     {
         return match ($this) {
+            self::Inactive => 'Inactivos',
             self::Available => 'Disponibles',
             self::InKit => 'En un kit',
             self::Used => 'Usados',
@@ -41,6 +44,7 @@ enum SecurityDeviceStatus: string
     public function badgeVariant(): string
     {
         return match ($this) {
+            self::Inactive => 'muted',
             self::Available => 'success',
             self::InKit => 'info',
             self::Used => 'neutral',

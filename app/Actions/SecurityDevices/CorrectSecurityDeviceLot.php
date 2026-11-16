@@ -19,7 +19,7 @@ class CorrectSecurityDeviceLot
 
     /**
      * Save the corrected data of the lot and its announcement, all or nothing (H28).
-     * When the series changes, every device of the lot is built again, available, as long as none of them changed status
+     * When the series changes, every device of the lot is built again, inactive, as long as none of them changed status
      * and none of the new serial numbers exists in another lot.
      *
      * @param  array{shipping_line_id: int, provider_id: int, security_device_type_id: int, series_prefix: string, min_digits: int, series_start: int, series_end: int, series_suffix: string|null}  $announcementAttributes
@@ -51,7 +51,7 @@ class CorrectSecurityDeviceLot
                 $lot->devices()->delete();
                 $announcement->save();
                 $lot->update([...$lotAttributes, 'quantity' => count($serialNumbers)]);
-                $this->receiveLot->createAvailableDevices($lot, $serialNumbers);
+                $this->receiveLot->createInactiveDevices($lot, $serialNumbers);
 
                 return SecurityDeviceLotCorrection::Regenerated;
             });

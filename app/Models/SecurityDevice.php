@@ -15,9 +15,11 @@ use Illuminate\Support\Carbon;
  * @property int $security_device_lot_id
  * @property string $serial_number
  * @property SecurityDeviceStatus $status
+ * @property int|null $security_device_lot_approval_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read SecurityDeviceLot $lot
+ * @property-read SecurityDeviceLotApproval|null $approval
  */
 #[Fillable(['security_device_lot_id', 'serial_number', 'status'])]
 class SecurityDevice extends Model
@@ -45,5 +47,15 @@ class SecurityDevice extends Model
     public function lot(): BelongsTo
     {
         return $this->belongsTo(SecurityDeviceLot::class, 'security_device_lot_id');
+    }
+
+    /**
+     * Get the approval that made the device available, if it was approved already (H29).
+     *
+     * @return BelongsTo<SecurityDeviceLotApproval, $this>
+     */
+    public function approval(): BelongsTo
+    {
+        return $this->belongsTo(SecurityDeviceLotApproval::class, 'security_device_lot_approval_id');
     }
 }

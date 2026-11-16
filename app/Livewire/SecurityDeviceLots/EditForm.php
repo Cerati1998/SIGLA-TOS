@@ -55,7 +55,7 @@ class EditForm extends Component
             'icon' => 'success',
             'title' => 'Lote corregido',
             'text' => $correction === SecurityDeviceLotCorrection::Regenerated
-                ? sprintf('Se rehicieron sus %s dispositivos, todos disponibles.', number_format($this->lot->quantity, 0, ',', ' '))
+                ? sprintf('Se rehicieron sus %s dispositivos, todos inactivos.', number_format($this->lot->quantity, 0, ',', ' '))
                 : 'Se guardaron los cambios del lote.',
         ]);
 
@@ -80,7 +80,7 @@ class EditForm extends Component
      */
     private function seriesLockedNotice(): string
     {
-        $counts = Arr::except($this->lot->deviceCountsByStatus(), SecurityDeviceStatus::Available->value);
+        $counts = Arr::except($this->lot->deviceCountsByStatus(), SecurityDeviceStatus::Inactive->value);
         $changed = array_sum($counts);
 
         $parts = collect($counts)
