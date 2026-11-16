@@ -425,6 +425,8 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `name` | varchar(100) | |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express). Si un código ya existe, aunque esté desactivado, no lo toca.
+
 ### 5.7 `providers` · `en código`
 
 Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.

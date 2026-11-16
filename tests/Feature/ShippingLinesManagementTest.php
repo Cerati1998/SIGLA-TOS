@@ -7,6 +7,7 @@ use App\Livewire\ShippingLines\EditModal;
 use App\Livewire\Tables\ShippingLinesTable;
 use App\Models\ShippingLine;
 use App\Models\User;
+use Database\Seeders\ShippingLineSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -20,6 +21,18 @@ class ShippingLinesManagementTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->create());
+    }
+
+    public function test_the_seeder_loads_the_initial_shipping_lines_without_repeating_them(): void
+    {
+        ShippingLine::factory()->trashed()->create(['code' => 'MAEU', 'name' => 'Maersk antigua']);
+
+        $this->seed(ShippingLineSeeder::class);
+        $this->seed(ShippingLineSeeder::class);
+
+        $this->assertDatabaseCount('shipping_lines', count(ShippingLineSeeder::LINES));
+        $this->assertDatabaseHas('shipping_lines', ['code' => 'HAMB', 'name' => 'Hamburg Süd']);
+        $this->assertSoftDeleted('shipping_lines', ['code' => 'MAEU', 'name' => 'Maersk antigua']);
     }
 
     public function test_guests_cannot_open_the_screen(): void
