@@ -53,6 +53,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
+| `security_device_lot_approvals` | E2 · H29 | `en código` | (nueva; bitácora de aprobaciones de la naviera) |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
 | `certification_section_security_device_type` | E3 · H12 | `planeada (T38/H12)` | (nueva; en el ER, la cantidad iba en `certification_criteria_items`) |
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
@@ -147,6 +148,9 @@ erDiagram
   security_device_announcements ||--|| security_device_lots : "origen"
   users ||--o{ security_device_lots : "ingresó"
   security_device_lots ||--o{ security_devices : "trae"
+  security_device_lots ||--o{ security_device_lot_approvals : "aprobaciones"
+  users ||--o{ security_device_lot_approvals : "registró"
+  security_device_lot_approvals ||--o{ security_devices : "aprobó"
 
   security_device_announcements {
     bigint id PK
@@ -172,7 +176,16 @@ erDiagram
     bigint id PK
     bigint security_device_lot_id FK
     string serial_number UK
-    string status "available, in_kit, used, damaged"
+    string status "inactive, available, in_kit, used, damaged"
+    bigint security_device_lot_approval_id FK "null"
+  }
+  security_device_lot_approvals {
+    bigint id PK
+    bigint security_device_lot_id FK
+    bigint correlative_start
+    bigint correlative_end
+    smallint approved_count
+    bigint approved_by FK
   }
 ```
 
@@ -476,10 +489,24 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del que vino. |
 | `serial_number` | varchar(50) | UK: cada dispositivo es único. ER: `serie_number`. |
-| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `available` (Disponible, el inicial), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `security_device_lot_approval_id` | bigint FK (null) | Aprobación que lo pasó a Disponible (H29). Null mientras siga Inactivo. Quién y cuándo se leen de la aprobación. |
 | `timestamps` | | |
 
-El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER.
+El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
+
+### 5.11b `security_device_lot_approvals` · `en código`
+
+Bitácora de aprobaciones de la naviera por tramos de un lote (H29). Un registro por cada aprobación. Se escribe junto con el cambio de estado de sus dispositivos, en una transacción. No se edita ni se borra: una aprobación no se deshace.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `security_device_lot_id` | bigint FK | Lote del tramo. |
+| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con el anuncio del lote. |
+| `approved_count` | smallint sin signo | Cuántos dispositivos Inactivos del tramo pasaron a Disponible. Los ya aprobados no se cuentan. Siempre mayor que 0: si no hay nada que aprobar, no se guarda el registro. |
+| `approved_by` | bigint FK → `users` | Quién registró la aprobación; cuándo es `created_at`. |
+| `timestamps` | | |
 
 ### 5.12 `certification_sections` · `planeada (T35/H11)`
 
@@ -653,7 +680,7 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `security_devices` (ya en código) | H29, H30 | Columnas nuevas `activated_at` y `activated_by` (→ `users`), nulas mientras no se active: la activación para despacho es una marca aparte del estado. `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). |
+| `security_devices` (ya en código) | H30 | `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). (La marca de activación con `activated_at` y `activated_by` se descartó el 2026-11-16: H29 usa el estado `inactive` y la tabla `security_device_lot_approvals`.) |
 | `kits` (`kits`) | H14 | `series_code` UK. `shipping_line_id` obligatorio: solo acepta dispositivos de lotes de esa naviera. `status`: `building` (Armando), `built` (Armado), `dispatched`, `used` (`building` agregado el 2026-11-13, T46). La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
 | `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
