@@ -1,54 +1,80 @@
 @php
     $dispatchedAt = ($dispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i');
     $receiverOrigin = $dispatch->receiver->is_own ? 'Propio' : 'De un proveedor';
-    $generatedAt = now('America/Lima');
-    $logo = 'data:image/png;base64,'.base64_encode((string) file_get_contents(public_path('images/sigla-logo2.png')));
+    $deviceCount = array_sum(array_map(fn (array $contents): int => count($contents['devices']), $kits));
 @endphp
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<title>Despacho {{ $dispatch->number() }}</title>
-<style>
-    @page { margin: 32px 32px 64px; }
-    body { margin: 0; font-family: "DejaVu Sans", sans-serif; font-size: 10.5px; color: #1f2937; }
-    table { border-collapse: collapse; width: 100%; }
-    .caja { border: 1px solid #4b5563; border-radius: 4px; }
-    .cabecera td { border: 1px solid #4b5563; vertical-align: middle; text-align: center; padding: 10px; }
-    .titulo { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; }
-    .subtitulo { font-size: 9px; color: #4b5563; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
-    .numero-rotulo { font-size: 8.5px; font-weight: bold; color: #4b5563; text-transform: uppercase; letter-spacing: 0.8px; }
-    .numero { font-size: 17px; font-weight: bold; color: #002f7f; margin-top: 4px; }
-    .seccion { font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 0 0 8px; }
-    .datos td { padding: 2px 0; vertical-align: top; }
-    .datos .rotulo { width: 130px; font-size: 9.5px; font-weight: bold; text-transform: uppercase; }
-    .lista th { background: #002f7f; color: #ffffff; border: 1px solid #002f7f; font-size: 9px; font-weight: bold; text-transform: uppercase; text-align: left; padding: 4px 6px; }
-    .lista td { border: 1px solid #c9ced6; padding: 3px 6px; }
-    .lista tr.par td { background: #f3f5f9; }
-    .lista tr.total td { background: #e5e7eb; font-weight: bold; border-top: 1px solid #4b5563; }
-    .derecha { text-align: right; }
-    .pie { position: fixed; bottom: -44px; left: 0; right: 0; border: 1px solid #4b5563; border-radius: 4px; padding: 8px 12px; font-size: 9.5px; color: #4b5563; }
-    .pagina:after { content: "Página " counter(page); }
-    .pareja { border-collapse: separate; border-spacing: 14px 0; margin: 14px -14px 0; width: calc(100% + 28px); }
-    .salto { page-break-after: always; }
-    .pareja > tbody > tr > td { width: 50%; vertical-align: top; border: 1px solid #4b5563; border-radius: 4px; padding: 10px 12px; }
-</style>
-</head>
-<body>
-    <div class="pie">
-        <table>
-            <tr>
-                <td>Generado por SIGLA el {{ $generatedAt->format('d/m/Y H:i') }} por {{ $generatedBy }}</td>
-                <td class="derecha" style="font-weight: bold; color: #1f2937;"><span class="pagina"></span></td>
-            </tr>
-        </table>
-    </div>
 
+@extends('pdf.layout')
 
-    @foreach ($pages as $page)
-        <div @class(['salto' => ! $loop->last])>
-            @include('pdf.kits.partials.kit-page', $page)
+@section('title', 'Despacho '.$dispatch->number())
+@section('heading', 'Despacho de kits de seguridad')
+@section('subheading', 'Bodega · Despachos')
+@section('number-label', 'N.º de despacho')
+@section('number', $dispatch->number())
+
+@section('content')
+    <table class="pareja">
+        <tr>
+            <td>
+                <p class="seccion">Despacho</p>
+                <table class="datos">
+                    <tr><td class="rotulo">Fecha:</td><td>{{ $dispatchedAt }}</td></tr>
+                    <tr><td class="rotulo">Semana:</td><td>{{ $dispatch->week() }}</td></tr>
+                    <tr><td class="rotulo">Entregó:</td><td>{{ $dispatch->creator->name }}</td></tr>
+                    <tr><td class="rotulo">Recibió:</td><td>{{ $dispatch->receiver->full_name }}</td></tr>
+                    <tr><td class="rotulo">Procedencia:</td><td>{{ $receiverOrigin }}</td></tr>
+                </table>
+            </td>
+            <td>
+                <p class="seccion">Kits entregados</p>
+                <table class="lista">
+                    <thead><tr><th>Funda</th><th>Tipo de kit</th><th>Naviera</th><th class="derecha">Disp.</th></tr></thead>
+                    <tbody>
+                        @foreach ($kits as $contents)
+                            <tr @class(['par' => $loop->even])>
+                                <td style="font-weight: bold;">{{ $contents['kit']->pouch_code }}</td>
+                                <td>{{ $contents['kit']->kitType->name }}</td>
+                                <td>{{ $contents['kit']->shippingLine->code }}</td>
+                                <td class="derecha">{{ count($contents['devices']) }}</td>
+                            </tr>
+                        @endforeach
+                        <tr class="total"><td colspan="3">Total · {{ trans_choice('{1} :count kit|[2,*] :count kits', count($kits)) }}</td><td class="derecha">{{ $deviceCount }}</td></tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <p class="seccion" style="margin-top: 16px;">Contenido por funda</p>
+
+    @foreach ($kits as $contents)
+        <div class="caja sin-corte" style="margin-top: {{ $loop->first ? 0 : 14 }}px; padding: 10px 12px;">
+            <div style="padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid #c9ced6;">
+                <span style="font-size: 12px; font-weight: bold;">Funda {{ $contents['kit']->pouch_code }}</span>
+                <span style="color: #4b5563; margin-left: 10px;">
+                    {{ $contents['kit']->kitType->name }} · {{ $contents['kit']->shippingLine->code }} · {{ $contents['kit']->shippingLine->name }} · Semana {{ $contents['kit']->week() }} · {{ trans_choice('{1} :count dispositivo|[0,*] :count dispositivos', count($contents['devices'])) }}
+                </span>
+            </div>
+            @include('pdf.kits.partials.contents-tables', ['slots' => $contents['slots'], 'devices' => $contents['devices'], 'withTitles' => false])
         </div>
     @endforeach
-</body>
-</html>
+
+    <table class="caja sin-corte" style="margin-top: 14px;">
+        <tr>
+            <td style="width: 50%; padding: 10px 12px; vertical-align: top;">
+                <p class="seccion">Entrega</p>
+                <table class="datos">
+                    <tr><td class="rotulo" style="width: 90px;">Entregó:</td><td>{{ $dispatch->creator->name }}</td></tr>
+                    <tr><td class="rotulo" style="width: 90px;">Fecha:</td><td>{{ $dispatchedAt }}</td></tr>
+                </table>
+            </td>
+            <td style="width: 50%; padding: 10px 12px; vertical-align: top; border-left: 1px solid #4b5563;">
+                <p class="seccion">Recepción</p>
+                <table class="datos">
+                    <tr><td class="rotulo" style="width: 90px;">Recibió:</td><td>{{ $dispatch->receiver->full_name }}</td></tr>
+                    <tr><td class="rotulo" style="width: 90px;">Procedencia:</td><td>{{ $receiverOrigin }}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+@endsection
