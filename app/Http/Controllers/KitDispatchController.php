@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\KitDispatches\BuildKitPdfPage;
+use App\Actions\Kits\BuildKitContents;
 use App\Models\Kit;
 use App\Models\KitDispatch;
 use App\Models\User;
@@ -13,9 +13,10 @@ use Illuminate\Http\Response;
 class KitDispatchController extends Controller
 {
     /**
-     * Show the PDF of a dispatch: one page per kit, each one like the PDF of the kit (H15, criterion 14).
+     * Show the PDF of a dispatch: its data once, the kits it delivered and the contents of each kit by its pouch (H15,
+     * criterion 14).
      */
-    public function pdf(Request $request, KitDispatch $kitDispatch, BuildKitPdfPage $buildKitPdfPage): Response
+    public function pdf(Request $request, KitDispatch $kitDispatch, BuildKitContents $buildKitContents): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -23,7 +24,7 @@ class KitDispatchController extends Controller
 
         return Pdf::loadView('pdf.kits.dispatch', [
             'dispatch' => $kitDispatch,
-            'pages' => $kitDispatch->kits->map(fn (Kit $kit): array => $buildKitPdfPage->handle($kit))->all(),
+            'kits' => $kitDispatch->kits->map(fn (Kit $kit): array => $buildKitContents->handle($kit))->all(),
             'generatedBy' => $user->name,
         ])
             ->setPaper('a4')

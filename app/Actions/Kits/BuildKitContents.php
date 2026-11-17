@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Actions\KitDispatches;
+namespace App\Actions\Kits;
 
 use App\Enums\KitAssignment;
 use App\Models\Kit;
 use App\Models\SecurityDevice;
 
-class BuildKitPdfPage
+class BuildKitContents
 {
     /**
-     * Get what the PDF page of a dispatched kit shows (H15, criterion 14): the kit, what it carries by type and its
-     * devices with their serial number, type and side.
+     * Get the contents of a kit that its PDF and the PDF of its dispatch show (H15, criterion 14): the kit, what it
+     * carries by type and its devices with their serial number, type and side.
      *
      * @return array{kit: Kit, slots: list<array{key: string, securityDeviceTypeId: int, name: string, assignment: KitAssignment|null, quantity: int, added: int}>, devices: list<array{serialNumber: string, type: string, assignment: string}>}
      */
