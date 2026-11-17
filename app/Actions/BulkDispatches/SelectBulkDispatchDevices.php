@@ -90,43 +90,46 @@ class SelectBulkDispatchDevices
     }
 
     /**
-     * Choose the given quantity of Available devices of the type, from the first serial number on, in the order of the
-     * correlatives of its lot. The devices that cannot be dispatched and the ones already chosen are skipped.
+     * Choose the given quantity of Available devices of the type, in the order of the correlatives. The start is a whole
+     * serial number, as HLS0000009, from which its lot is taken, or only the prefix of a series, as HLS, from its first
+     * device. The devices that cannot be dispatched and the ones already chosen are skipped.
      *
      * @param  list<int>  $chosenIds  The devices already in the dispatch, which are not chosen again.
      * @return array{deviceIds: list<int>, error: string|null, summary: string|null}
      */
-    public function byQuantity(SecurityDeviceType $type, string $firstSerialNumber, int $quantity, array $chosenIds = []): array
+    public function byQuantity(SecurityDeviceType $type, string $start, int $quantity, array $chosenIds = []): array
     {
         if ($quantity < 1 || $quantity > self::MAX_DEVICES) {
             return $this->rejected(sprintf('La cantidad debe estar entre 1 y %s.', self::format(self::MAX_DEVICES)));
         }
 
-        $first = $this->device($firstSerialNumber);
+        $first = SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->first();
+        $lots = $first === null ? $this->lotsOfPrefix($start) : collect([$first->lot]);
+        $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->announcement->security_device_type_id !== $type->id);
 
-        if (is_string($first)) {
-            return $this->rejected($first);
+        if ($lots->isEmpty()) {
+            return $this->rejected(sprintf('No encontramos un dispositivo ni una serie %s. Escribe la serie completa (por ejemplo HLS0000009) o solo su prefijo (HLS).', $start));
         }
 
-        $announcement = $first->lot->announcement;
-
-        if ($announcement->security_device_type_id !== $type->id) {
-            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $firstSerialNumber, $announcement->securityDeviceType->name, $type->name));
+        if ($lotOfAnotherType !== null) {
+            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $start, $lotOfAnotherType->announcement->securityDeviceType->name, $type->name));
         }
 
-        $start = (int) $announcement->correlativeOf($first->serial_number);
-        $devices = $this->dispatchableDevices($first->lot)
-            ->reject(fn (SecurityDevice $device): bool => in_array($device->id, $chosenIds, true))
-            ->map(fn (SecurityDevice $device): array => ['device' => $device, 'correlative' => $announcement->correlativeOf($device->serial_number)])
-            ->filter(fn (array $item): bool => $item['correlative'] !== null && $item['correlative'] >= $start)
-            ->sortBy('correlative')
+        $from = $first === null ? null : $first->lot->announcement->correlativeOf($first->serial_number);
+        $devices = $lots
+            ->flatMap(fn (SecurityDeviceLot $lot): array => $this->dispatchableDevices($lot)
+                ->reject(fn (SecurityDevice $device): bool => in_array($device->id, $chosenIds, true))
+                ->map(fn (SecurityDevice $device): array => ['device' => $device, 'lot' => $lot->id, 'correlative' => $lot->announcement->correlativeOf($device->serial_number)])
+                ->all())
+            ->filter(fn (array $item): bool => $item['correlative'] !== null && ($from === null || $item['correlative'] >= $from))
+            ->sortBy([['correlative', 'asc'], ['lot', 'asc']])
             ->map(fn (array $item): SecurityDevice => $item['device'])
             ->values();
 
         if ($devices->count() < $quantity) {
             return $this->rejected(sprintf(
-                'Desde %s solo quedan %s %s disponibles: no alcanza para %s. Baja la cantidad o elige otra serie inicial.',
-                $firstSerialNumber,
+                '%s solo quedan %s %s disponibles: no alcanza para %s. Baja la cantidad o elige otra serie inicial.',
+                $first === null ? 'De la serie '.$start : 'Desde '.$start,
                 self::format($devices->count()),
                 $type->name,
                 self::format($quantity),
@@ -134,6 +137,21 @@ class SelectBulkDispatchDevices
         }
 
         return $this->chosen($devices->take($quantity)->values(), $type->name);
+    }
+
+    /**
+     * Get the lots whose series has the given prefix, as HLS.
+     *
+     * @return Collection<int, SecurityDeviceLot>
+     */
+    private function lotsOfPrefix(string $prefix): Collection
+    {
+        return SecurityDeviceLot::query()
+            ->with('announcement.securityDeviceType')
+            ->whereHas('announcement', fn ($query) => $query->where('series_prefix', $prefix))
+            ->orderBy('id')
+            ->get()
+            ->collect();
     }
 
     /**

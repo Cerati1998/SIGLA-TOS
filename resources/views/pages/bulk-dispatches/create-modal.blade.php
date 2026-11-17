@@ -126,13 +126,13 @@
                     </div>
                 </div>
 
-                <div x-show="isTab('range')" x-cloak class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                <div x-show="isTab('range')" x-cloak data-mode="range" x-on:keydown.enter="previewOnEnter" class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                     <x-wire-input id="bulk-dispatch-range-first" label="Serie inicial" x-model="rangeFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
                     <x-wire-input id="bulk-dispatch-range-last" label="Serie final" x-model="rangeLast" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
                     <flux:button type="button" x-on:click="previewRange" wire:loading.attr="disabled" wire:target="byRange" class="max-md:h-11">Ver vista previa</flux:button>
                 </div>
 
-                <div x-show="isTab('quantity')" x-cloak class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_8.75rem_auto]">
+                <div x-show="isTab('quantity')" x-cloak data-mode="quantity" x-on:keydown.enter="previewOnEnter" class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_8.75rem_auto]">
                     <x-wire-native-select id="bulk-dispatch-type" label="Tipo de dispositivo" x-model="quantityType" x-on:change="forgetPreview" :options="['' => 'Elige un tipo'] + $deviceTypes->all()" option-key-value />
                     <x-wire-input id="bulk-dispatch-quantity-first" label="Serie inicial" x-model="quantityFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
                     <div x-digits-only>
@@ -140,6 +140,7 @@
                     </div>
                     <flux:button type="button" x-on:click="previewQuantity" wire:loading.attr="disabled" wire:target="byQuantity" class="max-md:h-11">Ver vista previa</flux:button>
                 </div>
+                <p x-show="isTab('quantity')" x-cloak class="m-0 -mt-1.5 text-sm text-ink-muted">Escribe la serie completa (HLS0000009) o solo su prefijo (HLS) para empezar por el primero disponible.</p>
 
                 <div x-show="preview" x-cloak role="status" x-bind:class="previewClass" class="flex flex-wrap items-center gap-2 rounded-control p-3 text-sm leading-normal">
                     <span class="min-w-0 flex-1" x-text="preview?.message"></span>
@@ -295,6 +296,18 @@
 
             async previewQuantity() {
                 await this.ask('quantity', false);
+            },
+
+            /**
+             * Enter in a field of the range or the quantity shows the preview, as the button does.
+             */
+            async previewOnEnter(event) {
+                if (event.target.tagName !== 'INPUT') {
+                    return;
+                }
+
+                event.preventDefault();
+                await this.ask(event.currentTarget.dataset.mode, false);
             },
 
             async addPreviewed() {

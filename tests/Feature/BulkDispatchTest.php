@@ -188,6 +188,26 @@ class BulkDispatchTest extends TestCase
         $this->assertCount(5, $window->get('form.deviceIds'));
     }
 
+    public function test_a_quantity_can_start_from_the_prefix_of_a_series_alone(): void
+    {
+        $lot = $this->lot('HLS', 1, 6);
+        $this->setStatus($lot, 1, SecurityDeviceStatus::InKit);
+
+        $window = Livewire::test(CreateModal::class);
+
+        $window->call('byQuantity', (string) $this->bottleSeal->id, ' hls ', '2', true)
+            ->assertReturned(['ok' => true, 'message' => 'Agregados: Sello botella · HLS000002 a HLS000003 · 2 dispositivos.', 'count' => 2]);
+
+        $window->call('byQuantity', (string) $this->bottleSeal->id, 'HLS', '9')
+            ->assertReturned(['ok' => false, 'message' => 'De la serie HLS solo quedan 3 Sello botella disponibles: no alcanza para 9. Baja la cantidad o elige otra serie inicial.', 'count' => 0]);
+
+        $window->call('byQuantity', (string) $this->bottleSeal->id, 'XYZ', '1')
+            ->assertReturned(['ok' => false, 'message' => 'No encontramos un dispositivo ni una serie XYZ. Escribe la serie completa (por ejemplo HLS0000009) o solo su prefijo (HLS).', 'count' => 0]);
+
+        $window->call('byQuantity', (string) SecurityDeviceType::factory()->create(['name' => 'Sello cable'])->id, 'HLS', '1')
+            ->assertReturned(['ok' => false, 'message' => 'La serie HLS es de Sello botella, no de Sello cable.', 'count' => 0]);
+    }
+
     public function test_a_stretch_can_be_taken_out_of_the_dispatch(): void
     {
         $lot = $this->lot('SB', 1001, 1004);
