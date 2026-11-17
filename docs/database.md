@@ -338,6 +338,30 @@ erDiagram
   }
 ```
 
+### 4.6c Despachos de kits (E4)
+
+Bodega despacha uno o más kits Armados a un trabajador (H15). Quien entrega es el usuario que despacha (`created_by`). Cada kit queda en un solo despacho y pasa a Despachado. El trabajador que recibe solo queda registrado: no limita qué kits usa el inspector (cambio del usuario del 2026-11-17).
+
+```mermaid
+erDiagram
+  workers ||--o{ kit_dispatches : "recibe"
+  users ||--o{ kit_dispatches : "entrega"
+  kit_dispatches ||--|{ kit_dispatch_items : "kits"
+  kits ||--o| kit_dispatch_items : "en un solo despacho"
+
+  kit_dispatches {
+    bigint id PK
+    bigint receiver_id FK
+    bigint created_by FK
+    datetime created_at
+  }
+  kit_dispatch_items {
+    bigint id PK
+    bigint kit_dispatch_id FK
+    bigint kit_id FK, UK
+  }
+```
+
 ### 4.7 Trabajadores (E4)
 
 Quienes reciben los kits (H15). Un trabajador es propio o de un proveedor. No tiene llave hacia `users`: el inspector se reconoce porque su usuario y su trabajador tienen el mismo tipo y número de documento (decisión del usuario del 2026-11-04).
@@ -710,6 +734,30 @@ Dispositivos de cada kit.
 | `assignment` | varchar(10) (null) | Enum de PHP `KitAssignment`: `external` o `internal`, solo en un tipo de dispositivo que se reparte (cinta de inspección); si no, null. Lo elige el campo donde se escanea (cambio del usuario del 2026-11-16). |
 | `timestamps` | | |
 
+### 5.19e `kit_dispatches` · `planeada (T50/H15)`
+
+Despachos de kits (H15). Se ven en Bodega → Despachos y se crean en el modal «Despacho masivo de kits». En el ER era `kits_dispatches`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | Da el número que se muestra: «D-» y el id con seis dígitos (D-000013). No hay columna de número. |
+| `receiver_id` | bigint FK → `workers.id` | Trabajador que recibe (criterio 1). Solo se eligen activos; uno desactivado después se conserva. |
+| `created_by` | bigint FK → `users.id` | Usuario que despacha, que es quien entrega (criterios 1 y 7). Se descarta `assigned_by` del ER. |
+| `timestamps` | | `created_at` es el momento del despacho (criterio 7). Índice, para filtrar por semana. La semana no es columna: es la semana ISO de `created_at` en hora de Lima. |
+
+### 5.19f `kit_dispatch_items` · `planeada (T50/H15)`
+
+Kits de cada despacho. En el ER era `kit_dispatches_assigned_units`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `kit_dispatch_id` | bigint FK → `kit_dispatches.id` | |
+| `kit_id` | bigint FK → `kits.id` | UK: cada kit queda en un solo despacho (criterio 5). |
+| `timestamps` | | |
+
+Se escribe junto con `kit_dispatches` y el cambio de los kits a `dispatched`, en una transacción que vuelve a bloquear y revisar cada kit.
+
 ### 5.20 `workers` · `en código`
 
 Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajadores.
@@ -725,7 +773,7 @@ Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajad
 | `provider_id` | bigint FK (null) | Proveedor (`providers`). Null si `is_own`. Se elige con un selector que busca en el servidor (solo activos), o se crea ahí mismo con «Agregar»; se conserva uno desactivado que el trabajador ya tenía. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Uno desactivado no aparece al despachar kits (H15). |
 
-Sin llave hacia `users` (criterio 6): H15 y H17 comparan `identity_id` + `document_number` del usuario y del trabajador.
+Sin llave hacia `users` (criterio 6). Desde el 2026-11-17 (H15) ya no se compara su documento con el del usuario: el trabajador que recibe un despacho no limita qué kits usa el inspector.
 
 ### 5.21 `yard_zones` · `planeada (T44/H26)`
 
@@ -755,8 +803,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
 | `security_devices` (ya en código) | H30 | `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). (La marca de activación con `activated_at` y `activated_by` se descartó el 2026-11-16: H29 usa el estado `inactive` y la tabla `security_device_lot_approvals`.) |
-| `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
-| `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | H30 | Despacho a granel a un trabajador (`workers`), decidido el 2026-11-13 (T46). Si se une con `kit_dispatches` o va en tablas propias se decide al construir T52. Su uso en la reinspección se define al revisar E6. |

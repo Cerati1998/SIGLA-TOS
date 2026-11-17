@@ -28,13 +28,15 @@
         @include('pages.kits.partials.progress', ['label' => $label, 'added' => $kitSlot['added'], 'quantity' => $kitSlot['quantity']])
     @endunless
 
-    <x-scan-input
-        :id="$inputId"
-        :disabled="$isFull"
-        :placeholder="$isFull ? 'Completo' : 'Escanea o escribe'"
-        data-slot-input="{{ $kitSlot['key'] }}"
-        x-on:keydown.enter.prevent="submit('{{ $kitSlot['key'] }}', $el)"
-    />
+    @if ($canChange)
+        <x-scan-input
+            :id="$inputId"
+            :disabled="$isFull"
+            :placeholder="$isFull ? 'Completo' : 'Escanea o escribe'"
+            data-slot-input="{{ $kitSlot['key'] }}"
+            x-on:keydown.enter.prevent="submit('{{ $kitSlot['key'] }}', $el)"
+        />
+    @endif
 
     <template x-if="lastFor('{{ $kitSlot['key'] }}')">
         <p class="m-0 flex items-start gap-2 text-sm lg:hidden" :class="lastFor('{{ $kitSlot['key'] }}').state === 'added' ? 'text-badge-success-ink' : 'text-badge-danger-ink'" role="status">
@@ -50,6 +52,7 @@
             @foreach ($devices as $device)
                 <li wire:key="device-{{ $device->id }}" class="inline-flex h-8 items-center gap-0.5 rounded-full border border-line bg-surface ps-2.5 pe-0.5 text-sm text-ink max-md:h-11 max-md:ps-3">
                     {{ $device->serial_number }}
+                    @if ($canChange)
                     <button
                         type="button"
                         x-on:click="confirmAction('¿Quitar {{ $device->serial_number }} del kit?', 'Vuelve a quedar Disponible y el kit sigue Armando hasta completarse.', () => $wire.remove({{ $device->id }}))"
@@ -61,6 +64,7 @@
                     >
                         <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
                     </button>
+                    @endif
                 </li>
             @endforeach
         </ul>

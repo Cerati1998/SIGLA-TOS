@@ -89,3 +89,6 @@ Una acción sobre un campo, como «+ Agregar», va al otro extremo de su título
 
 ## Selectores de catálogos en modales
 Cuando un campo elige un registro de otro catálogo que puede crecer, se usa el select async de WireUI (`x-wire-select` con `async-data` por POST): busca en el servidor y solo ofrece los activos, sin que lo buscado viaje en la URL. Si el usuario puede crear ese registro, junto al título va el enlace «+ Agregar» (`x-label-link`), que abre encima el modal de creación de ese catálogo y deja elegido lo creado. Razón: elegir rápido entre muchos registros y crear el que falta sin salir del formulario.
+
+## PDF del sistema
+Todo PDF se genera con dompdf (`barryvdh/laravel-dompdf`) desde una vista Blade y sigue el formato aprobado en el lienzo («H15 · PDF del kit despachado»): hoja A4 vertical y letra DejaVu Sans; cabecera en tres cajas con borde gris oscuro (logo, título en mayúsculas y caja gris clara con el número del documento); datos en cajas con borde gris oscuro, etiquetas y títulos de sección en negro y mayúsculas; tablas con encabezado en el azul de la marca y texto blanco, y filas alternadas en gris; pie en caja con quién lo generó, cuándo y la página. El color de la marca solo va en los encabezados de las tablas y en el número del documento. Razón: que todos los documentos del sistema se vean iguales, sobrios y con la marca.

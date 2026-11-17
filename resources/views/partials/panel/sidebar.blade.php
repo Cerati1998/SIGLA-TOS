@@ -25,6 +25,12 @@
             'route' => route('intranet.kits.index'),
             'active' => request()->routeIs('intranet.kits.*'),
         ],
+        [
+            'name' => 'Despachos',
+            'icon' => 'send',
+            'route' => route('intranet.kit-dispatches.index'),
+            'active' => request()->routeIs('intranet.kit-dispatches.*'),
+        ],
         ['header' => 'Certificación'],
         [
             'name' => 'Solicitudes de retiro',
