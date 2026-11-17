@@ -3,6 +3,7 @@
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\ProviderOptionsController;
 use App\Http\Controllers\SecurityDeviceLotController;
+use App\Http\Controllers\WorkerOptionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -41,6 +42,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('kits/create', 'pages.kits.create')->name('kits.create');
 
     Route::get('kits/{kit}', [KitController::class, 'show'])->name('kits.show');
+
+    Route::get('kits/{kit}/pdf', [KitController::class, 'pdf'])->name('kits.pdf');
+
+    Route::view('kit-dispatches', 'pages.kit-dispatches.index')->name('kit-dispatches.index');
+
+    Route::post('workers/options', WorkerOptionsController::class)->name('workers.options');
 
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
 
