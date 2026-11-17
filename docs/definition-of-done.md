@@ -15,7 +15,7 @@ Una historia se considera terminada solo si cumple todo lo de abajo. Si falta al
 ## Parte 2 · Calidad
 1. Tiene pruebas automáticas que cubren sus criterios de aceptación, y todas pasan. Las pruebas se escriben con PHPUnit (decisión del 2026-10-29). (A revisar en el Sprint Planning del Sprint 1 si el tiempo alcanza.)
 2. Las pruebas que ya existían siguen pasando.
-3. El código sigue las rules registradas en `.ai/rules/`.
+3. El código sigue las rules registradas en `.ai/rules/`: al cerrar la historia se revisan una por una las que cubren sus archivos, y cada `wire:model.live`, `wire:click` o `$wire` tiene una razón de servidor. (Ajustado el 2026-11-17.)
 4. Los cambios en la base de datos se aplican desde cero sin errores y el sistema arranca con ellos.
 5. Pasa la revisión de formato y estilo del código que se defina en el proyecto.
 6. No quedan errores ni avisos en pantalla, ni código sobrante de pruebas.

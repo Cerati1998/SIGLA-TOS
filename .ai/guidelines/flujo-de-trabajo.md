@@ -75,6 +75,10 @@ https://claude.ai/artifact/3zgDe8hgTDesp32V3Shhca
    - cada criterio de aceptación de la historia, uno por uno,
    - que se parezca al diseño aprobado del lienzo,
    - que se vea bien en teléfono (390 px) y en escritorio,
+   - que lo construido siga, una por una, las rules de `.ai/rules/` que
+     cubren sus archivos,
+   - que cada `wire:model.live`, `wire:click` y `$wire` de lo construido
+     tenga una razón de servidor; si no, pásalo a Alpine,
    - que pasen las pruebas y las herramientas de calidad del proyecto
      (Pint y Larastan).
 2. Si algo falla o no se pudo cumplir, dilo claro. No lo ocultes ni lo

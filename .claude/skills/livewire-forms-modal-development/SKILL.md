@@ -92,3 +92,4 @@ Si empieza a mantener arreglos de ítems, a calcular importes o crece a muchos c
 - [ ] Se limpian los datos y los errores de la vez anterior.
 - [ ] Los errores salen en español con el nombre correcto del campo.
 - [ ] La lógica de negocio con más de un paso está en un Action o Service.
+- [ ] Cada `wire:model.live`, `wire:click` y `$wire` lee o guarda en la base, o valida algo del servidor; lo demás está en Alpine.

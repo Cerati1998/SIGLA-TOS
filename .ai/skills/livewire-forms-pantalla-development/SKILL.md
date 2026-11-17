@@ -75,7 +75,8 @@ protected function rules(): array
 
 ## Totales y edición
 
-- `calculateTotals()` recalcula en el servidor después de cada cambio en los ítems y antes de guardar.
+- `calculateTotals()` recalcula en el servidor, con la única fórmula, cuando el usuario sale del campo (`wire:model.blur`)
+  y antes de guardar, no en cada tecla.
 - Un total nunca se acepta del navegador.
 - Una fórmula, un sitio: el importe de una línea lo calcula un solo método, que usan el form y quien guarda.
 - `setX()` llena el form desde un registro al editar.
@@ -95,3 +96,4 @@ protected function rules(): array
 - [ ] Los totales se recalculan antes de guardar.
 - [ ] Lo que escribe en varias tablas va en una transacción.
 - [ ] Revisados el glosario y la rule de datos personales.
+- [ ] Cada `wire:model.live`, `wire:click` y `$wire` lee o guarda en la base, o valida algo del servidor; lo demás está en Alpine.

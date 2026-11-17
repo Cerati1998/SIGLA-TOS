@@ -41,9 +41,10 @@ class CreateModal extends Component
     public int $page = 1;
 
     /**
-     * Mark the kit with the scanned or written pouch code. The answer feeds the list of the last scans.
+     * Mark the kit with the scanned or written pouch code. The answer feeds the list of the last scans and, for a kit
+     * just marked, the summary of the marked kits by kit type.
      *
-     * @return array{ok: bool, message: string}
+     * @return array{ok: bool, message: string, kitId?: int, kitType?: string}
      */
     public function mark(FindKitToDispatch $findKitToDispatch, string $pouchCode): array
     {
@@ -65,25 +66,7 @@ class CreateModal extends Component
 
         $this->form->resetValidation('kitIds');
 
-        return ['ok' => true, 'message' => $kit->kitType->name.' · marcado'];
-    }
-
-    /**
-     * Mark or unmark at once the kits of the page the table shows.
-     *
-     * @param  array<int, int|string>  $kitIds
-     */
-    public function togglePage(array $kitIds, bool $marked): void
-    {
-        $kitIds = array_map('intval', $kitIds);
-
-        if ($marked) {
-            array_map(fn (int $kitId): bool => $this->form->mark($kitId), $kitIds);
-
-            return;
-        }
-
-        $this->form->kitIds = array_values(array_diff($this->form->markedKitIds(), $kitIds));
+        return ['ok' => true, 'message' => $kit->kitType->name.' · marcado', 'kitId' => $kit->id, 'kitType' => $kit->kitType->name];
     }
 
     /**
