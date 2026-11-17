@@ -17,7 +17,7 @@ class KitController extends Controller
      */
     public function show(Kit $kit): View
     {
-        $kit->load(['kitType', 'shippingLine', 'dispatches.receiver']);
+        $kit->load(['kitType', 'shippingLine', 'dispatches.receiver', 'dispatches.creator']);
 
         return view('pages.kits.show', ['kit' => $kit]);
     }

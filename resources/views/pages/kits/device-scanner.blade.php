@@ -49,7 +49,7 @@
                     <x-feather name="send" class="mt-0.5 size-4.5" />
                     <span>
                         <strong>Despachado en {{ $kitDispatch->number() }}</strong>
-                        a {{ $kitDispatch->receiver->full_name }} el {{ ($kitDispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i') }}. Su contenido ya no cambia.
+                        a {{ $kitDispatch->receiver->full_name }} el {{ ($kitDispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i') }}. Lo despachó {{ $kitDispatch->creator->name }}. Su contenido ya no cambia.
                     </span>
                 </span>
                 <flux:button size="sm" variant="danger" :href="route('intranet.kits.pdf', $kit)" target="_blank" class="max-md:h-11 max-md:w-full">

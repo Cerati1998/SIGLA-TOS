@@ -7,7 +7,6 @@ use App\Models\KitType;
 use App\Models\Worker;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
@@ -17,11 +16,6 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
  */
 class KitDispatchesTable extends BaseTable
 {
-    /**
-     * How many weeks back the week filter offers.
-     */
-    public const int WEEKS = 12;
-
     /**
      * Configure the table.
      */
@@ -91,13 +85,7 @@ class KitDispatchesTable extends BaseTable
     public function filters(): array
     {
         return [
-            SelectFilter::make('Semana', 'week')
-                ->options(['' => 'Todas'] + self::weekOptions())
-                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
-                ->filter(function (Builder $builder, string $value): void {
-                    [$start, $end] = self::weekRange($value);
-                    $builder->whereBetween('kit_dispatches.created_at', [$start, $end]);
-                }),
+            $this->weekFilter('kit_dispatches.created_at'),
             SelectFilter::make('Trabajador que recibe', 'receiver')
                 ->options(['' => 'Todos'] + Worker::withTrashed()
                     ->whereIn('id', KitDispatch::query()->select('receiver_id'))
@@ -111,37 +99,6 @@ class KitDispatchesTable extends BaseTable
                 ->setInputAttributes(self::CONTROL_ATTRIBUTES)
                 ->filter(fn (Builder $builder, string $value) => $builder->whereHas('kits', fn (Builder $query) => $query->where('kits.kit_type_id', (int) $value))),
         ];
-    }
-
-    /**
-     * Get the last weeks, in Lima time, keyed as in 2026-W47 and labeled with their Monday and Sunday.
-     *
-     * @return array<string, string>
-     */
-    public static function weekOptions(): array
-    {
-        $monday = now('America/Lima')->startOfWeek();
-        $options = [];
-
-        for ($weeksBack = 0; $weeksBack < self::WEEKS; $weeksBack++) {
-            $start = $monday->copy()->subWeeks($weeksBack);
-            $options[$start->format('o-\WW')] = sprintf('%s (%s al %s)', $start->format('o-\WW'), $start->format('d/m'), $start->copy()->endOfWeek()->format('d/m'));
-        }
-
-        return $options;
-    }
-
-    /**
-     * Get the start and the end, in the time the app saves (UTC), of an ISO week of Lima such as 2026-W47.
-     *
-     * @return array{0: Carbon, 1: Carbon}
-     */
-    public static function weekRange(string $week): array
-    {
-        [$year, $number] = array_map('intval', explode('-W', $week) + [1 => 1]);
-        $start = Carbon::now('America/Lima')->setISODate($year, $number)->startOfWeek();
-
-        return [$start->copy()->utc(), $start->copy()->endOfWeek()->utc()];
     }
 
     /**

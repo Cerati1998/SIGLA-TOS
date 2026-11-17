@@ -79,7 +79,7 @@ class DeviceScanner extends Component
     public function render(): View
     {
         $kitSlots = $this->kit->slots();
-        $this->kit->loadMissing('dispatches.receiver');
+        $this->kit->loadMissing(['dispatches.receiver', 'dispatches.creator']);
 
         return view('pages.kits.device-scanner', [
             'canChange' => $this->kit->status->contentsCanChange(),
