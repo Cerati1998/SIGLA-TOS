@@ -59,6 +59,23 @@ class SecurityDeviceAnnouncement extends Model
     }
 
     /**
+     * Get the correlative of a serial number of this lot, or null when the serial number does not follow its format:
+     * the prefix, only digits, and the suffix when there is one.
+     */
+    public function correlativeOf(string $serialNumber): ?int
+    {
+        $suffix = (string) $this->series_suffix;
+
+        if (! str_starts_with($serialNumber, $this->series_prefix) || ($suffix !== '' && ! str_ends_with($serialNumber, $suffix))) {
+            return null;
+        }
+
+        $digits = substr($serialNumber, strlen($this->series_prefix), strlen($serialNumber) - strlen($this->series_prefix) - strlen($suffix));
+
+        return $digits !== '' && ctype_digit($digits) ? (int) $digits : null;
+    }
+
+    /**
      * Get the range of the lot without the prefix, as in "0000200 – 0000399".
      */
     public function rangeLabel(): string

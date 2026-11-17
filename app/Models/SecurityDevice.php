@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read SecurityDeviceLot $lot
  * @property-read SecurityDeviceLotApproval|null $approval
  * @property-read Collection<int, Kit> $kits
+ * @property-read Collection<int, BulkDispatch> $bulkDispatches
  */
 #[Fillable(['security_device_lot_id', 'serial_number', 'status'])]
 class SecurityDevice extends Model
@@ -70,5 +71,15 @@ class SecurityDevice extends Model
     public function kits(): BelongsToMany
     {
         return $this->belongsToMany(Kit::class)->withPivot('id', 'assignment')->withTimestamps();
+    }
+
+    /**
+     * Get the bulk dispatch the device left in, as a list of at most one: a device is only in one (H30, criterion 10).
+     *
+     * @return BelongsToMany<BulkDispatch, $this>
+     */
+    public function bulkDispatches(): BelongsToMany
+    {
+        return $this->belongsToMany(BulkDispatch::class, 'bulk_dispatch_items')->withTimestamps();
     }
 }

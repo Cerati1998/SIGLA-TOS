@@ -12,7 +12,7 @@ use Rappasoft\LaravelLivewireTables\Views\Filter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
 /**
- * The list of the dispatches of kits (H15, criterion 8). H16 adds the detail and the bulk dispatches.
+ * The list of the dispatches of kits (H15, criterion 8). The bulk dispatches have their own list (H30).
  */
 class KitDispatchesTable extends BaseTable
 {
