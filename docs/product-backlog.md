@@ -189,7 +189,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Si el servicio no responde o no encuentra el documento, el usuario puede llenar a mano y guardar igual.
   9. Si el documento tiene un formato incorrecto, se avisa antes de consultar.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
-- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09).
+- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09). Desde H31 va dentro del desplegable «Terceros», junto a Clientes (cambiado por el usuario el 2026-11-17).
 - Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
 - Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
 - Servicio de consulta de RUC y DNI: Decolecta, elegido por el usuario, mediante `SunatService` (T22). También lo usarán H21 y H22.
@@ -209,7 +209,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. La pantalla se puede usar bien desde el celular.
 - Decisión del usuario del 2026-11-17: es una copia del modelo de proveedores (H10) con un solo atributo más, la condición de pago (Contado o Crédito, por defecto Contado). Reusa `SunatService` y las mismas reglas de la consulta.
 - Quién la usa: por ahora, cualquier usuario con sesión. Los roles pasan a H24.
-- En el menú va en el grupo "Maestros", debajo de Proveedores (suposición por confirmar).
+- En el menú va en el grupo "Maestros", dentro de un desplegable nuevo, «Terceros», que reúne Proveedores y Clientes, en ese orden (decisión del usuario del 2026-11-17). El desplegable queda donde estaba Proveedores, debajo de Líneas navieras.
 - Diseño: el de H10, con el campo Condición. Se agrega al lienzo para aprobarlo antes de construir.
 - Fuera de esta historia: pasar los clientes de SIGLA 1.0 y usarlos en la certificación (H17), donde el cliente de la solicitud sigue siendo un dato copiado de la API.
 
