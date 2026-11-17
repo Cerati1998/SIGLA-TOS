@@ -28,12 +28,17 @@
         [
             'name' => 'Despachos',
             'icon' => 'send',
-            'active' => request()->routeIs('intranet.kit-dispatches.*'),
+            'active' => request()->routeIs('intranet.kit-dispatches.*', 'intranet.bulk-dispatches.*'),
             'submenu' => [
                 [
                     'name' => 'Kits',
                     'route' => route('intranet.kit-dispatches.index'),
                     'active' => request()->routeIs('intranet.kit-dispatches.*'),
+                ],
+                [
+                    'name' => 'A granel',
+                    'route' => route('intranet.bulk-dispatches.index'),
+                    'active' => request()->routeIs('intranet.bulk-dispatches.*'),
                 ],
             ],
         ],

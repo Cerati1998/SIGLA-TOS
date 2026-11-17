@@ -69,6 +69,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `kit_security_device_type` | E4 · H14 | `en código` | (nueva; copia de lo que lleva el tipo de kit) |
 | `kit_security_device` | E4 · H14 | `en código` | `kits_device_units` |
 | `workers` | E4 · H25 | `en código` | `workers` |
+| `bulk_dispatches` | E4 · H30 | `en código` | `device_dispatches` |
+| `bulk_dispatch_items` | E4 · H30 | `en código` | `device_dispatches_units` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -373,6 +375,38 @@ erDiagram
   }
 ```
 
+### 4.6d Despachos a granel (E4)
+
+Bodega despacha dispositivos sueltos, sin kit, a un trabajador (H30). Con Venta van a un cliente; con Operación, a un kit ya despachado. Cada dispositivo queda en un solo despacho a granel y pasa a Despachado.
+
+```mermaid
+erDiagram
+  workers ||--o{ bulk_dispatches : "recibe"
+  users ||--o{ bulk_dispatches : "entrega"
+  clients |o--o{ bulk_dispatches : "venta"
+  kits |o--o{ bulk_dispatches : "operación"
+  yard_zones ||--o{ bulk_dispatches : "patio de destino"
+  bulk_dispatches ||--|{ bulk_dispatch_items : "dispositivos"
+  security_devices ||--o| bulk_dispatch_items : "en un solo despacho"
+
+  bulk_dispatches {
+    bigint id PK
+    bigint receiver_id FK
+    bigint created_by FK
+    string reason "sale u operation"
+    bigint client_id FK "solo con sale"
+    bigint kit_id FK "solo con operation"
+    bigint yard_zone_id FK
+    string notes
+    datetime created_at
+  }
+  bulk_dispatch_items {
+    bigint id PK
+    bigint bulk_dispatch_id FK
+    bigint security_device_id FK, UK
+  }
+```
+
 ### 4.7 Trabajadores (E4)
 
 Quienes reciben los kits (H15). Un trabajador es propio o de un proveedor. No tiene llave hacia `users`: el inspector se reconoce porque su usuario y su trabajador tienen el mismo tipo y número de documento (decisión del usuario del 2026-11-04).
@@ -582,7 +616,7 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del que vino. |
 | `serial_number` | varchar(50) | UK: cada dispositivo es único. ER: `serie_number`. |
-| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado) y `dispatched` (Despachado, al salir en un despacho a granel, H30). Confirmados el 2026-11-09 (T27). |
 | `security_device_lot_approval_id` | bigint FK (null) | Aprobación que lo pasó a Disponible (H29). Null mientras siga Inactivo. Quién y cuándo se leen de la aprobación. |
 | `timestamps` | | |
 
@@ -785,6 +819,35 @@ Kits de cada despacho. En el ER era `kit_dispatches_assigned_units`.
 
 Se escribe junto con `kit_dispatches` y el cambio de los kits a `dispatched`, en una transacción que vuelve a bloquear y revisar cada kit.
 
+### 5.19g `bulk_dispatches` · `en código`
+
+Despachos a granel (H30): dispositivos sueltos, sin kit. Tienen su propia lista en Bodega → Despachos → «A granel», separada de `kit_dispatches`, y se crean en el modal «Despacho a granel». En el ER era `device_dispatches`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | Da el número que se muestra: «DG-» y el id con seis dígitos (DG-000004). No hay columna de número. |
+| `receiver_id` | bigint FK → `workers.id` | Trabajador que recibe (criterio 2). Solo se eligen activos. |
+| `created_by` | bigint FK → `users.id` | Usuario que despacha, que es quien entrega (criterio 2). |
+| `reason` | varchar(20) | Motivo de salida. Enum de PHP `BulkDispatchReason`: `sale` (Venta) u `operation` (Operación) (criterio 3). |
+| `client_id` | bigint FK → `clients.id` (null) | Solo con `sale`: el cliente, activo al despachar. |
+| `kit_id` | bigint FK → `kits.id` (null) | Solo con `operation`: el kit despachado al que van los dispositivos. Hoy solo kits `dispatched`; con H17, los de una certificación abierta. |
+| `yard_zone_id` | bigint FK → `yard_zones.id` | Patio de destino: una zona activa de la sede del usuario (criterio 4). |
+| `notes` | varchar(500) (null) | Observación (criterio 5). Vacía se guarda como null. |
+| `timestamps` | | `created_at` es el momento del despacho. La semana es la semana ISO de `created_at` en hora de Lima. |
+
+### 5.19h `bulk_dispatch_items` · `en código`
+
+Dispositivos de cada despacho a granel. En el ER era `device_dispatches_units`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `bulk_dispatch_id` | bigint FK → `bulk_dispatches.id` | |
+| `security_device_id` | bigint FK → `security_devices.id` | UK: cada dispositivo queda en un solo despacho a granel (criterio 10). |
+| `timestamps` | | |
+
+Se escribe junto con `bulk_dispatches` y el cambio de los dispositivos a `dispatched`, en una transacción que vuelve a bloquear y revisar cada dispositivo (todo o nada).
+
 ### 5.20 `workers` · `en código`
 
 Trabajadores (H25). Global (sin sucursal). Se gestionan en Maestros → Trabajadores.
@@ -829,10 +892,8 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `security_devices` (ya en código) | H30 | `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). (La marca de activación con `activated_at` y `activated_by` se descartó el 2026-11-16: H29 usa el estado `inactive` y la tabla `security_device_lot_approvals`.) |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
-| `bulk_dispatches`, `bulk_dispatch_items` (ER: `device_dispatches`, `device_dispatches_units`) | H30 | Tablas propias, separadas de `kit_dispatches` (decisión del usuario del 2026-11-17). `bulk_dispatches`: trabajador que recibe (`workers`), quién despacha (`users`), motivo `reason` (`sale` o `operation`), cliente (`clients`, solo con venta), kit (`kits`, solo con operación), patio de destino (`yard_zones`) y observación; número `DG-000001` desde su id. `bulk_dispatch_items`: un dispositivo por fila, único en toda la tabla. Su uso en la reinspección se define al revisar E6. Nombres propuestos, se confirman al construir T52. |
 | `affectations`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
 Tablas de roles y permisos: se definen al aprobar H24.

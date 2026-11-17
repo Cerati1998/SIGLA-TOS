@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\BulkDispatchController;
+use App\Http\Controllers\ClientOptionsController;
+use App\Http\Controllers\DispatchedKitOptionsController;
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\KitDispatchController;
 use App\Http\Controllers\ProviderOptionsController;
@@ -51,6 +54,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('kit-dispatches', 'pages.kit-dispatches.index')->name('kit-dispatches.index');
 
     Route::get('kit-dispatches/{kitDispatch}/pdf', [KitDispatchController::class, 'pdf'])->name('kit-dispatches.pdf');
+
+    Route::view('bulk-dispatches', 'pages.bulk-dispatches.index')->name('bulk-dispatches.index');
+
+    Route::get('bulk-dispatches/{bulkDispatch}', [BulkDispatchController::class, 'show'])->name('bulk-dispatches.show');
+
+    Route::post('kits/dispatched-options', DispatchedKitOptionsController::class)->name('kits.dispatched-options');
+
+    Route::post('clients/options', ClientOptionsController::class)->name('clients.options');
 
     Route::post('workers/options', WorkerOptionsController::class)->name('workers.options');
 
