@@ -60,9 +60,6 @@ Cada componente es una clase en `app/Livewire` que pinta su vista con `render()`
 ## Form Objects
 Los formularios grandes usan Livewire Form Objects, con sus reglas de validación y su lógica de guardado ahí y no en el componente.
 
-## Alpine para la UX en el navegador
-Todo lo de UX que no necesita el estado del servidor se resuelve con Alpine, aprovechándolo al máximo (menús, modales, pestañas, mostrar y ocultar, confirmaciones, filtros en pantalla sobre datos ya cargados, máscaras de campos). No se hace una petición al backend para algo que Alpine resuelve en el navegador; se usa `$wire` solo cuando hay que hablar con el componente. Alpine ya viene con Livewire: no se instala aparte.
-
 ## Controladores y componentes
 No deben tener lógica de negocio, esta se debe llevar a un action o services.
 
@@ -92,3 +89,6 @@ Cuando un campo elige un registro de otro catálogo que puede crecer, se usa el 
 
 ## PDF del sistema
 Todo PDF se genera con dompdf (`barryvdh/laravel-dompdf`) desde una vista Blade y sigue el formato aprobado en el lienzo («H15 · PDF del kit despachado»): hoja A4 vertical y letra DejaVu Sans; cabecera en tres cajas con borde gris oscuro (logo, título en mayúsculas y caja gris clara con el número del documento); datos en cajas con borde gris oscuro, etiquetas y títulos de sección en negro y mayúsculas; tablas con encabezado en el azul de la marca y texto blanco, y filas alternadas en gris; pie en caja con quién lo generó, cuándo y la página. El color de la marca solo va en los encabezados de las tablas y en el número del documento. Razón: que todos los documentos del sistema se vean iguales, sobrios y con la marca.
+
+## Alpine para la UX en el navegador
+Todo lo de UX que no necesita la base de datos ni una validación que solo sabe el servidor se resuelve con Alpine: menús, modales, pestañas, mostrar y ocultar, confirmaciones, marcar filas o casillas, contadores y resúmenes de lo marcado, filtros y orden sobre datos ya cargados, máscaras y validaciones de formato (largo, solo números, rangos con límites ya conocidos). Antes de usar `wire:model.live`, `wire:click` o `$wire`, la acción debe leer o guardar en la base, validar algo que solo sabe el servidor o calcular importes con la fórmula única del servidor. Si no, va en Alpine, y lo elegido se envía al servidor una sola vez, al guardar o confirmar, donde se vuelve a validar. Esta regla manda sobre la guía general de Livewire de mantener el estado en el servidor. Alpine ya viene con Livewire: no se instala aparte. Razón: cada petición de más vuelve a pintar el componente y hace lenta la pantalla, sobre todo en celular.
