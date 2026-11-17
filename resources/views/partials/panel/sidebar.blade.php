@@ -65,10 +65,21 @@
             'active' => request()->routeIs('intranet.shipping-lines.*'),
         ],
         [
-            'name' => 'Proveedores',
-            'icon' => 'truck',
-            'route' => route('intranet.providers.index'),
-            'active' => request()->routeIs('intranet.providers.*'),
+            'name' => 'Terceros',
+            'icon' => 'book',
+            'active' => request()->routeIs('intranet.providers.*', 'intranet.clients.*'),
+            'submenu' => [
+                [
+                    'name' => 'Proveedores',
+                    'route' => route('intranet.providers.index'),
+                    'active' => request()->routeIs('intranet.providers.*'),
+                ],
+                [
+                    'name' => 'Clientes',
+                    'route' => route('intranet.clients.index'),
+                    'active' => request()->routeIs('intranet.clients.*'),
+                ],
+            ],
         ],
         [
             'name' => 'Trabajadores',

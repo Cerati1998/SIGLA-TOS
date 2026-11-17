@@ -22,6 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('providers/options', ProviderOptionsController::class)->name('providers.options');
 
+    Route::view('clients', 'pages.clients.index')->name('clients.index');
+
     Route::view('workers', 'pages.workers.index')->name('workers.index');
 
     Route::view('yard-zones', 'pages.yard-zones.index')->name('yard-zones.index');

@@ -4,6 +4,8 @@
 
 **Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Sus "por confirmar" se cerraron en T46 y el usuario las aprobó el 2026-11-13.
 
+**Pedida por el usuario el 2026-11-17:** H31 (gestionar clientes, E8). La necesita H30: un despacho a granel por venta se hace a una empresa cliente.
+
 **En revisión desde el 2026-10-28:** el proceso posterior a la asignación del kit a la certificación (H18, H19 y H20 de E5, y toda E6). El límite acordado es H17: se queda lo que llega hasta iniciar la certificación y asignarle el kit. Lo posterior se vuelve a revisar con el usuario antes de darlo por aprobado. Lo conversado queda marcado y no se borra.
 
 Product Goal: ver `docs/product-goal.md`.
@@ -156,8 +158,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - La consulta es en vivo. Al iniciar una certificación (H17) esos datos se guardan; la consulta de H05 en sí no guarda nada.
 - La autenticación del puente es una decisión técnica para la Construcción.
 
-### E8 · Maestros: líneas navieras y proveedores
-- Que el admin gestione los catálogos de líneas navieras y proveedores, para usarlos al ingresar lotes (E2), armar kits (E4) y en lo que venga después (estimaciones, extranet, depósito temporal).
+### E8 · Maestros: líneas navieras, proveedores y clientes
+- Que el admin gestione los catálogos de líneas navieras, proveedores y clientes, para usarlos al ingresar lotes (E2), armar kits y despachar a granel (E4) y en lo que venga después (estimaciones, extranet, depósito temporal). Los clientes se sumaron el 2026-11-17 (H31).
 - Depende de: E1. La necesitan E2 y E4.
 
 **H09 · Gestionar líneas navieras**
@@ -187,12 +189,29 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Si el servicio no responde o no encuentra el documento, el usuario puede llenar a mano y guardar igual.
   9. Si el documento tiene un formato incorrecto, se avisa antes de consultar.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
-- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09).
+- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09). Desde H31 va dentro del desplegable «Terceros», junto a Clientes (cambiado por el usuario el 2026-11-17).
 - Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
 - Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
 - Servicio de consulta de RUC y DNI: Decolecta, elegido por el usuario, mediante `SunatService` (T22). También lo usarán H21 y H22.
 - El DNI viaja en la URL de Decolecta, por HTTPS, porque ese servicio solo lo recibe así, y nunca va en nuestros logs. Es una excepción a la regla de datos personales, aceptada por el usuario el 2026-11-04.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
+
+**H31 · Gestionar clientes** (pedida por el usuario el 2026-11-17, en T52)
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar clientes, para elegirlos al despachar dispositivos a granel por venta (H30).
+- Criterios de aceptación:
+  1. Se crea un cliente con tipo y número de documento, razón social, dirección, correo, teléfono y condición de pago. Son obligatorios el tipo y el número de documento, la razón social y la condición; dirección, correo y teléfono son opcionales, como en H10.
+  2. La condición de pago es Contado o Crédito. Al crear un cliente viene marcada Contado. Al elegir Crédito aparece el campo «Días de crédito», obligatorio, un número entero de 1 a 365; con Contado el campo se oculta y los días no se guardan (pedido por el usuario el 2026-11-17, al revisar la construcción).
+  3. No se pueden crear dos clientes con el mismo tipo y número de documento, aunque uno esté desactivado.
+  4. Se editan los datos de un cliente, también su condición.
+  5. Un cliente se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. Uno desactivado no aparece al despachar, pero se conserva en lo que ya existe.
+  6. Hay una lista, ordenada por razón social, que se puede buscar por razón social o número de documento y filtrar por estado. La lista muestra también la condición, y con Crédito sus días (por ejemplo «Crédito · 30 días»).
+  7. La consulta del RUC o el DNI funciona como en H10 (criterios 7 a 9): completa los datos que encuentre, se puede llenar a mano si el servicio falla y el formato incorrecto se avisa antes de consultar.
+  8. La pantalla se puede usar bien desde el celular.
+- Decisión del usuario del 2026-11-17: es una copia del modelo de proveedores (H10) con un solo atributo más, la condición de pago (Contado o Crédito, por defecto Contado), y los días cuando es a crédito. Reusa `SunatService` y las mismas reglas de la consulta.
+- Quién la usa: por ahora, cualquier usuario con sesión. Los roles pasan a H24.
+- En el menú va en el grupo "Maestros", dentro de un desplegable nuevo, «Terceros», que reúne Proveedores y Clientes, en ese orden (decisión del usuario del 2026-11-17). El desplegable queda donde estaba Proveedores, debajo de Líneas navieras.
+- Diseño: el de H10, con el campo Condición. Se agrega al lienzo para aprobarlo antes de construir.
+- Fuera de esta historia: pasar los clientes de SIGLA 1.0 y usarlos en la certificación (H17), donde el cliente de la solicitud sigue siendo un dato copiado de la API.
 
 ### E2 · Dispositivos de seguridad
 - Que bodega registre dispositivos por lote, consulte su estado y los active para despacho cuando la naviera lo confirma (H29, agregado el 2026-11-13).
@@ -452,6 +471,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   10. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
   11. La pantalla se puede usar bien desde el celular.
 - Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; la selección es por escaneo y por rango; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
+- En rediseño desde el 2026-11-17, a pedido del usuario y siguiendo el despacho a granel de BUMMOCK: tabla y lista propias, fuera de la lista de despachos de kits; sin PDF, con una página de detalle del despacho. Se suman el motivo de salida (Venta u Operación), una observación opcional y la zona de patio de la sede del usuario. Con Venta se elige la empresa cliente (H31); con Operación, el kit despachado al que se asignan los dispositivos. Los criterios se reescriben al cerrar el rediseño, antes de construir T52.
+- Depende de: H31, por el cliente de una venta (2026-11-17).
 - Fuera de esta historia: cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector) se define al revisar E6 y lo posterior a H17.
 - Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
 

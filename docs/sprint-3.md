@@ -49,6 +49,9 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 ### Corrección del Sprint 2
 - [x] **T55** · H06 y H13 · Corrección: cinta de inspección. La cinta interna y la externa son un solo tipo de dispositivo, la cinta de inspección (seeder corregido). Una casilla en el tipo de dispositivo indica si se reparte entre asignación interna y externa, y el tipo de kit pide entonces cuántas van a cada una. Quién: Claude Code. 2 h. Agregada el 2026-11-16 a pedido del usuario, antes de empezar el compromiso. (Hecho el 2026-11-16, PR #63, unas 0.5 h reales contadas desde que se creó la rama, porque los commits llegaron al final.)
 
+### Agregada el 2026-11-17
+- [x] **T56** · H31 · Gestionar clientes: copia del catálogo de proveedores (H10) con la condición de pago, Contado o Crédito, por defecto Contado. Incluye su diseño en el lienzo y deja `docs/database.md` al día. Quién: Claude Code. 2 h. Agregada el 2026-11-17 a pedido del usuario, porque H30 la necesita para el despacho a granel por venta. Va antes que T52, en su propia rama, `feature/H31-gestionar-clientes`, que parte de `main`. (Hecho el 2026-11-17, PR #74, unas 0.5 h reales contadas desde el primer commit de la rama, con el lienzo incluido. Al revisar, el usuario pidió los días de crédito: con Crédito se piden de 1 a 365 días.)
+
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
 - [ ] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8).
@@ -59,9 +62,10 @@ Solo se hacen si sobra tiempo; no suman al total.
 | --- | --- | --- |
 | Compromiso | T46, T47, T48, T49, T50, T51, T52 | 19 h |
 | Corrección del Sprint 2 (agregada el 2026-11-16) | T55 | 2 h |
+| Agregada el 2026-11-17 | T56 | 2 h |
 | Adelanto opcional (no suma) | T53, T54 | 5 h |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 
@@ -76,12 +80,13 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 4 | T49 · H14 | `feature/H14-crear-kit` | rama de T48 | nada |
 | 5 | T50 · H15 | `feature/H15-despachar-kits` | rama de T49 | nada |
 | 6 | T51 · H16 | `feature/H16-consultar-kits` | rama de T50 | nada |
-| 7 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada |
-| 8 | T53 · H17 (adelanto) | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
+| 7 | T56 · H31 | `feature/H31-gestionar-clientes` | `main` | diseño aprobado |
+| 8 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada y T56 |
+| 9 | T53 · H17 (adelanto) | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
-- **Orden de merge:** T48, T49, T50, T51 y T52, en ese orden.
+- **Orden de merge:** T48, T49, T50, T51, T56 y T52, en ese orden.
 - **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a las ramas encadenadas antes de pedir su visto bueno.
 - **Viernes:** Sprint Review y Retrospectiva; reporte en `docs/sprint-3-report.md`, con las horas estimadas y las reales de cada tarea.
 
