@@ -56,13 +56,22 @@
                 <flux:error name="form.containerNumber" />
             </fieldset>
 
-            <flux:field>
-                <flux:label>Booking</flux:label>
-                <flux:input wire:model="form.booking" x-on:input="upperCase" type="text" maxlength="50" autocomplete="off" class="max-md:[&_input]:h-13 [&_input]:text-lg [&_input]:uppercase" />
+            <div class="flex min-w-0 flex-col gap-1.5">
+                <label for="booking" class="text-sm font-medium">Booking</label>
+                <input
+                    id="booking"
+                    wire:model="form.booking"
+                    x-on:input="upperCase"
+                    type="text"
+                    maxlength="50"
+                    autocomplete="off"
+                    spellcheck="false"
+                    @class(['h-11 w-full rounded-control border bg-white px-3 text-lg uppercase max-md:h-13', 'border-danger' => $errors->has('form.booking'), 'border-control' => ! $errors->has('form.booking')])
+                />
                 <flux:error name="form.booking" />
-            </flux:field>
+            </div>
 
-            <flux:button type="submit" variant="primary" class="md:mt-6.5 max-md:h-13 max-md:w-full">
+            <flux:button type="submit" variant="primary" class="h-11! md:mt-6.5 max-md:h-13! max-md:w-full">
                 <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
                 <span wire:loading.remove wire:target="search">Buscar solicitud</span>
                 <span wire:loading wire:target="search">Buscando…</span>
