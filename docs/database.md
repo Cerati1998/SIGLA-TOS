@@ -806,7 +806,8 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | H30 | Despacho a granel a un trabajador (`workers`), decidido el 2026-11-13 (T46). Si se une con `kit_dispatches` o va en tablas propias se decide al construir T52. Su uso en la reinspección se define al revisar E6. |
-| `affectations`, `clients`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
+| `clients` | E8 · H31 | Planeada para T56 (2026-11-17): copia de `providers` más `payment_condition` (`cash` Contado, por defecto, o `credit` Crédito). La usa H30 en el despacho a granel por venta. |
+| `affectations`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
 Tablas de roles y permisos: se definen al aprobar H24.
 
