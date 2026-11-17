@@ -451,30 +451,32 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Para un kit ya usado en una certificación, se ve a qué certificación pertenece (depende de E5; por confirmar).
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
-  9. La lista de despachos muestra también los despachos a granel (H30), marcados «A granel», con sus dispositivos (T46, 2026-11-13).
+  9. Los despachos a granel (H30) no van en esta lista: tienen la suya propia, en Bodega → Despachos → «A granel» (cambiado por el usuario el 2026-11-17; antes iban aquí marcados «A granel», T46).
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio (decisión del usuario del 2026-11-13, T46).
 - Estados de un kit (T46, 2026-11-13): Armando (incompleto), Armado (completo, listo para despachar), Despachado (en un despacho, H15) y Usado (en una certificación, H17).
 - Falta una historia de E4, que se escribe al llegar a E6: reasignar dispositivos a una unidad en reinspección (en revisión junto con E6).
 
-**H30 · Despachar dispositivos a granel** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
-- Como usuario de bodega, quiero despachar dispositivos sueltos a un trabajador, sin armar un kit, para reponer dispositivos y para la reinspección.
+**H30 · Despachar dispositivos a granel** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día; rediseñada el 2026-11-17 siguiendo el despacho a granel de BUMMOCK)
+- Como usuario de bodega, quiero despachar dispositivos sueltos a un trabajador, sin armar un kit, para venderlos a un cliente o para reponer los de un kit en operación.
 - Criterios de aceptación:
-  1. Se elige el trabajador que recibe los dispositivos, de la lista de trabajadores activos (H25), como en H15. Quién entrega es el usuario que despacha, y queda registrado solo.
-  2. Los dispositivos se agregan de dos formas: escaneando uno por uno, y cada escaneo llena el campo y se agrega solo a la lista, sin botón de guardar; o por rango, con la serie inicial y la final.
-  3. El rango sigue las reglas de H29: las dos series deben existir, los huecos se ignoran, el máximo es de 10 000 dispositivos y se muestra una vista previa antes de agregar.
-  4. Solo se despachan dispositivos Disponibles y activados para despacho (H29). Un dispositivo en un kit no se despacha a granel. Por escaneo, el que no cumple se rechaza con un mensaje claro; por rango, si alguno no cumple, no se agrega ninguno y se muestra cuáles.
-  5. Al despacharse, los dispositivos pasan al estado nuevo Despachado.
-  6. Cada dispositivo queda en un solo despacho.
-  7. Queda registrado quién hizo el despacho y cuándo.
-  8. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
-  9. Los despachos a granel se ven en la lista de despachos de H16, marcados «A granel».
-  10. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
-  11. La pantalla se puede usar bien desde el celular.
-- Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; la selección es por escaneo y por rango; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
-- En rediseño desde el 2026-11-17, a pedido del usuario y siguiendo el despacho a granel de BUMMOCK: tabla y lista propias, fuera de la lista de despachos de kits; sin PDF, con una página de detalle del despacho. Se suman el motivo de salida (Venta u Operación), una observación opcional y la zona de patio de la sede del usuario. Con Venta se elige la empresa cliente (H31); con Operación, el kit despachado al que se asignan los dispositivos. Los criterios se reescriben al cerrar el rediseño, antes de construir T52.
+  1. Los despachos a granel tienen su propia lista, en Bodega → Despachos → «A granel», separada de la de despachos de kits. Cada despacho se numera con su propia secuencia, `DG-000001`.
+  2. El despacho se registra con el trabajador que recibe, elegido de la lista de trabajadores activos (H25) como en H15. Quién entrega es el usuario que despacha, y queda registrado solo, con la fecha y la semana.
+  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe).
+  4. Se elige el patio de destino entre las zonas de patio activas de la sede del usuario (H26). Es obligatorio (suposición por confirmar).
+  5. Se puede escribir una observación, opcional.
+  6. Los dispositivos se agregan de tres formas: escaneando uno por uno, y cada escaneo se agrega solo a la lista; por rango, con la serie inicial y la final; o eligiendo el tipo de dispositivo, la serie inicial y la cantidad, y el sistema calcula hasta dónde llega.
+  7. El rango y el cálculo por cantidad siguen las reglas de H29: las series deben existir, los huecos se ignoran, el máximo es de 10 000 dispositivos y se muestra una vista previa antes de agregar.
+  8. Solo se despachan dispositivos Disponibles, es decir, aprobados por la naviera (H29). Un dispositivo en un kit no se despacha a granel. Por escaneo, el que no cumple se rechaza con un mensaje claro; por rango o por cantidad, si alguno no cumple, no se agrega ninguno y se muestra cuáles.
+  9. Se ve qué escaneos se agregaron y cuáles fallaron, con su motivo, para reintentar.
+  10. Al despacharse, los dispositivos pasan al estado Despachado. Cada dispositivo queda en un solo despacho, y el despacho se guarda todo o nada.
+  11. Cada despacho tiene una página de detalle con sus datos y, por cada tipo de dispositivo, su rango, su cantidad y sus series. No tiene PDF.
+  12. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
+  13. La pantalla se puede usar bien desde el celular.
+- Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
+- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
 - Depende de: H31, por el cliente de una venta (2026-11-17).
-- Fuera de esta historia: cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector) se define al revisar E6 y lo posterior a H17.
-- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
+- Fuera de esta historia: editar o anular un despacho, su PDF, y cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector), que se define al revisar E6 y lo posterior a H17.
+- Diseño: el del 2026-11-13 (página "E4 · Kits", T47) se rehace con estas decisiones y se vuelve a aprobar en el lienzo antes de construir.
 
 ### E9 · Transportistas, conductores y vehículos
 - Los catálogos de transportistas (empresas), conductores y vehículos (remolcador y semirremolque), con sus pantallas de gestión. También se crean solos al iniciar una certificación, cuando vienen de SIGLA 1.0 y no existen todavía.
