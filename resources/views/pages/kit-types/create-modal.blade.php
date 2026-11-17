@@ -4,7 +4,7 @@
         name="kit-type-create"
         width="sm:max-w-5xl"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.containerTypeId = ''; Object.values($wire.form.devices).forEach((device) => { device.on = false; device.quantity = 1 })"
+        x-on:open="$wire.form.name = ''; $wire.form.containerTypeId = ''; Object.values($wire.form.devices).forEach((device) => { device.on = false; if (device.internal !== undefined) { device.internal = 0; device.external = 0 } else { device.quantity = 1 } })"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="kit-type-create-form" wire:submit="save">

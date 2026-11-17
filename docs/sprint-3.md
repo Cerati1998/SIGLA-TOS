@@ -39,20 +39,15 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 
 ### Compromiso
 - [x] **T46** · Preparar H14, H15, H16, H29 y H30: cerrar sus "por confirmar" (los de H14 y H15 son los datos obligatorios del kit, los estados que acepta, si se guarda un kit incompleto y si se despacha uno vacío; el de H16, los estados del kit; los de H29, las reglas del rango; los de H30, a quién se despacha, cómo se eligen los dispositivos y en qué estado quedan) y revisar sus diseños en el lienzo. Quién: Scrum Master. 1.5 h. Frena a T48 y las siguientes. (Hecho el 2026-11-13 con Claude Code, PR #62, unas 0.5 h reales contadas desde la primera pregunta, porque el primer commit llegó al final. H29 y H30 quedaron aprobadas. En el lienzo no había diseños de H14, H15 ni H16: pasan a T47.)
-- [x] **T47** · Diseñar y aprobar en el lienzo la activación por rango (H29), desde el lote y con serie inicial y final; el despacho a granel (H30); crear un kit con su escaneo y avance (H14), y despachar kits (H15). H16 se construye desde la plantilla "Lista con tabla", sin diseño propio. Quién: Scrum Master con Claude Design. 2 h. Después de T46. (Cambiado el 2026-11-13 en T46, a pedido del usuario: sumó H14 y H15 y pasó de 1 h a 2 h.) (Hecho el 2026-11-13 con Claude Code, PR de H29, unas 0.7 h reales: 13 diseños en el lienzo, aprobados por el usuario ese día. Sin rama propia: la marca va en el PR de H29.)
-- [ ] **T48** · H29 · Activar dispositivos para despacho. Incluye la marca en `security_devices` y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 3 h. Empieza cuando T46 y T47 estén cerradas.
-  - **Se construye** (detalle pedido por el usuario el 2026-11-13):
-    1. Migración nueva que agrega `activated_at` y `activated_by` (→ `users`) a `security_devices`, sin tocar la migración original. `docs/database.md` al día.
-    2. Una sola Action, `ActivateSecurityDevices`, para las dos entradas. Es todo o nada y aplica las reglas de H29: solo activa dispositivos Disponibles; los ya activados se cuentan y se dejan como están; si un dispositivo sin activar no está Disponible, no activa nada y dice cuál; máximo 10 000; con serie inicial y final, las dos deben existir y tener el mismo inicio de serie y la misma naviera, y los huecos se ignoran.
-    3. Modal «Activar para despacho» en el detalle del lote, con «Todo el lote» o «Un tramo» y la vista previa.
-    4. Modal «Activar por rango» en la lista de lotes, con serie inicial y final, que se escriben o se escanean.
-    5. Cambios en H08 que pide H29: el conteo «Activados para despacho» en el detalle; la columna con la fecha de activación y su filtro en los dispositivos del lote; la columna «Activados» y el filtro sin activar / a medias / todos en la lista de lotes, y quién activó y cuándo en la búsqueda por serie.
-    6. Pruebas PHPUnit del camino normal y de los errores principales; Pint y Larastan.
-  - **No entra en T48:** exigir la marca al armar un kit o al despachar (va en T49, T50 y T52, de este mismo sprint) y el estado Despachado (T52). Tampoco deshacer una activación, enviar o guardar el correo a la naviera, ni los roles (H24).
-- [ ] **T49** · H14 · Crear un kit y agregarle dispositivos (solo dispositivos activados). Incluye la tabla `kits` y su relación con los dispositivos. Quién: Claude Code. 4 h. Parte de la rama de T48: no espera su merge.
+- [x] **T47** · Diseñar y aprobar en el lienzo la activación por rango (H29), desde el lote y con serie inicial y final; el despacho a granel (H30); crear un kit con su escaneo y avance (H14), y despachar kits (H15). H16 se construye desde la plantilla "Lista con tabla", sin diseño propio. Quién: Scrum Master con Claude Design. 2 h. Después de T46. (Cambiado el 2026-11-13 en T46, a pedido del usuario: sumó H14 y H15 y pasó de 1 h a 2 h.) (Hecho el 2026-11-16, PR #65. H29, H30 y H15 se aprobaron el 2026-11-13; H14 se rediseñó a pedido del usuario y se aprobó el 2026-11-16. Sin horas reales: el trabajo fue en el lienzo, sin rama.)
+- [x] **T48** · H29 · Activar dispositivos para despacho. Incluye la marca en `security_devices` y deja `docs/database.md` al día en el mismo PR. Quién: Claude Code. 3 h. Empieza cuando T46 y T47 estén cerradas. (Hecho el 2026-11-16, PR #64, unas 0.25 h reales contadas desde que se creó la rama, porque los commits llegaron al final. Se marca en el PR #65 porque el PR #64 se unió sin la marca.)
+- [x] **T49** · H14 · Crear un kit y agregarle dispositivos (solo dispositivos activados). Incluye la tabla `kits` y su relación con los dispositivos. Quién: Claude Code. 4 h. Parte de la rama de T48: no espera su merge. (Hecho el 2026-11-16, PR #65, unas 2 h reales contadas desde que se creó la rama, porque los commits llegaron al final. Partió de `main`, porque T48 ya estaba unida.)
 - [ ] **T50** · H15 · Despachar kits. Quién: Claude Code. 3 h. Parte de la rama de T49.
 - [ ] **T51** · H16 · Consultar kits y despachos. Quién: Claude Code. 2.5 h. Parte de la rama de T50.
 - [ ] **T52** · H30 · Despachar dispositivos a granel. Quién: Claude Code. 3 h. H30 se aprobó en T46 el 2026-11-13. Parte de la rama de T51, porque sus despachos se ven en la lista de despachos de H16 (decidido en T46).
+
+### Corrección del Sprint 2
+- [x] **T55** · H06 y H13 · Corrección: cinta de inspección. La cinta interna y la externa son un solo tipo de dispositivo, la cinta de inspección (seeder corregido). Una casilla en el tipo de dispositivo indica si se reparte entre asignación interna y externa, y el tipo de kit pide entonces cuántas van a cada una. Quién: Claude Code. 2 h. Agregada el 2026-11-16 a pedido del usuario, antes de empezar el compromiso. (Hecho el 2026-11-16, PR #63, unas 0.5 h reales contadas desde que se creó la rama, porque los commits llegaron al final.)
 
 ### Adelanto opcional
 Solo se hacen si sobra tiempo; no suman al total.
@@ -63,9 +58,10 @@ Solo se hacen si sobra tiempo; no suman al total.
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
 | Compromiso | T46, T47, T48, T49, T50, T51, T52 | 19 h |
+| Corrección del Sprint 2 (agregada el 2026-11-16) | T55 | 2 h |
 | Adelanto opcional (no suma) | T53, T54 | 5 h |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 

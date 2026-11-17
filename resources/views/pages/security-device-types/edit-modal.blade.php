@@ -3,6 +3,7 @@
         <form id="security-device-type-edit-form" wire:submit="save" class="grid gap-4">
             <x-wire-input id="security-device-type-edit-name" wire:model="form.name" label="Nombre" type="text" maxlength="100" required autofocus autocomplete="off" />
             <x-wire-input id="security-device-type-edit-kind" label="Tipo" type="text" :value="$form->kindLabel" readonly />
+            <x-pages::security-device-types.split-checkbox />
         </form>
 
         <x-slot:footer>

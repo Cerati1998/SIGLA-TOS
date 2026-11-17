@@ -23,7 +23,8 @@ class ReceiveSecurityDeviceLot
     private const int CHUNK_SIZE = 1000;
 
     /**
-     * Save the announcement, its lot and one available device per serial number, all or nothing.
+     * Save the announcement, its lot and one inactive device per serial number, all or nothing. The devices stay
+     * inactive until bodega registers the approval of their shipping line (H29).
      * Return null, with nothing saved, when one of the serial numbers already exists.
      *
      * @param  array{received_at: string, dispatch_number: string, notes: string|null}  $lotAttributes
@@ -46,7 +47,7 @@ class ReceiveSecurityDeviceLot
                     'created_by' => $user->id,
                 ]);
 
-                $this->createAvailableDevices($lot, $serialNumbers);
+                $this->createInactiveDevices($lot, $serialNumbers);
 
                 return $lot;
             });
@@ -80,11 +81,11 @@ class ReceiveSecurityDeviceLot
     }
 
     /**
-     * Insert the devices of the lot in chunks, all of them available.
+     * Insert the devices of the lot in chunks, all of them inactive until their approval is registered (H29).
      *
      * @param  list<string>  $serialNumbers
      */
-    public function createAvailableDevices(SecurityDeviceLot $lot, array $serialNumbers): void
+    public function createInactiveDevices(SecurityDeviceLot $lot, array $serialNumbers): void
     {
         $now = now();
 
@@ -92,7 +93,7 @@ class ReceiveSecurityDeviceLot
             SecurityDevice::query()->insert(array_map(fn (string $serialNumber): array => [
                 'security_device_lot_id' => $lot->id,
                 'serial_number' => $serialNumber,
-                'status' => SecurityDeviceStatus::Available->value,
+                'status' => SecurityDeviceStatus::Inactive->value,
                 'created_at' => $now,
                 'updated_at' => $now,
             ], $chunk));

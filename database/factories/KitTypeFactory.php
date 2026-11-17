@@ -32,4 +32,17 @@ class KitTypeFactory extends Factory
     {
         return $this->hasAttached($securityDeviceType, ['quantity' => $quantity], 'securityDeviceTypes');
     }
+
+    /**
+     * Indicate that the kit type carries the given security device type split between the internal and the external
+     * assignment. Its quantity is their sum.
+     */
+    public function carryingSplit(SecurityDeviceType $securityDeviceType, int $internal, int $external): static
+    {
+        return $this->hasAttached($securityDeviceType, [
+            'quantity' => $internal + $external,
+            'internal_quantity' => $internal,
+            'external_quantity' => $external,
+        ], 'securityDeviceTypes');
+    }
 }

@@ -64,7 +64,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->assertDontSeeText('Naviera Cerrada');
     }
 
-    public function test_saving_a_lot_generates_every_serial_number_as_an_available_device_and_opens_the_lot(): void
+    public function test_saving_a_lot_generates_every_serial_number_as_an_inactive_device_and_opens_the_lot(): void
     {
         $this->fillForm()
             ->set('form.seriesPrefix', ' gsw ')
@@ -74,7 +74,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->assertRedirect(route('intranet.security-device-lots.show', SecurityDeviceLot::query()->sole()));
 
         $this->assertSame('Lote guardado', session('toast.title'));
-        $this->assertSame('Se registraron 200 dispositivos disponibles.', session('toast.text'));
+        $this->assertSame('Se registraron 200 dispositivos inactivos, a la espera de la aprobación de la naviera.', session('toast.text'));
 
         $lot = SecurityDeviceLot::query()->sole();
 
@@ -94,7 +94,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
         $this->assertCount(200, $serialNumbers);
         $this->assertSame('GSW0000200', $serialNumbers->first());
         $this->assertSame('GSW0000399', $serialNumbers->last());
-        $this->assertSame(200, $lot->devices()->where('status', SecurityDeviceStatus::Available)->count());
+        $this->assertSame(200, $lot->devices()->where('status', SecurityDeviceStatus::Inactive)->count());
     }
 
     public function test_a_correlative_longer_than_the_minimum_of_digits_stays_whole(): void
@@ -117,7 +117,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame('Se registraron 101 dispositivos disponibles.', session('toast.text'));
+        $this->assertSame('Se registraron 101 dispositivos inactivos, a la espera de la aprobación de la naviera.', session('toast.text'));
 
         $serialNumbers = SecurityDevice::query()->orderBy('id')->pluck('serial_number');
 
@@ -168,7 +168,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame('Se registraron 10 000 dispositivos disponibles.', session('toast.text'));
+        $this->assertSame('Se registraron 10 000 dispositivos inactivos, a la espera de la aprobación de la naviera.', session('toast.text'));
 
         $this->assertSame(10000, SecurityDevice::query()->count());
     }

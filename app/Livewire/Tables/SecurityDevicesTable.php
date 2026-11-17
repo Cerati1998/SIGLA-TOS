@@ -26,7 +26,10 @@ class SecurityDevicesTable extends BaseTable
     {
         parent::configure();
 
-        $this->setAdditionalSelects(['security_devices.id as id'])
+        $this->setAdditionalSelects([
+            'security_devices.id as id',
+            'security_devices.security_device_lot_approval_id as security_device_lot_approval_id',
+        ])
             ->setSearchPlaceholder('Serie')
             ->setEmptyMessage('No se encontraron dispositivos.')
             ->setConfigurableAreas([
@@ -35,13 +38,14 @@ class SecurityDevicesTable extends BaseTable
     }
 
     /**
-     * Get the devices of the lot, in the order of their serial numbers.
+     * Get the devices of the lot, in the order of their serial numbers, with the approval that made them available.
      *
      * @return Builder<SecurityDevice>
      */
     public function builder(): Builder
     {
         return SecurityDevice::query()
+            ->with('approval')
             ->where('security_device_lot_id', $this->lotId)
             ->orderBy('security_devices.id');
     }
@@ -57,6 +61,8 @@ class SecurityDevicesTable extends BaseTable
             Column::make('Serie', 'serial_number')->searchable(),
             Column::make('Estado', 'status')
                 ->format(fn (SecurityDeviceStatus $value): View => view('pages.security-device-lots.partials.status', ['status' => $value])),
+            Column::make('Aprobado')
+                ->label(fn (SecurityDevice $row): string => $row->approval?->created_at?->timezone('America/Lima')->format('d/m/Y H:i') ?? '—'),
             Column::make('Kit')
                 ->label(fn (): string => '—'),
         ];

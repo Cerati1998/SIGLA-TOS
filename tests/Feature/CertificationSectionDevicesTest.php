@@ -30,7 +30,7 @@ class CertificationSectionDevicesTest extends TestCase
         $this->app->setLocale('es');
 
         $this->seal = SecurityDeviceType::factory()->create(['name' => 'Sello botella', 'kind' => SecurityDeviceKind::Seal]);
-        $this->tape = SecurityDeviceType::factory()->create(['name' => 'Cinta interna', 'kind' => SecurityDeviceKind::Tape]);
+        $this->tape = SecurityDeviceType::factory()->create(['name' => 'Cinta de inspección', 'kind' => SecurityDeviceKind::Tape]);
     }
 
     public function test_the_list_shows_what_each_section_carries_or_that_it_only_asks_for_a_photo(): void
@@ -40,7 +40,7 @@ class CertificationSectionDevicesTest extends TestCase
 
         Livewire::test(CertificationSectionsTable::class)
             ->assertSeeText('Lleva')
-            ->assertSeeInOrder(['Fotografía de evaporadores', '1', 'Cinta interna', '2', 'Sello botella'])
+            ->assertSeeInOrder(['Fotografía de evaporadores', '1', 'Cinta de inspección', '2', 'Sello botella'])
             ->assertSeeInOrder(['Placa de datos', 'Solo foto']);
     }
 
@@ -76,7 +76,7 @@ class CertificationSectionDevicesTest extends TestCase
         $deactivated = SecurityDeviceType::factory()->trashed()->create(['name' => 'Sello antiguo']);
 
         Livewire::test(CreateModal::class)
-            ->assertViewHas('deviceTypes', fn (array $options): bool => array_column($options, 'name') === ['Cinta interna', 'Sello botella'])
+            ->assertViewHas('deviceTypes', fn (array $options): bool => array_column($options, 'name') === ['Cinta de inspección', 'Sello botella'])
             ->set('form.name', 'Puertas')
             ->set('form.type', CertificationSectionType::External->value)
             ->set('form.devices', [['id' => $deactivated->id, 'quantity' => 1]])

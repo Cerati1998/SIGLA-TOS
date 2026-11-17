@@ -22,7 +22,7 @@ class SecurityDeviceFactory extends Factory
         return [
             'security_device_lot_id' => SecurityDeviceLot::factory(),
             'serial_number' => fake()->unique()->bothify('???#######'),
-            'status' => SecurityDeviceStatus::Available,
+            'status' => SecurityDeviceStatus::Inactive,
         ];
     }
 }

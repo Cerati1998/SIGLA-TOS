@@ -53,6 +53,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
+| `security_device_lot_approvals` | E2 · H29 | `en código` | (nueva; bitácora de aprobaciones de la naviera) |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
 | `certification_section_security_device_type` | E3 · H12 | `planeada (T38/H12)` | (nueva; en el ER, la cantidad iba en `certification_criteria_items`) |
 | `carriers` | E9 · H21 | `en código` | (no estaba en el ER) |
@@ -63,6 +64,9 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `container_types` | E4 · H13 | `planeada (T39/H13)` | `container_types` |
 | `kit_types` | E4 · H13 | `planeada (T39/H13)` | `type_kits` |
 | `kit_type_security_device_type` | E4 · H13 | `planeada (T39/H13)` | (nueva; el ER traía los ids sueltos) |
+| `kits` | E4 · H14 | `en código` | `kits` |
+| `kit_security_device_type` | E4 · H14 | `en código` | (nueva; copia de lo que lleva el tipo de kit) |
+| `kit_security_device` | E4 · H14 | `en código` | `kits_device_units` |
 | `workers` | E4 · H25 | `en código` | `workers` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
@@ -132,6 +136,7 @@ erDiagram
     bigint id PK
     string name UK
     string kind "seal, container_seal, tape, other"
+    boolean splits_internal_external
     datetime deleted_at
   }
 ```
@@ -146,6 +151,9 @@ erDiagram
   security_device_announcements ||--|| security_device_lots : "origen"
   users ||--o{ security_device_lots : "ingresó"
   security_device_lots ||--o{ security_devices : "trae"
+  security_device_lots ||--o{ security_device_lot_approvals : "aprobaciones"
+  users ||--o{ security_device_lot_approvals : "registró"
+  security_device_lot_approvals ||--o{ security_devices : "aprobó"
 
   security_device_announcements {
     bigint id PK
@@ -171,7 +179,16 @@ erDiagram
     bigint id PK
     bigint security_device_lot_id FK
     string serial_number UK
-    string status "available, in_kit, used, damaged"
+    string status "inactive, available, in_kit, used, damaged"
+    bigint security_device_lot_approval_id FK "null"
+  }
+  security_device_lot_approvals {
+    bigint id PK
+    bigint security_device_lot_id FK
+    bigint correlative_start
+    bigint correlative_end
+    smallint approved_count
+    bigint approved_by FK
   }
 ```
 
@@ -279,6 +296,45 @@ erDiagram
     bigint kit_type_id PK, FK
     bigint security_device_type_id PK, FK
     smallint quantity "1 a 999"
+    smallint internal_quantity "null si no se reparte"
+    smallint external_quantity "null si no se reparte"
+  }
+```
+
+### 4.6b Kits (E4)
+
+Bodega crea un kit con su funda, su tipo de kit y su naviera, y le escanea dispositivos (H14). Al crearlo se copia lo que lleva el tipo de kit, para que editar el tipo de kit no cambie los kits ya armados (H13, criterio 5). Cada dispositivo del kit guarda a qué lado va cuando su tipo se reparte entre la asignación interna y la externa, como la cinta de inspección (cambio del usuario del 2026-11-16).
+
+```mermaid
+erDiagram
+  kit_types ||--o{ kits : "tipo de kit"
+  shipping_lines ||--o{ kits : "naviera"
+  users ||--o{ kits : "creó"
+  kits ||--|{ kit_security_device_type : "lo que lleva (copia)"
+  security_device_types ||--o{ kit_security_device_type : "tipo de dispositivo"
+  kits ||--o{ kit_security_device : "dispositivos"
+  security_devices ||--o| kit_security_device : "en un solo kit"
+
+  kits {
+    bigint id PK
+    string pouch_code UK "funda"
+    bigint kit_type_id FK
+    bigint shipping_line_id FK
+    string status "building, built, dispatched, used"
+    bigint created_by FK
+  }
+  kit_security_device_type {
+    bigint kit_id PK, FK
+    bigint security_device_type_id PK, FK
+    smallint quantity
+    smallint internal_quantity "null si no se reparte"
+    smallint external_quantity "null si no se reparte"
+  }
+  kit_security_device {
+    bigint id PK
+    bigint kit_id FK
+    bigint security_device_id FK, UK
+    string assignment "external, internal o null"
   }
 ```
 
@@ -409,6 +465,8 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `name` | varchar(100) | |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express). Si un código ya existe, aunque esté desactivado, no lo toca.
+
 ### 5.7 `providers` · `en código`
 
 Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.
@@ -430,9 +488,10 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
 | `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
+| `splits_internal_external` | boolean | Por defecto `false`. Si está marcado, en el tipo de kit su cantidad se reparte entre la asignación interna y la externa (casilla en crear y editar; corrección del 2026-11-16, T55). Se puede cambiar al editar: los tipos de kit ya guardados conservan sus cantidades hasta que se editen. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
-`SecurityDeviceTypeSeeder` carga los 9 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta externa, interna, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Si un tipo ya existe, aunque esté desactivado, no lo toca.
+`SecurityDeviceTypeSeeder` carga los 8 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
 
 ### 5.9 `security_device_announcements` · `en código`
 
@@ -472,10 +531,24 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del que vino. |
 | `serial_number` | varchar(50) | UK: cada dispositivo es único. ER: `serie_number`. |
-| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `available` (Disponible, el inicial), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado). Confirmados el 2026-11-09 (T27). |
+| `security_device_lot_approval_id` | bigint FK (null) | Aprobación que lo pasó a Disponible (H29). Null mientras siga Inactivo. Quién y cuándo se leen de la aprobación. |
 | `timestamps` | | |
 
-El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER.
+El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
+
+### 5.11b `security_device_lot_approvals` · `en código`
+
+Bitácora de aprobaciones de la naviera por tramos de un lote (H29). Un registro por cada aprobación. Se escribe junto con el cambio de estado de sus dispositivos, en una transacción. No se edita ni se borra: una aprobación no se deshace.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `security_device_lot_id` | bigint FK | Lote del tramo. |
+| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con el anuncio del lote. |
+| `approved_count` | smallint sin signo | Cuántos dispositivos Inactivos del tramo pasaron a Disponible. Los ya aprobados no se cuentan. Siempre mayor que 0: si no hay nada que aprobar, no se guarda el registro. |
+| `approved_by` | bigint FK → `users` | Quién registró la aprobación; cuándo es `created_at`. |
+| `timestamps` | | |
 
 ### 5.12 `certification_sections` · `planeada (T35/H11)`
 
@@ -599,9 +672,43 @@ Lo que lleva cada tipo de kit: cuántos dispositivos de cada tipo (criterio 7). 
 | --- | --- | --- |
 | `kit_type_id` | bigint FK | PK compuesta con `security_device_type_id`: un tipo de dispositivo no se repite en un tipo de kit (criterio 3). |
 | `security_device_type_id` | bigint FK | Tipo de dispositivo (`security_device_types`). Solo se eligen los activos, pero se conserva uno desactivado que el tipo de kit ya llevaba. |
-| `quantity` | smallint sin signo | Entero de 1 a 999. Cada tipo de kit lleva al menos un tipo de dispositivo. |
+| `quantity` | smallint sin signo | Entero de 1 a 999. Cada tipo de kit lleva al menos un tipo de dispositivo. En un tipo de dispositivo que se reparte, es la suma de la interna y la externa. |
+| `internal_quantity` | smallint sin signo (null) | Cuántas van a la asignación interna. Solo en un tipo de dispositivo con `splits_internal_external`; si no, null (corrección del 2026-11-16, T55). |
+| `external_quantity` | smallint sin signo (null) | Cuántas van a la asignación externa. Igual que la interna: enteros desde 0 que suman al menos 1. |
 
-Editar un tipo de kit no cambia los kits ya armados (criterio 5): H14 guardará en cada kit lo que lleva.
+Editar un tipo de kit no cambia los kits ya armados (criterio 5): cada kit guarda su copia en `kit_security_device_type` (H14).
+
+### 5.19b `kits` · `en código`
+
+Kits que arma bodega (H14). Se crean en Bodega → Kits → Nuevo.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `pouch_code` | varchar(50) | UK. Código de barras de la funda, escaneado o escrito; se guarda en mayúsculas y sin espacios a los lados. En el ER era `series_code`: se renombra por el glosario (funda = `pouch`). |
+| `kit_type_id` | bigint FK | Tipo de kit (`kit_types`). Solo se eligen los activos; no cambia después de crear el kit. |
+| `shipping_line_id` | bigint FK | Naviera (`shipping_lines`). Solo se eligen las activas. El kit solo acepta dispositivos de lotes de esta naviera (criterio 13). |
+| `status` | varchar(20) | Índice. Enum de PHP `KitStatus`: `building` (Armando, el inicial y mientras falten dispositivos), `built` (Armado, completo), `dispatched` (Despachado, H15) y `used` (Usado, H17). Pasa solo entre Armando y Armado al agregar o quitar (criterio 14). |
+| `created_by` | bigint FK | Usuario que creó el kit (`users`). Con `created_at`, cumple el criterio 11. |
+| `timestamps` | | La semana del kit no es columna: es la semana ISO de `created_at` en hora de Lima (2026-W47). |
+
+Sin zona de patio: la elige el inspector al iniciar la certificación (H17).
+
+### 5.19c `kit_security_device_type` · `en código`
+
+Copia de lo que lleva el tipo de kit al crear el kit, con las mismas columnas que `kit_type_security_device_type`: `kit_id` y `security_device_type_id` (PK compuesta), `quantity`, `internal_quantity` y `external_quantity`. Tabla puente pura, sin marcas de tiempo. Se escribe junto con `kits`, en una transacción.
+
+### 5.19d `kit_security_device` · `en código`
+
+Dispositivos de cada kit.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | Da el orden en que se agregaron. |
+| `kit_id` | bigint FK | Kit (`kits`). |
+| `security_device_id` | bigint FK | UK: un dispositivo solo está en un kit (criterio 6). Al agregarlo pasa a `in_kit`; al quitarlo se borra la fila y vuelve a `available` (criterio 9). |
+| `assignment` | varchar(10) (null) | Enum de PHP `KitAssignment`: `external` o `internal`, solo en un tipo de dispositivo que se reparte (cinta de inspección); si no, null. Lo elige el campo donde se escanea (cambio del usuario del 2026-11-16). |
+| `timestamps` | | |
 
 ### 5.20 `workers` · `en código`
 
@@ -647,9 +754,7 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `security_devices` (ya en código) | H29, H30 | Columnas nuevas `activated_at` y `activated_by` (→ `users`), nulas mientras no se active: la activación para despacho es una marca aparte del estado. `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). |
-| `kits` (`kits`) | H14 | `series_code` UK. `shipping_line_id` obligatorio: solo acepta dispositivos de lotes de esa naviera. `status`: `building` (Armando), `built` (Armado), `dispatched`, `used` (`building` agregado el 2026-11-13, T46). La semana no es columna: es la semana ISO de `created_at` en hora de Lima. Sin zona de patio: la elige el inspector al certificar. |
-| `kit_security_device` (`kits_device_units`) | H14 | Un dispositivo solo está en un kit. |
+| `security_devices` (ya en código) | H30 | `status` suma `dispatched` (Despachado), para el despacho a granel. Decidido el 2026-11-13 (T46). (La marca de activación con `activated_at` y `activated_by` se descartó el 2026-11-16: H29 usa el estado `inactive` y la tabla `security_device_lot_approvals`.) |
 | `kit_dispatches` (`kits_dispatches`) | H15 | `receiver_id` → `workers`; quien entrega es `created_by`; se descarta `assigned_by`. |
 | `kit_dispatch_items` (`kit_dispatches_assigned_units`) | H15 | Lleva `id`; `kit_id` UK. |
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |

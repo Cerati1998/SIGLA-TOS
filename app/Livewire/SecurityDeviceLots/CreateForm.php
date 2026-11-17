@@ -50,7 +50,7 @@ class CreateForm extends Component
         session()->flash('toast', [
             'icon' => 'success',
             'title' => 'Lote guardado',
-            'text' => sprintf('Se registraron %s dispositivos disponibles.', number_format($lot->quantity, 0, ',', ' ')),
+            'text' => sprintf('Se registraron %s dispositivos inactivos, a la espera de la aprobación de la naviera.', number_format($lot->quantity, 0, ',', ' ')),
         ]);
 
         $this->redirectRoute('intranet.security-device-lots.show', $lot, navigate: true);

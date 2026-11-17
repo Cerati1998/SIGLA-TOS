@@ -7,6 +7,7 @@ use App\Models\KitType;
 use App\Models\SecurityDeviceType;
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -45,9 +46,10 @@ class KitTypeForm extends Form
     public string $containerTypeId = '';
 
     /**
-     * One entry per security device type that can be chosen, keyed by its id: whether the kit type carries it and how many.
+     * One entry per security device type that can be chosen, keyed by its id: whether the kit type carries it and how
+     * many. A type split between internal and external carries how many go to each instead of a single quantity.
      *
-     * @var array<int, array{on: bool, quantity: int|string}>
+     * @var array<int, array{on: bool, quantity?: int|string, internal?: int|string, external?: int|string}>
      */
     public array $devices = [];
 
@@ -57,7 +59,7 @@ class KitTypeForm extends Form
     public function fillDevices(): void
     {
         $this->devices = $this->deviceTypes()
-            ->mapWithKeys(fn (SecurityDeviceType $deviceType): array => [$deviceType->id => ['on' => false, 'quantity' => 1]])
+            ->mapWithKeys(fn (SecurityDeviceType $deviceType): array => [$deviceType->id => $this->emptyDevice($deviceType)])
             ->all();
     }
 
@@ -71,16 +73,15 @@ class KitTypeForm extends Form
         $this->name = $kitType->name;
         $this->containerTypeId = (string) $kitType->container_type_id;
 
-        $quantities = $kitType->securityDeviceTypes->mapWithKeys(
-            fn (SecurityDeviceType $deviceType): array => [$deviceType->id => (int) $deviceType->getRelationValue('pivot')->getAttribute('quantity')],
+        $carried = $kitType->securityDeviceTypes->mapWithKeys(
+            fn (SecurityDeviceType $deviceType): array => [$deviceType->id => $deviceType->getRelationValue('pivot')],
         );
 
-        $this->savedDeviceTypeIds = $quantities->keys()->all();
+        $this->savedDeviceTypeIds = $carried->keys()->all();
         $this->devices = $this->deviceTypes()
-            ->mapWithKeys(fn (SecurityDeviceType $deviceType): array => [$deviceType->id => [
-                'on' => $quantities->has($deviceType->id),
-                'quantity' => $quantities->get($deviceType->id, 1),
-            ]])
+            ->mapWithKeys(fn (SecurityDeviceType $deviceType): array => [$deviceType->id => $carried->has($deviceType->id)
+                ? $this->carriedDevice($deviceType, $carried->get($deviceType->id))
+                : $this->emptyDevice($deviceType)])
             ->all();
     }
 
@@ -114,7 +115,8 @@ class KitTypeForm extends Form
 
     /**
      * Get the validation rules of the form. The name is unique even among the deactivated kit types, it carries at
-     * least one security device type, and every quantity is a whole number greater than zero.
+     * least one security device type, and every quantity is a whole number greater than zero. A type split between
+     * internal and external takes two whole numbers from zero that add up to at least one.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -128,8 +130,16 @@ class KitTypeForm extends Form
             'devices' => ['array', $this->carriesAtLeastOneDevice(...), $this->onlyChoosableDevices(...)],
         ];
 
+        $splitIds = $this->splitDeviceTypeIds();
+
         foreach (array_keys($this->selectedDevices()) as $deviceTypeId) {
-            $rules["devices.{$deviceTypeId}.quantity"] = ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY];
+            if (in_array($deviceTypeId, $splitIds, true)) {
+                $rules["devices.{$deviceTypeId}.internal"] = ['required', 'integer', 'min:0', 'max:'.self::MAX_QUANTITY];
+                $rules["devices.{$deviceTypeId}.external"] = ['required', 'integer', 'min:0', 'max:'.self::MAX_QUANTITY];
+                $rules["devices.{$deviceTypeId}"] = [$this->splitAddsUp(...)];
+            } else {
+                $rules["devices.{$deviceTypeId}.quantity"] = ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY];
+            }
         }
 
         return $rules;
@@ -142,6 +152,10 @@ class KitTypeForm extends Form
      */
     protected function messages(): array
     {
+        $tooMany = 'La cantidad no puede pasar de '.self::MAX_QUANTITY.'.';
+        $internal = 'Escribe cuántas van a la asignación interna, desde cero.';
+        $external = 'Escribe cuántas van a la asignación externa, desde cero.';
+
         return [
             'name.required' => 'Escribe el nombre del tipo de kit.',
             'name.unique' => 'Ya existe un tipo de kit con este nombre, aunque esté desactivado.',
@@ -150,7 +164,15 @@ class KitTypeForm extends Form
             'devices.*.quantity.required' => 'Escribe una cantidad entera mayor que cero.',
             'devices.*.quantity.integer' => 'Escribe una cantidad entera mayor que cero.',
             'devices.*.quantity.min' => 'Escribe una cantidad entera mayor que cero.',
-            'devices.*.quantity.max' => 'La cantidad no puede pasar de '.self::MAX_QUANTITY.'.',
+            'devices.*.quantity.max' => $tooMany,
+            'devices.*.internal.required' => $internal,
+            'devices.*.internal.integer' => $internal,
+            'devices.*.internal.min' => $internal,
+            'devices.*.internal.max' => $tooMany,
+            'devices.*.external.required' => $external,
+            'devices.*.external.integer' => $external,
+            'devices.*.external.min' => $external,
+            'devices.*.external.max' => $tooMany,
         ];
     }
 
@@ -166,6 +188,8 @@ class KitTypeForm extends Form
             'containerTypeId' => 'tipo de contenedor',
             'devices' => 'dispositivos',
             'devices.*.quantity' => 'cantidad',
+            'devices.*.internal' => 'interna',
+            'devices.*.external' => 'externa',
         ];
     }
 
@@ -196,6 +220,37 @@ class KitTypeForm extends Form
     }
 
     /**
+     * Get the entry of a security device type the kit type does not carry yet.
+     *
+     * @return array{on: bool, quantity?: int, internal?: int, external?: int}
+     */
+    private function emptyDevice(SecurityDeviceType $deviceType): array
+    {
+        return $deviceType->splits_internal_external
+            ? ['on' => false, 'internal' => 0, 'external' => 0]
+            : ['on' => false, 'quantity' => 1];
+    }
+
+    /**
+     * Get the entry of a security device type the kit type carries. A type that started to be split after the kit type
+     * was saved starts its split at zero, so the admin decides it.
+     *
+     * @return array{on: bool, quantity?: int, internal?: int, external?: int}
+     */
+    private function carriedDevice(SecurityDeviceType $deviceType, Pivot $pivot): array
+    {
+        if (! $deviceType->splits_internal_external) {
+            return ['on' => true, 'quantity' => (int) $pivot->getAttribute('quantity')];
+        }
+
+        return [
+            'on' => true,
+            'internal' => (int) $pivot->getAttribute('internal_quantity'),
+            'external' => (int) $pivot->getAttribute('external_quantity'),
+        ];
+    }
+
+    /**
      * Fail when the kit type carries no security device type.
      */
     private function carriesAtLeastOneDevice(string $attribute, mixed $value, Closure $fail): void
@@ -218,22 +273,53 @@ class KitTypeForm extends Form
     }
 
     /**
-     * Get the security device types the kit type carries, as id => quantity. The entries come from the browser, so
-     * one without its keys counts as turned off or without quantity.
+     * Fail when the internal and the external quantities of a split type do not add up to between one and the most.
+     */
+    private function splitAddsUp(string $attribute, mixed $value, Closure $fail): void
+    {
+        $total = $this->splitTotal(is_array($value) ? $value : []);
+
+        if ($total < 1) {
+            $fail('Reparte al menos una entre interna y externa.');
+        } elseif ($total > self::MAX_QUANTITY) {
+            $fail('Entre interna y externa no pueden pasar de '.self::MAX_QUANTITY.'.');
+        }
+    }
+
+    /**
+     * Get the ids of the choosable security device types split between internal and external.
      *
-     * @return array<int, int|string>
+     * @return array<int, int>
+     */
+    private function splitDeviceTypeIds(): array
+    {
+        return $this->deviceTypes()
+            ->filter(fn (SecurityDeviceType $deviceType): bool => $deviceType->splits_internal_external)
+            ->modelKeys();
+    }
+
+    /**
+     * Get the security device types the kit type carries, as id => entry. The entries come from the browser, so one
+     * without its keys counts as turned off or without quantity.
+     *
+     * @return array<int, array<string, mixed>>
      */
     private function selectedDevices(): array
     {
-        $selected = [];
+        return array_filter(
+            $this->devices,
+            fn (mixed $device): bool => data_get($device, 'on') === true,
+        );
+    }
 
-        foreach ($this->devices as $deviceTypeId => $device) {
-            if (data_get($device, 'on') === true) {
-                $selected[$deviceTypeId] = data_get($device, 'quantity', '');
-            }
-        }
-
-        return $selected;
+    /**
+     * Add up the internal and the external quantities of a split entry.
+     *
+     * @param  array<string, mixed>  $device
+     */
+    private function splitTotal(array $device): int
+    {
+        return (int) data_get($device, 'internal', 0) + (int) data_get($device, 'external', 0);
     }
 
     /**
@@ -260,12 +346,30 @@ class KitTypeForm extends Form
     }
 
     /**
-     * Get the rows of the pivot table: each security device type the kit type carries, with its quantity.
+     * Get the rows of the pivot table: each security device type the kit type carries, with its quantity. A split type
+     * also keeps how many go to the internal and to the external assignment, and its quantity is their sum.
      *
-     * @return array<int, array{quantity: int}>
+     * @return array<int, array{quantity: int, internal_quantity: int|null, external_quantity: int|null}>
      */
     private function pivotRows(): array
     {
-        return array_map(fn (int|string $quantity): array => ['quantity' => (int) $quantity], $this->selectedDevices());
+        $splitIds = $this->splitDeviceTypeIds();
+        $rows = [];
+
+        foreach ($this->selectedDevices() as $deviceTypeId => $device) {
+            $rows[$deviceTypeId] = in_array($deviceTypeId, $splitIds, true)
+                ? [
+                    'quantity' => $this->splitTotal($device),
+                    'internal_quantity' => (int) data_get($device, 'internal'),
+                    'external_quantity' => (int) data_get($device, 'external'),
+                ]
+                : [
+                    'quantity' => (int) data_get($device, 'quantity'),
+                    'internal_quantity' => null,
+                    'external_quantity' => null,
+                ];
+        }
+
+        return $rows;
     }
 }

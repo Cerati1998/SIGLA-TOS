@@ -10,7 +10,10 @@
         <div x-show="selected.length > 0" class="flex flex-col gap-1.5">
             <template x-for="device in selected" x-bind:key="device.id">
                 <div class="flex justify-between gap-2 text-sm">
-                    <span x-text="device.name"></span>
+                    <span class="flex flex-col">
+                        <span x-text="device.name"></span>
+                        <span x-show="device.split" class="text-xs text-ink-muted" x-text="device.internal + ' interna · ' + device.external + ' externa'"></span>
+                    </span>
                     <span class="font-heading font-medium text-brand" x-text="'× ' + device.quantity"></span>
                 </div>
             </template>
