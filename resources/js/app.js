@@ -8,6 +8,7 @@ import './alpine-transitions';
 import './echo';
 import './confirm';
 import './toast';
+import './digits-only';
 import './security-device-lot-preview';
 import './kit-scanner';
 import '../../vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables';

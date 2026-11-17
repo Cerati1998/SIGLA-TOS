@@ -39,12 +39,6 @@
     <flux:error name="form.paymentCondition" />
 </fieldset>
 
-{{-- Only digits get into the days: any other character typed or pasted is stopped before it reaches the field. --}}
-<div
-    x-show="$wire.form.paymentCondition === '{{ \App\Enums\PaymentCondition::Credit->value }}'"
-    x-cloak
-    x-on:beforeinput="/\D/.test($event.data ?? $event.dataTransfer?.getData('text') ?? '') && $event.preventDefault()"
-    class="md:max-w-50"
->
+<div x-show="$wire.form.paymentCondition === '{{ \App\Enums\PaymentCondition::Credit->value }}'" x-cloak x-digits-only class="md:max-w-50">
     <x-wire-input id="{{ $idPrefix }}-credit-days" wire:model="form.creditDays" label="Días de crédito" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
 </div>
