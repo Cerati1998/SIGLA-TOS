@@ -93,7 +93,7 @@
                             x-on:click="showTab"
                             x-bind:aria-selected="isTab('{{ $tab }}')"
                             x-bind:class="tabClass('{{ $tab }}')"
-                            class="-mb-px min-h-11 flex-1 cursor-pointer border-0 border-b-3 bg-transparent px-3.5 text-sm md:flex-none md:text-[0.9375rem]"
+                            class="-mb-px min-h-11 flex-1 cursor-pointer border-0 border-b-3 bg-transparent px-1.5 text-sm whitespace-nowrap md:flex-none md:px-3.5 md:text-[0.9375rem]"
                         >{{ $label }}</button>
                     @endforeach
                 </div>
@@ -127,14 +127,14 @@
                 </div>
 
                 <div x-show="isTab('range')" x-cloak class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                    <x-wire-input id="bulk-dispatch-range-first" label="Serie inicial" x-model="rangeFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" class="uppercase" />
-                    <x-wire-input id="bulk-dispatch-range-last" label="Serie final" x-model="rangeLast" x-on:input="forgetPreview" autocomplete="off" maxlength="50" class="uppercase" />
+                    <x-wire-input id="bulk-dispatch-range-first" label="Serie inicial" x-model="rangeFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
+                    <x-wire-input id="bulk-dispatch-range-last" label="Serie final" x-model="rangeLast" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
                     <flux:button type="button" x-on:click="previewRange" wire:loading.attr="disabled" wire:target="byRange" class="max-md:h-11">Ver vista previa</flux:button>
                 </div>
 
                 <div x-show="isTab('quantity')" x-cloak class="grid grid-cols-1 items-end gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_8.75rem_auto]">
                     <x-wire-native-select id="bulk-dispatch-type" label="Tipo de dispositivo" x-model="quantityType" x-on:change="forgetPreview" :options="['' => 'Elige un tipo'] + $deviceTypes->all()" option-key-value />
-                    <x-wire-input id="bulk-dispatch-quantity-first" label="Serie inicial" x-model="quantityFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" class="uppercase" />
+                    <x-wire-input id="bulk-dispatch-quantity-first" label="Serie inicial" x-model="quantityFirst" x-on:input="forgetPreview" autocomplete="off" maxlength="50" />
                     <div x-digits-only>
                         <x-wire-input id="bulk-dispatch-quantity" label="Cantidad" inputmode="numeric" x-model="quantity" x-on:input="forgetPreview" autocomplete="off" maxlength="5" />
                     </div>
