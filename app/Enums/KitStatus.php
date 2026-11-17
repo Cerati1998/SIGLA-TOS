@@ -43,4 +43,13 @@ enum KitStatus: string
     {
         return $this === self::Building || $this === self::Built;
     }
+
+    /**
+     * Whether a kit with this status has the PDF of its contents: once it is complete, from Armado on (H15,
+     * criterion 14).
+     */
+    public function hasContentsPdf(): bool
+    {
+        return $this !== self::Building;
+    }
 }

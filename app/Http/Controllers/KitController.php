@@ -23,12 +23,12 @@ class KitController extends Controller
     }
 
     /**
-     * Show the PDF of a dispatched kit: only its contents, without the data of its dispatch (H15, criterion 14). It
+     * Show the PDF of a complete kit: only its contents, without the data of its dispatch (H15, criterion 14). It
      * opens in the browser, to download or print it.
      */
     public function pdf(Request $request, Kit $kit, BuildKitContents $buildKitContents): Response
     {
-        abort_if($kit->status->contentsCanChange(), 404);
+        abort_unless($kit->status->hasContentsPdf(), 404);
 
         /** @var User $user */
         $user = $request->user();

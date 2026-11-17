@@ -256,10 +256,11 @@ class KitDispatchTest extends TestCase
             ->assertSeeHtml(route('intranet.kits.pdf', $kit));
     }
 
-    public function test_the_pdf_of_a_dispatched_kit_opens_in_the_browser_and_a_kit_not_dispatched_has_none(): void
+    public function test_the_pdf_of_a_kit_opens_in_the_browser_once_it_is_built_and_a_kit_still_building_has_none(): void
     {
         $kit = $this->builtKit('KIT-000046');
-        $notDispatched = $this->builtKit('KIT-000047');
+        $built = $this->builtKit('KIT-000047');
+        $building = $this->kit('KIT-000048', devices: 1);
         $this->dispatchOf($this->receiver, [$kit]);
 
         $this->get(route('intranet.kits.pdf', $kit))
@@ -267,7 +268,15 @@ class KitDispatchTest extends TestCase
             ->assertHeader('content-type', 'application/pdf')
             ->assertHeader('content-disposition', 'inline; filename="Kit KIT-000046.pdf"');
 
-        $this->get(route('intranet.kits.pdf', $notDispatched))->assertNotFound();
+        $this->get(route('intranet.kits.pdf', $built))
+            ->assertOk()
+            ->assertHeader('content-disposition', 'inline; filename="Kit KIT-000047.pdf"');
+
+        Livewire::test(KitsTable::class)
+            ->assertSeeHtml(route('intranet.kits.pdf', $built))
+            ->assertDontSeeHtml(route('intranet.kits.pdf', $building));
+
+        $this->get(route('intranet.kits.pdf', $building))->assertNotFound();
 
         auth()->logout();
         $this->get(route('intranet.kits.pdf', $kit))->assertRedirect(route('login'));
