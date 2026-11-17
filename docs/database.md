@@ -49,6 +49,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `branches` | E1 · T19 | `en código` | `branches` |
 | `shipping_lines` | E8 · H09 | `en código` | `shipping_lines` |
 | `providers` | E8 · H10 | `en código` | `providers` |
+| `clients` | E8 · H31 | `en código` | `clients` (estaba como futura) |
 | `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
 | `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
 | `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
@@ -113,11 +114,12 @@ erDiagram
   }
 ```
 
-### 4.2 Maestros: navieras, proveedores y tipos de dispositivo (E8, E2)
+### 4.2 Maestros: navieras, proveedores, clientes y tipos de dispositivo (E8, E2)
 
 ```mermaid
 erDiagram
   identities ||--o{ providers : "tipo de documento"
+  identities ||--o{ clients : "tipo de documento"
 
   shipping_lines {
     bigint id PK
@@ -130,6 +132,14 @@ erDiagram
     string identity_id FK
     string document_number "UK con identity_id"
     string business_name
+    datetime deleted_at
+  }
+  clients {
+    bigint id PK
+    string identity_id FK
+    string document_number "UK con identity_id"
+    string business_name
+    string payment_condition "cash o credit"
     datetime deleted_at
   }
   security_device_types {
@@ -505,6 +515,21 @@ Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` d
 | `phone` | varchar(20) (null) | Opcional (H10, criterio 1). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). |
 
+### 5.7b `clients` · `en código`
+
+Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más, la condición de pago (decisión del usuario del 2026-11-17). La usa el despacho a granel por venta (H30).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `identity_id` | varchar(50) FK | Tipo de documento: solo RUC (`6`) o DNI (`1`), como en `providers`. |
+| `document_number` | varchar(15) | UK compuesta con `identity_id` (criterio 3), aunque el cliente esté desactivado. |
+| `business_name` | varchar(255) | Con DNI, los nombres y apellidos. |
+| `address`, `email` | varchar(255) (null) | Opcionales (criterio 1). Vacío se guarda como null. |
+| `phone` | varchar(20) (null) | Opcional (criterio 1). |
+| `payment_condition` | varchar(20) | Enum `PaymentCondition`: `cash` (Contado) o `credit` (Crédito). Por defecto `cash` (criterio 2). |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 5). |
+
 ### 5.8 `security_device_types` · `en código`
 
 | Columna | Tipo | Notas |
@@ -806,7 +831,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 | `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `device_dispatches`, `device_dispatches_units` | H30 | Despacho a granel a un trabajador (`workers`), decidido el 2026-11-13 (T46). Si se une con `kit_dispatches` o va en tablas propias se decide al construir T52. Su uso en la reinspección se define al revisar E6. |
-| `clients` | E8 · H31 | Planeada para T56 (2026-11-17): copia de `providers` más `payment_condition` (`cash` Contado, por defecto, o `credit` Crédito). La usa H30 en el despacho a granel por venta. |
 | `affectations`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
 Tablas de roles y permisos: se definen al aprobar H24.
