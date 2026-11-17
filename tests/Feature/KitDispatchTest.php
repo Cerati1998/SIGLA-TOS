@@ -63,7 +63,7 @@ class KitDispatchTest extends TestCase
             ->set('form.receiverId', $this->receiver->id);
 
         $window->call('mark', ' kit-000046 ')
-            ->assertReturned(['ok' => true, 'message' => 'Kit de seguridad reefer · marcado']);
+            ->assertReturned(['ok' => true, 'message' => 'Kit de seguridad reefer · marcado', 'kitId' => $scanned->id, 'kitType' => 'Kit de seguridad reefer']);
         $window->set('form.kitIds', [$scanned->id, (string) $checked->id])
             ->assertSee('2 marcados')
             ->assertSee('2 Kit de seguridad reefer')

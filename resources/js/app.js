@@ -10,5 +10,4 @@ import './confirm';
 import './toast';
 import './security-device-lot-preview';
 import './kit-scanner';
-import './kit-dispatch-scanner';
 import '../../vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables';
