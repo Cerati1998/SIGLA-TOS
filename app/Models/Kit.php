@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Kits\AddSecurityDeviceToKit;
 use App\Enums\KitAssignment;
 use App\Enums\KitStatus;
 use Database\Factories\KitFactory;
@@ -30,6 +31,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read User $creator
  * @property-read Collection<int, SecurityDeviceType> $securityDeviceTypes
  * @property-read Collection<int, SecurityDevice> $devices
+ * @property-read Collection<int, KitDispatch> $dispatches
  */
 #[Fillable(['pouch_code', 'kit_type_id', 'shipping_line_id', 'status', 'created_by'])]
 class Kit extends Model
@@ -105,6 +107,36 @@ class Kit extends Model
             ->withPivot('id', 'assignment')
             ->withTimestamps()
             ->orderBy('kit_security_device.id');
+    }
+
+    /**
+     * Get the dispatch the kit is in. A kit is in a single dispatch (H15, criterion 5), so it has one at most.
+     *
+     * @return BelongsToMany<KitDispatch, $this>
+     */
+    public function dispatches(): BelongsToMany
+    {
+        return $this->belongsToMany(KitDispatch::class, 'kit_dispatch_items')->withTimestamps();
+    }
+
+    /**
+     * Get the dispatch the kit is in, or null while it has not been dispatched.
+     */
+    public function dispatch(): ?KitDispatch
+    {
+        return $this->dispatches->first();
+    }
+
+    /**
+     * Get what the kit still lacks, as in "2 Cinta de inspección · Externa y 1 Sello botella", or an empty string when
+     * it is complete.
+     */
+    public function missingDescription(): string
+    {
+        return collect($this->slots())
+            ->filter(fn (array $slot): bool => $slot['added'] < $slot['quantity'])
+            ->map(fn (array $slot): string => ($slot['quantity'] - $slot['added']).' '.AddSecurityDeviceToKit::slotLabel($slot))
+            ->join(', ', ' y ');
     }
 
     /**

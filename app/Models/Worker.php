@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
- * A person who receives the kits: an own worker, or one of a provider.
- * It is not linked to a user: the inspector is recognized by the same document type and number (H25, criterion 6).
+ * A person who receives the kits: an own worker, or one of a provider. It is not linked to a user (H25, criterion 6),
+ * and the worker a kit was dispatched to does not limit which kits the inspector uses (H15, criterion 11).
  *
  * @property int $id
  * @property string $identity_id
