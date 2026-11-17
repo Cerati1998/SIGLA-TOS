@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\KitController;
+use App\Http\Controllers\KitDispatchController;
 use App\Http\Controllers\ProviderOptionsController;
 use App\Http\Controllers\SecurityDeviceLotController;
 use App\Http\Controllers\WorkerOptionsController;
@@ -46,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('kits/{kit}/pdf', [KitController::class, 'pdf'])->name('kits.pdf');
 
     Route::view('kit-dispatches', 'pages.kit-dispatches.index')->name('kit-dispatches.index');
+
+    Route::get('kit-dispatches/{kitDispatch}/pdf', [KitDispatchController::class, 'pdf'])->name('kit-dispatches.pdf');
 
     Route::post('workers/options', WorkerOptionsController::class)->name('workers.options');
 

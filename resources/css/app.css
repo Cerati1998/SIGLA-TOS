@@ -10,7 +10,7 @@
 @source '../views';
 @source '../js';
 @source '../../vendor/rappasoft/laravel-livewire-tables/resources/views';
-@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,Select,TextField,Wrapper}/**/*.{php,blade.php}';
+@source '../../vendor/wireui/wireui/src/Components/{Button,Card,Label,Modal,Popover,Select,TextField,Wrapper}/**/*.{php,blade.php}';
 @source inline('z-50');
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';

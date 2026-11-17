@@ -52,7 +52,7 @@
                         a {{ $kitDispatch->receiver->full_name }} el {{ ($kitDispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i') }}. Su contenido ya no cambia.
                     </span>
                 </span>
-                <flux:button size="sm" :href="route('intranet.kits.pdf', $kit)" target="_blank" class="max-md:h-11 max-md:w-full">
+                <flux:button size="sm" variant="danger" :href="route('intranet.kits.pdf', $kit)" target="_blank" class="max-md:h-11 max-md:w-full">
                     <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
                     PDF
                 </flux:button>

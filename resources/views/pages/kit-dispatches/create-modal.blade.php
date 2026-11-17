@@ -50,7 +50,7 @@
                     <div wire:ignore class="overflow-hidden rounded-card border border-line bg-white">
                         <h5 class="m-0 bg-table-head px-3.5 py-2 font-sans text-xs font-medium tracking-wider text-ink-muted uppercase">Últimos escaneos</h5>
                         <p x-show="scans.length === 0" class="m-0 px-3.5 py-2.5 text-sm text-ink-muted">Cada funda que escanees aparece aquí: en verde lo marcado y en rojo lo que no entró, con el motivo.</p>
-                        <ul role="log" aria-live="polite" class="m-0 list-none p-0">
+                        <ul role="log" aria-live="polite" class="m-0 max-h-40 list-none overflow-y-auto p-0">
                             <template x-for="scan in scans" :key="scan.id">
                                 <li class="flex items-center gap-2.5 border-b border-line px-3.5 py-2 text-sm last:border-b-0">
                                     @include('pages.kits.partials.scan-icon')

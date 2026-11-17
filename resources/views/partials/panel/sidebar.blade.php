@@ -28,8 +28,14 @@
         [
             'name' => 'Despachos',
             'icon' => 'send',
-            'route' => route('intranet.kit-dispatches.index'),
             'active' => request()->routeIs('intranet.kit-dispatches.*'),
+            'submenu' => [
+                [
+                    'name' => 'Kits',
+                    'route' => route('intranet.kit-dispatches.index'),
+                    'active' => request()->routeIs('intranet.kit-dispatches.*'),
+                ],
+            ],
         ],
         ['header' => 'Certificación'],
         [
