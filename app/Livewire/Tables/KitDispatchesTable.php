@@ -78,6 +78,8 @@ class KitDispatchesTable extends BaseTable
                 ->label(fn (KitDispatch $row): View => view('pages.kit-dispatches.partials.kits', ['kitDispatch' => $row])),
             Column::make('Despachó')
                 ->label(fn (KitDispatch $row): string => $row->creator->name),
+            Column::make('Acciones')
+                ->label(fn (KitDispatch $row): View => view('pages.kit-dispatches.partials.actions', ['kitDispatch' => $row])),
         ];
     }
 

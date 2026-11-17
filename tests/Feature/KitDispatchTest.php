@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\KitDispatches\BuildKitPdfPage;
 use App\Actions\Kits\CreateKit;
 use App\Enums\KitStatus;
 use App\Enums\SecurityDeviceStatus;
@@ -276,25 +277,45 @@ class KitDispatchTest extends TestCase
     {
         $kit = $this->builtKit('KIT-000046');
         $dispatch = $this->dispatchOf($this->receiver, [$kit]);
-        $kit->load(['kitType', 'shippingLine', 'devices']);
 
         $html = view('pdf.kits.dispatch', [
-            'kit' => $kit,
             'dispatch' => $dispatch->load(['receiver', 'creator']),
-            'devices' => collect([['serialNumber' => 'SLL0000001', 'type' => 'Sello botella', 'assignment' => '-']]),
-            'slots' => $kit->slots(),
-            'generatedAt' => now('America/Lima'),
+            'pages' => [app(BuildKitPdfPage::class)->handle($kit)],
             'generatedBy' => 'Bodeguero Uno',
-            'logo' => '',
         ])->render();
 
         $this->assertStringContainsString('Despacho de kit de seguridad', $html);
         $this->assertStringContainsString($dispatch->number(), $html);
+        $this->assertStringContainsString('KIT-000046', $html);
         $this->assertStringContainsString('SLL0000001', $html);
+        $this->assertStringContainsString('SLL0000002', $html);
         $this->assertStringContainsString(($dispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i'), $html);
         $this->assertStringContainsString('Trabajador De Ejemplo Dos', $html);
         $this->assertStringContainsString('Bodeguero Uno', $html);
         $this->assertStringNotContainsString('00000002', $html);
+    }
+
+    public function test_the_list_of_dispatches_offers_the_pdf_of_each_dispatch_with_one_page_per_kit(): void
+    {
+        $dispatch = $this->dispatchOf($this->receiver, [$this->builtKit('KIT-000046'), $this->builtKit('KIT-000047')]);
+
+        Livewire::test(KitDispatchesTable::class)
+            ->assertSeeHtml(route('intranet.kit-dispatches.pdf', $dispatch));
+
+        $this->get(route('intranet.kit-dispatches.pdf', $dispatch))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertHeader('content-disposition', sprintf('inline; filename="Despacho %s.pdf"', $dispatch->number()));
+
+        $html = view('pdf.kits.dispatch', [
+            'dispatch' => $dispatch->load(['receiver', 'creator']),
+            'pages' => $dispatch->kits->map(fn (Kit $kit): array => app(BuildKitPdfPage::class)->handle($kit))->all(),
+            'generatedBy' => 'Bodeguero Uno',
+        ])->render();
+
+        $this->assertSame(1, substr_count($html, 'class="salto"'));
+        $this->assertStringContainsString('KIT-000046', $html);
+        $this->assertStringContainsString('KIT-000047', $html);
     }
 
     public function test_the_worker_search_of_the_window_only_offers_active_workers_by_name_or_document(): void
