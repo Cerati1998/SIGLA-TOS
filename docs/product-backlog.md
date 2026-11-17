@@ -38,7 +38,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel.
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
-- Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
+- Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario. El trabajador que recibe solo queda registrado en el despacho: no limita qué kits ve el inspector, que puede escanear cualquier kit Despachado (cambiado por el usuario el 2026-11-17, en H15; antes el inspector se reconocía comparando el tipo y número de documento de su usuario con los del trabajador, decisión del 2026-11-04).
 - Por ahora hay una sola empresa (`companies`), cargada por seeder y modificable en su pantalla (H27), y cada sucursal pertenece a ella. Las sucursales también se gestionan en pantalla (H27). Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
@@ -354,7 +354,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. El admin edita los datos de un trabajador.
   4. El admin desactiva un trabajador en vez de borrarlo, y lo reactiva desde la lista. Uno desactivado no aparece al despachar kits, pero se conserva en los despachos ya hechos.
   5. Hay una lista que se puede buscar por nombre o número de documento.
-  6. Un trabajador no se enlaza directamente a un usuario. Para que un inspector vea los kits que le despacharon, su usuario y su trabajador deben tener el mismo tipo y número de documento.
+  6. Un trabajador no se enlaza directamente a un usuario. (Cambiado por el usuario el 2026-11-17, en H15: ya no se compara su documento con el del usuario, porque el inspector puede usar cualquier kit Despachado.)
   7. El número de documento solo lo ven los roles que lo necesitan. Cuáles son se resuelve en H24; hasta entonces lo ve cualquier usuario con sesión, como en H22 (decisión del usuario del 2026-11-13). No es asesoría legal.
   8. Solo el admin usa esta pantalla: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa, como en H22 (decisión del usuario del 2026-11-13).
   9. La pantalla se puede usar bien desde el celular.
@@ -403,8 +403,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H15 · Despachar kits**
 - Como usuario de bodega, quiero despachar uno o más kits a un trabajador, para dejarlos disponibles para certificar.
 - Criterios de aceptación:
-  1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo.
-  2. Los kits se agregan escaneando la funda de cada uno. Cada escaneo llena el campo y se agrega solo a la lista, sin botón de guardar.
+  1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo; se muestra en el despacho en solo lectura (decisión del usuario del 2026-11-17).
+  2. Los kits se agregan escaneando la funda de cada uno: cada escaneo llena el campo y marca el kit solo, sin botón de guardar. También se marcan con su casilla en una tabla de kits Armados y sin despachar, que se filtra por tipo de kit, naviera y funda (cambio del usuario del 2026-11-17, tomado del despacho de BUMMOCK). Un despacho puede llevar kits de distintos tipos.
   3. Solo se pueden despachar kits que no estén ya despachados; si ya lo está, se muestra en qué despacho.
   4. Solo se despacha un kit Armado, es decir, completo. Un kit vacío o incompleto (Armando) no se despacha, y se muestra qué le falta (T46, 2026-11-13).
   5. Cada kit queda en un solo despacho.
@@ -413,11 +413,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Hay una lista de despachos con kits, receptor y fecha, que se puede filtrar.
   9. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
   10. La pantalla se puede usar bien desde el celular.
-  11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
+  11. El trabajador que recibe queda registrado en el despacho, pero no limita qué kits ve el inspector: en H17 puede usar cualquier kit Despachado (cambiado por el usuario el 2026-11-17; antes solo veía los despachados al trabajador con su mismo documento).
   12. Solo se despacha un kit si todos sus dispositivos están activados para despacho (H29). Como H14 solo acepta dispositivos activados y una activación no se deshace, la regla se cumple sola; se deja escrita porque la marca es obligatoria para todo despacho (pedido por el usuario el 2026-11-13).
   13. Al despacharse, el kit pasa a Despachado. Sus dispositivos siguen En un kit (T46, 2026-11-13).
-- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
-- Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
+  14. Cada kit despachado tiene un PDF con el detalle de su contenido (sus dispositivos, con serie y tipo), cuándo se despachó, quién lo entregó y a quién (pedido por el usuario el 2026-11-17).
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47) y cambiado a su pedido el 2026-11-17, tomando como referencia el despacho de BUMMOCK: el despacho es un solo modal, «Despacho masivo de kits», que se abre desde la lista de despachos (Bodega → Despachos). Arriba, el trabajador que recibe y quién entrega; abajo, el escaneo de la funda y la tabla de kits Armados con casillas, «Solo marcados», contadores y resumen por tipo. No hay un paso «Asignar» aparte. La lista de despachos muestra número (D-000013), fecha, semana, trabajador que recibe, kits con su resumen por tipo y quién despachó, con filtros de semana, trabajador y tipo de kit. Aprobado el 2026-11-17.
+- Supuestos aprobados con el diseño: el número del despacho es «D-» y su id con seis dígitos, sin columna propia; la semana del despacho es la semana ISO de su fecha, en hora de Lima; lo marcado vive en el modal hasta pulsar «Despachar» y se conserva al cambiar de página o de filtro. Al despachar, la pantalla del kit ya no ofrece escanear ni quitar.
+- Fuera de esta historia: editar un despacho y el QR del despacho. La asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
 - Como usuario de bodega, supervisor o admin, quiero ver los kits y sus despachos, y buscar un kit por el código de su funda, para saber qué contiene, en qué estado está y quién lo tiene.
@@ -530,7 +532,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
   6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra. La reinspección reabre esa misma certificación (decisión del 2026-11-04).
-  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Solo encuentra kits despachados al trabajador que tiene su mismo tipo y número de documento, y ve su contenido como información.
+  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15).
   8. Un kit solo se usa en una certificación (por confirmar).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
   10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión).
