@@ -49,6 +49,17 @@
             'route' => route('intranet.gate-out-requests.index'),
             'active' => request()->routeIs('intranet.gate-out-requests.*'),
         ],
+        [
+            'name' => 'Inspección',
+            'icon' => 'clipboard',
+            'route' => route('intranet.certifications.create'),
+            'active' => request()->routeIs('intranet.certifications.*'),
+        ],
+        [
+            'name' => 'Checkpoint',
+            'icon' => 'check-square',
+            'disabled' => true,
+        ],
         ['header' => 'Administración'],
         [
             'name' => 'Usuarios',

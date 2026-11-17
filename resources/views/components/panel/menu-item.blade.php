@@ -1,6 +1,7 @@
 @props([
     'icon',
     'active' => false,
+    'disabled' => false,
 ])
 
 @php
@@ -9,11 +10,14 @@
 
 <{{ $tag }}
     {{ $attributes->class([
-        'ms-5 flex min-h-11.25 items-center gap-2.5 rounded-s-full px-3.75 py-2.5 text-start text-base font-medium transition-colors hover:bg-white hover:text-brand',
+        'ms-5 flex min-h-11.25 items-center gap-2.5 rounded-s-full px-3.75 py-2.5 text-start text-base font-medium transition-colors',
         'md:group-data-collapsed/panel:mx-2.5 md:group-data-collapsed/panel:justify-center md:group-data-collapsed/panel:rounded-full md:group-data-collapsed/panel:px-0',
+        'cursor-not-allowed text-sidebar-muted' => $disabled,
+        'hover:bg-white hover:text-brand' => ! $disabled,
         'bg-white text-brand shadow-card' => $active,
-        'text-white' => ! $active,
+        'text-white' => ! $active && ! $disabled,
     ]) }}
+    @if ($disabled) disabled aria-disabled="true" @endif
     title="{{ trim(strip_tags($slot)) }}"
     @if ($tag === 'a')
         wire:navigate
