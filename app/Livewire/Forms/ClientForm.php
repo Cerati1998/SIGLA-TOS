@@ -26,6 +26,11 @@ class ClientForm extends Form
         Identity::DNI => ['label' => 'DNI', 'digits' => 8],
     ];
 
+    /**
+     * The most days of credit a client can have.
+     */
+    public const int MAX_CREDIT_DAYS = 365;
+
     public bool $openModal = false;
 
     #[Locked]
@@ -49,6 +54,11 @@ class ClientForm extends Form
     public string $paymentCondition = PaymentCondition::Cash->value;
 
     /**
+     * The days of credit, asked only when the client pays on credit.
+     */
+    public string $creditDays = '';
+
+    /**
      * Fill the form with the client being edited.
      */
     public function setClient(Client $client): void
@@ -61,6 +71,7 @@ class ClientForm extends Form
         $this->email = (string) $client->email;
         $this->phone = (string) $client->phone;
         $this->paymentCondition = $client->payment_condition->value;
+        $this->creditDays = (string) $client->credit_days;
         $this->rememberLookedUpDocument();
     }
 
@@ -84,6 +95,9 @@ class ClientForm extends Form
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'paymentCondition' => ['required', Rule::enum(PaymentCondition::class)],
+            'creditDays' => $this->paysOnCredit()
+                ? ['required', 'integer', 'between:1,'.self::MAX_CREDIT_DAYS]
+                : ['nullable'],
         ];
     }
 
@@ -115,6 +129,7 @@ class ClientForm extends Form
             'email' => 'correo electrónico',
             'phone' => 'teléfono',
             'paymentCondition' => 'condición de pago',
+            'creditDays' => 'días de crédito',
         ];
     }
 
@@ -177,11 +192,19 @@ class ClientForm extends Form
     }
 
     /**
+     * Whether the chosen condition is credit, the only one that asks for the days.
+     */
+    private function paysOnCredit(): bool
+    {
+        return $this->paymentCondition === PaymentCondition::Credit->value;
+    }
+
+    /**
      * Validate the data as it will be stored, without spaces around it.
      */
     private function validateTrimmed(): void
     {
-        foreach (['documentNumber', 'businessName', 'address', 'email', 'phone'] as $field) {
+        foreach (['documentNumber', 'businessName', 'address', 'email', 'phone', 'creditDays'] as $field) {
             $this->{$field} = trim($this->{$field});
         }
 
@@ -191,7 +214,7 @@ class ClientForm extends Form
     /**
      * Get the columns of the client that this form writes.
      *
-     * @return array{identity_id: string, document_number: string, business_name: string, address: string|null, email: string|null, phone: string|null, payment_condition: string}
+     * @return array{identity_id: string, document_number: string, business_name: string, address: string|null, email: string|null, phone: string|null, payment_condition: string, credit_days: int|null}
      */
     private function clientAttributes(): array
     {
@@ -203,6 +226,7 @@ class ClientForm extends Form
             'email' => $this->email === '' ? null : $this->email,
             'phone' => $this->phone === '' ? null : $this->phone,
             'payment_condition' => $this->paymentCondition,
+            'credit_days' => $this->paysOnCredit() ? (int) $this->creditDays : null,
         ];
     }
 }

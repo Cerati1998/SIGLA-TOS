@@ -200,14 +200,14 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como usuario de la intranet, quiero crear, editar, desactivar y reactivar clientes, para elegirlos al despachar dispositivos a granel por venta (H30).
 - Criterios de aceptación:
   1. Se crea un cliente con tipo y número de documento, razón social, dirección, correo, teléfono y condición de pago. Son obligatorios el tipo y el número de documento, la razón social y la condición; dirección, correo y teléfono son opcionales, como en H10.
-  2. La condición de pago es Contado o Crédito. Al crear un cliente viene marcada Contado.
+  2. La condición de pago es Contado o Crédito. Al crear un cliente viene marcada Contado. Al elegir Crédito aparece el campo «Días de crédito», obligatorio, un número entero de 1 a 365; con Contado el campo se oculta y los días no se guardan (pedido por el usuario el 2026-11-17, al revisar la construcción).
   3. No se pueden crear dos clientes con el mismo tipo y número de documento, aunque uno esté desactivado.
   4. Se editan los datos de un cliente, también su condición.
   5. Un cliente se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. Uno desactivado no aparece al despachar, pero se conserva en lo que ya existe.
-  6. Hay una lista, ordenada por razón social, que se puede buscar por razón social o número de documento y filtrar por estado. La lista muestra también la condición.
+  6. Hay una lista, ordenada por razón social, que se puede buscar por razón social o número de documento y filtrar por estado. La lista muestra también la condición, y con Crédito sus días (por ejemplo «Crédito · 30 días»).
   7. La consulta del RUC o el DNI funciona como en H10 (criterios 7 a 9): completa los datos que encuentre, se puede llenar a mano si el servicio falla y el formato incorrecto se avisa antes de consultar.
   8. La pantalla se puede usar bien desde el celular.
-- Decisión del usuario del 2026-11-17: es una copia del modelo de proveedores (H10) con un solo atributo más, la condición de pago (Contado o Crédito, por defecto Contado). Reusa `SunatService` y las mismas reglas de la consulta.
+- Decisión del usuario del 2026-11-17: es una copia del modelo de proveedores (H10) con un solo atributo más, la condición de pago (Contado o Crédito, por defecto Contado), y los días cuando es a crédito. Reusa `SunatService` y las mismas reglas de la consulta.
 - Quién la usa: por ahora, cualquier usuario con sesión. Los roles pasan a H24.
 - En el menú va en el grupo "Maestros", dentro de un desplegable nuevo, «Terceros», que reúne Proveedores y Clientes, en ese orden (decisión del usuario del 2026-11-17). El desplegable queda donde estaba Proveedores, debajo de Líneas navieras.
 - Diseño: el de H10, con el campo Condición. Se agrega al lienzo para aprobarlo antes de construir.

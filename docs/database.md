@@ -140,6 +140,7 @@ erDiagram
     string document_number "UK con identity_id"
     string business_name
     string payment_condition "cash o credit"
+    smallint credit_days "solo con credit"
     datetime deleted_at
   }
   security_device_types {
@@ -528,6 +529,7 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 | `address`, `email` | varchar(255) (null) | Opcionales (criterio 1). Vacío se guarda como null. |
 | `phone` | varchar(20) (null) | Opcional (criterio 1). |
 | `payment_condition` | varchar(20) | Enum `PaymentCondition`: `cash` (Contado) o `credit` (Crédito). Por defecto `cash` (criterio 2). |
+| `credit_days` | smallint unsigned (null) | Días de crédito, de 1 a 365. Obligatorio con `credit`; null con `cash` (criterio 2). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 5). |
 
 ### 5.8 `security_device_types` · `en código`

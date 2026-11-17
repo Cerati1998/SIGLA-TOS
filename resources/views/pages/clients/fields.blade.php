@@ -38,3 +38,7 @@
     </div>
     <flux:error name="form.paymentCondition" />
 </fieldset>
+
+<div x-show="$wire.form.paymentCondition === '{{ \App\Enums\PaymentCondition::Credit->value }}'" x-cloak class="md:max-w-50">
+    <x-wire-input id="{{ $idPrefix }}-credit-days" wire:model="form.creditDays" label="Días de crédito" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+</div>

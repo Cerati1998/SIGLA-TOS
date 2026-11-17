@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('email', 255)->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('payment_condition', 20)->default('cash');
+            $table->unsignedSmallInteger('credit_days')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

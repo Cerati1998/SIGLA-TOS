@@ -57,7 +57,7 @@ class ClientsManagementTest extends TestCase
             ->assertSee(route('intranet.providers.index'))
             ->assertSee(route('intranet.clients.index'))
             ->assertSeeText('RUC 20000000001')
-            ->assertSeeInOrder(['Cliente Cerrado', 'Crédito', 'Inactivo', 'Cliente Contado', 'Contado', 'Activo']);
+            ->assertSeeInOrder(['Cliente Cerrado', 'Crédito · 30 días', 'Inactivo', 'Cliente Contado', 'Contado', 'Activo']);
     }
 
     public function test_the_list_is_ordered_by_business_name_and_filters_by_search_and_status(): void
@@ -106,11 +106,12 @@ class ClientsManagementTest extends TestCase
             ->set('form.email', 'compras@agro.test')
             ->set('form.phone', '987654321')
             ->set('form.paymentCondition', PaymentCondition::Credit->value)
+            ->set('form.creditDays', ' 30 ')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false);
 
-        $this->assertDatabaseHas('clients', ['document_number' => '12345678', 'address' => null, 'email' => null, 'phone' => null, 'payment_condition' => 'cash']);
+        $this->assertDatabaseHas('clients', ['document_number' => '12345678', 'address' => null, 'email' => null, 'phone' => null, 'payment_condition' => 'cash', 'credit_days' => null]);
         $this->assertDatabaseHas('clients', [
             'identity_id' => Identity::RUC,
             'document_number' => '20123456789',
@@ -119,7 +120,40 @@ class ClientsManagementTest extends TestCase
             'email' => 'compras@agro.test',
             'phone' => '987654321',
             'payment_condition' => 'credit',
+            'credit_days' => 30,
         ]);
+    }
+
+    public function test_credit_asks_for_its_days_and_cash_does_not_keep_them(): void
+    {
+        Livewire::test(CreateModal::class)
+            ->set('form.documentNumber', '20123456789')
+            ->set('form.businessName', 'Cliente a Crédito')
+            ->set('form.paymentCondition', PaymentCondition::Credit->value)
+            ->call('save')
+            ->assertHasErrors(['form.creditDays' => 'required'])
+            ->set('form.creditDays', '0')
+            ->call('save')
+            ->assertHasErrors(['form.creditDays' => 'between'])
+            ->set('form.creditDays', '366')
+            ->call('save')
+            ->assertHasErrors(['form.creditDays' => 'between'])
+            ->set('form.creditDays', 'treinta')
+            ->call('save')
+            ->assertHasErrors(['form.creditDays' => 'integer']);
+
+        $this->assertDatabaseCount('clients', 0);
+
+        $client = Client::factory()->onCredit()->create();
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-client', clientId: $client->id)
+            ->assertSet('form.creditDays', '30')
+            ->set('form.paymentCondition', PaymentCondition::Cash->value)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull($client->refresh()->credit_days);
     }
 
     public function test_the_fields_of_a_client_are_validated(): void
@@ -170,6 +204,7 @@ class ClientsManagementTest extends TestCase
             ->set('form.businessName', 'Nombre Nuevo')
             ->set('form.phone', '')
             ->set('form.paymentCondition', PaymentCondition::Credit->value)
+            ->set('form.creditDays', '45')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
@@ -180,6 +215,7 @@ class ClientsManagementTest extends TestCase
         $this->assertSame('Nombre Nuevo', $client->business_name);
         $this->assertNull($client->phone);
         $this->assertSame(PaymentCondition::Credit, $client->payment_condition);
+        $this->assertSame(45, $client->credit_days);
         $this->assertTrue($client->trashed());
     }
 

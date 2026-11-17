@@ -43,11 +43,11 @@ class ClientFactory extends Factory
     }
 
     /**
-     * Indicate that the client pays on credit.
+     * Indicate that the client pays on credit, in 30 days.
      */
     public function onCredit(): static
     {
-        return $this->state(fn (): array => ['payment_condition' => PaymentCondition::Credit]);
+        return $this->state(fn (): array => ['payment_condition' => PaymentCondition::Credit, 'credit_days' => 30]);
     }
 
     /**

@@ -3,7 +3,7 @@
         title="Nuevo cliente"
         name="client-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.identityId = '{{ \App\Models\Identity::RUC }}'; $wire.form.documentNumber = ''; $wire.form.businessName = ''; $wire.form.address = ''; $wire.form.email = ''; $wire.form.phone = ''; $wire.form.paymentCondition = '{{ \App\Enums\PaymentCondition::Cash->value }}'; $wire.form.lookupStatus = null"
+        x-on:open="$wire.form.identityId = '{{ \App\Models\Identity::RUC }}'; $wire.form.documentNumber = ''; $wire.form.businessName = ''; $wire.form.address = ''; $wire.form.email = ''; $wire.form.phone = ''; $wire.form.paymentCondition = '{{ \App\Enums\PaymentCondition::Cash->value }}'; $wire.form.creditDays = ''; $wire.form.lookupStatus = null"
         x-on:close="($wire.$errors.any() || $wire.form.lookedUpDocument !== null) && $wire.clearErrors()"
     >
         <form id="client-create-form" wire:submit="save" class="grid gap-4">

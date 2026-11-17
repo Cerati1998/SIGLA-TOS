@@ -19,7 +19,7 @@ class ClientsTable extends BaseTable
     {
         parent::configure();
 
-        $this->setAdditionalSelects(['clients.id as id', 'clients.identity_id as identity_id'])
+        $this->setAdditionalSelects(['clients.id as id', 'clients.identity_id as identity_id', 'clients.credit_days as credit_days'])
             ->setSearchPlaceholder('Razón social o documento')
             ->setEmptyMessage('No se encontraron clientes.')
             ->setConfigurableAreas([
@@ -51,7 +51,9 @@ class ClientsTable extends BaseTable
                 ->format(fn ($value, Client $row): View => view('pages.clients.partials.document', ['client' => $row])),
             Column::make('Razón social', 'business_name')->searchable(),
             Column::make('Condición', 'payment_condition')
-                ->format(fn (PaymentCondition $value): string => $value->label()),
+                ->format(fn (PaymentCondition $value, Client $row): string => $value === PaymentCondition::Credit
+                    ? trans_choice('{1} Crédito · :count día|[0,*] Crédito · :count días', (int) $row->credit_days)
+                    : $value->label()),
             Column::make('Estado', 'deleted_at')
                 ->format(fn ($value, Client $row): View => view('pages.clients.partials.status', ['client' => $row])),
             Column::make('Acciones')

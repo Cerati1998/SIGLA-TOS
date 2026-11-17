@@ -20,12 +20,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property string|null $phone
  * @property PaymentCondition $payment_condition
+ * @property int|null $credit_days
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Identity $identity
  */
-#[Fillable(['identity_id', 'document_number', 'business_name', 'address', 'email', 'phone', 'payment_condition'])]
+#[Fillable(['identity_id', 'document_number', 'business_name', 'address', 'email', 'phone', 'payment_condition', 'credit_days'])]
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
@@ -49,6 +50,7 @@ class Client extends Model
     {
         return [
             'payment_condition' => PaymentCondition::class,
+            'credit_days' => 'integer',
         ];
     }
 
