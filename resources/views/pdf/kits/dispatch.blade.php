@@ -27,7 +27,9 @@
     .lista tr.total td { background: #e5e7eb; font-weight: bold; border-top: 1px solid #4b5563; }
     .derecha { text-align: right; }
     .pie { position: fixed; bottom: -44px; left: 0; right: 0; border: 1px solid #4b5563; border-radius: 4px; padding: 8px 12px; font-size: 9.5px; color: #4b5563; }
-    .pagina:after { content: "Página " counter(page) " de " counter(pages); }
+    .pagina:after { content: "Página " counter(page); }
+    .pareja { border-collapse: separate; border-spacing: 14px 0; margin: 14px -14px 0; width: calc(100% + 28px); }
+    .pareja > tbody > tr > td { width: 50%; vertical-align: top; border: 1px solid #4b5563; border-radius: 4px; padding: 10px 12px; }
 </style>
 </head>
 <body>
@@ -54,10 +56,9 @@
         </tr>
     </table>
 
-    <table style="margin-top: 14px;">
+    <table class="pareja">
         <tr>
-            <td style="width: 50%; padding-right: 7px; vertical-align: top;">
-                <div class="caja" style="padding: 10px 12px;">
+            <td>
                     <p class="seccion">Kit</p>
                     <table class="datos">
                         <tr><td class="rotulo">Funda:</td><td style="font-size: 13px; font-weight: bold;">{{ $kit->pouch_code }}</td></tr>
@@ -66,10 +67,8 @@
                         <tr><td class="rotulo">Semana del kit:</td><td>{{ $kit->week() }}</td></tr>
                         <tr><td class="rotulo">Dispositivos:</td><td>{{ $devices->count() }}</td></tr>
                     </table>
-                </div>
             </td>
-            <td style="width: 50%; padding-left: 7px; vertical-align: top;">
-                <div class="caja" style="padding: 10px 12px;">
+            <td>
                     <p class="seccion">Despacho</p>
                     <table class="datos">
                         <tr><td class="rotulo">Fecha:</td><td>{{ $dispatchedAt }}</td></tr>
@@ -78,7 +77,6 @@
                         <tr><td class="rotulo">Recibió:</td><td>{{ $dispatch->receiver->full_name }}</td></tr>
                         <tr><td class="rotulo">Procedencia:</td><td>{{ $receiverOrigin }}</td></tr>
                     </table>
-                </div>
             </td>
         </tr>
     </table>
@@ -86,7 +84,7 @@
     <div class="caja" style="margin-top: 14px; padding: 10px 12px;">
         <table>
             <tr>
-                <td style="width: 205px; padding-right: 14px; vertical-align: top;">
+                <td style="width: 235px; padding-right: 14px; vertical-align: top;">
                     <p class="seccion">Resumen por tipo</p>
                     <table class="lista">
                         <thead><tr><th>Tipo de dispositivo</th><th class="derecha">Cant.</th></tr></thead>
