@@ -24,7 +24,7 @@ Dejar construido el recorrido del kit en bodega: activar los dispositivos para d
 - **H15** · Despachar kits (T50).
 - **H16** · Consultar kits y despachos (T51).
 - **H30** · Despachar dispositivos a granel (nueva del 2026-11-13, aprobada en T46, T47 y T52).
-- **Adelanto opcional:** H17 · Iniciar una certificación (T53) y la revisión de lo posterior a la asignación del kit (T54).
+- **H17** · Iniciar una certificación (T53) y la revisión de lo posterior a la asignación del kit (T54). Eran adelanto opcional; se sumaron al sprint el 2026-11-17 a pedido del usuario.
 
 Sigue el orden de épicas aprobado: E1, E7, E8, E2, E3, E4, E9, E5, E6. H29 es de E2, pero se construye primero porque H14 y los despachos la necesitan.
 
@@ -52,8 +52,8 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 ### Agregada el 2026-11-17
 - [x] **T56** · H31 · Gestionar clientes: copia del catálogo de proveedores (H10) con la condición de pago, Contado o Crédito, por defecto Contado. Incluye su diseño en el lienzo y deja `docs/database.md` al día. Quién: Claude Code. 2 h. Agregada el 2026-11-17 a pedido del usuario, porque H30 la necesita para el despacho a granel por venta. Va antes que T52, en su propia rama, `feature/H31-gestionar-clientes`, que parte de `main`. (Hecho el 2026-11-17, PR #74, unas 0.5 h reales contadas desde el primer commit de la rama, con el lienzo incluido. Al revisar, el usuario pidió los días de crédito: con Crédito se piden de 1 a 365 días.)
 
-### Adelanto opcional
-Solo se hacen si sobra tiempo; no suman al total.
+### Sumadas al sprint el 2026-11-17
+Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el compromiso ya terminado.
 - [ ] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8).
 - [ ] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h.
 
@@ -63,9 +63,10 @@ Solo se hacen si sobra tiempo; no suman al total.
 | Compromiso | T46, T47, T48, T49, T50, T51, T52 | 19 h |
 | Corrección del Sprint 2 (agregada el 2026-11-16) | T55 | 2 h |
 | Agregada el 2026-11-17 | T56 | 2 h |
-| Adelanto opcional (no suma) | T53, T54 | 5 h |
+| Sumadas el 2026-11-17 (antes adelanto opcional) | T53, T54 | 5 h |
+| **Total** | | **28 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 
@@ -82,7 +83,8 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 6 | T51 · H16 | `feature/H16-consultar-kits` | rama de T50 | nada |
 | 7 | T56 · H31 | `feature/H31-gestionar-clientes` | `main` | diseño aprobado |
 | 8 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada y T56 |
-| 9 | T53 · H17 (adelanto) | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
+| 9 | T53 · H17 | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
+| 10 | T54 · Revisar lo posterior a la asignación del kit | — | — | nada |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
