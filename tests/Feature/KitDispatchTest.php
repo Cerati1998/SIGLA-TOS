@@ -248,6 +248,7 @@ class KitDispatchTest extends TestCase
         Livewire::test(DeviceScanner::class, ['kit' => $kit->fresh()])
             ->assertSee(sprintf('Despachado en %s', $dispatch->number()))
             ->assertSee('Trabajador De Ejemplo Dos')
+            ->assertSee('Lo despachó Bodeguero Uno')
             ->assertSeeHtml(route('intranet.kits.pdf', $kit))
             ->assertDontSeeHtml('data-slot-input')
             ->assertDontSeeHtml('Quitar del kit');

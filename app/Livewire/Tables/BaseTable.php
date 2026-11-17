@@ -2,10 +2,19 @@
 
 namespace App\Livewire\Tables;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
+use Rappasoft\LaravelLivewireTables\Views\Filter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
 abstract class BaseTable extends DataTableComponent
 {
+    /**
+     * How many weeks back a week filter offers.
+     */
+    public const int WEEKS = 12;
+
     /**
      * Classes of the controls of the toolbar and the filters.
      */
@@ -64,5 +73,50 @@ abstract class BaseTable extends DataTableComponent
                 'class' => 'whitespace-nowrap border-b border-line px-6 py-4 text-sm text-ink first:ps-5.25 last:pe-5.25',
             ])
             ->setConfigurableAreas(['after-wrapper' => 'partials.panel.table-footer']);
+    }
+
+    /**
+     * Get a filter by the ISO week, in Lima time, of a date column, such as kit_dispatches.created_at.
+     */
+    protected function weekFilter(string $column): Filter
+    {
+        return SelectFilter::make('Semana', 'week')
+            ->options(['' => 'Todas'] + self::weekOptions())
+            ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+            ->filter(function (Builder $builder, string $value) use ($column): void {
+                [$start, $end] = self::weekRange($value);
+                $builder->whereBetween($column, [$start, $end]);
+            });
+    }
+
+    /**
+     * Get the last weeks, in Lima time, keyed as in 2026-W47 and labeled with their Monday and Sunday.
+     *
+     * @return array<string, string>
+     */
+    public static function weekOptions(): array
+    {
+        $monday = now('America/Lima')->startOfWeek();
+        $options = [];
+
+        for ($weeksBack = 0; $weeksBack < self::WEEKS; $weeksBack++) {
+            $start = $monday->copy()->subWeeks($weeksBack);
+            $options[$start->format('o-\WW')] = sprintf('%s (%s al %s)', $start->format('o-\WW'), $start->format('d/m'), $start->copy()->endOfWeek()->format('d/m'));
+        }
+
+        return $options;
+    }
+
+    /**
+     * Get the start and the end, in the time the app saves (UTC), of an ISO week of Lima such as 2026-W47.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    public static function weekRange(string $week): array
+    {
+        [$year, $number] = array_map('intval', explode('-W', $week) + [1 => 1]);
+        $start = Carbon::now('America/Lima')->setISODate($year, $number)->startOfWeek();
+
+        return [$start->copy()->utc(), $start->copy()->endOfWeek()->utc()];
     }
 }
