@@ -57,6 +57,9 @@ Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el com
 - [x] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8). (Hecho el 2026-11-18, PR #78, unas 1 h reales contadas desde que empezó el diseño en el lienzo hasta el aviso para probar, el 2026-11-17, porque los commits llegaron al final; el visto bueno llegó al día siguiente. Incluye el diseño de H17, aprobado el 2026-11-17. Las dos decisiones se tomaron ese día: la naviera se enlaza por su nombre, se reactiva si está desactivada y se crea si falta; el kit va en una sola certificación.)
 - [ ] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h.
 
+### Agregada el 2026-11-18
+- [ ] **T57** · Despliegue continuo a un entorno de prueba: un workflow de GitHub Actions que, cuando las pruebas pasan en `main`, sube SIGLA por SSH a un subdominio temporal del cPanel, con su propia base y solo datos de prueba, para que el cliente pruebe lo que ya está construido. Lo del entorno va en un environment de GitHub: como secreto solo la clave privada SSH; el sitio, el host, el puerto, el usuario y la ruta van como variables. Quién: Claude Code; el Scrum Master genera la clave SSH y prepara el subdominio, la base, el `.env` del servidor y el cron. 3 h. Agregada el 2026-11-18 a pedido del usuario, para adelantar la implementación con el cliente. Va en su propia rama, `chore/T57-despliegue-staging`, que parte de `main`.
+
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
@@ -64,9 +67,10 @@ Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el com
 | Corrección del Sprint 2 (agregada el 2026-11-16) | T55 | 2 h |
 | Agregada el 2026-11-17 | T56 | 2 h |
 | Sumadas el 2026-11-17 (antes adelanto opcional) | T53, T54 | 5 h |
-| **Total** | | **28 h** |
+| Agregada el 2026-11-18 | T57 | 3 h |
+| **Total** | | **31 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado. T57 suma 3 h más (31 h en total), por decisión del usuario del 2026-11-18.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 
@@ -85,6 +89,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 8 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada y T56 |
 | 9 | T53 · H17 | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
 | 10 | T54 · Revisar lo posterior a la asignación del kit | — | — | nada |
+| 11 | T57 · Despliegue al entorno de prueba | `chore/T57-despliegue-staging` | `main` | clave SSH, subdominio y `.env` del servidor |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
