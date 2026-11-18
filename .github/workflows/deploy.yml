@@ -5,8 +5,9 @@ name: deploy
 #
 # Environment de GitHub: production
 #   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
-#   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH, SSH_KNOWN_HOSTS
-#   Opcionales: PHP_BIN (por defecto "php") y VITE_REVERB_* (para el build de Echo)
+#   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH
+#   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, se toma
+#   con ssh-keyscan en cada despliegue) y VITE_REVERB_* (para el build de Echo)
 #
 # El .env vive solo en el servidor, dentro de DEPLOY_PATH, y nunca se toca.
 
@@ -44,11 +45,10 @@ jobs:
       - name: Check configuration
         env:
           APP_URL: ${{ vars.APP_URL }}
-          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
           HAS_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY != '' }}
         run: |
           missing=0
-          for name in APP_URL SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH SSH_KNOWN_HOSTS; do
+          for name in APP_URL SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
             if [ -z "${!name}" ]; then
               echo "::error::Falta la variable $name en el environment production."
               missing=1
@@ -111,7 +111,15 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 15 -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+          if [ ! -s ~/.ssh/known_hosts ]; then
+            echo "::error::No se pudo leer la huella de $SSH_HOST en el puerto $SSH_PORT. Revisa SSH_HOST, SSH_PORT y que el firewall deje entrar a GitHub Actions."
+            exit 1
+          fi
           chmod 644 ~/.ssh/known_hosts
           cat > ~/.ssh/config <<EOF
           Host server
