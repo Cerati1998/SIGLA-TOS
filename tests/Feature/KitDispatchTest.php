@@ -71,10 +71,11 @@ class KitDispatchTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
             ->assertSet('form.kitIds', [])
-            ->assertDispatched('toast', icon: 'success', title: 'Despacho D-000001 registrado', text: '2 kits despachados a Trabajador De Ejemplo Dos.')
             ->assertDispatched('refreshDatatable');
 
         $dispatch = KitDispatch::query()->sole();
+
+        $window->assertDispatched('toast', icon: 'success', title: "Despacho {$dispatch->number()} registrado", text: '2 kits despachados a Trabajador De Ejemplo Dos.');
 
         $this->assertSame([$this->receiver->id, $this->user->id], [$dispatch->receiver_id, $dispatch->created_by]);
         $this->assertNotNull($dispatch->created_at);
@@ -218,26 +219,26 @@ class KitDispatchTest extends TestCase
         $second->forceFill(['created_at' => now()->subWeeks(2)])->save();
 
         Livewire::test(KitDispatchesTable::class)
-            ->assertSee(['D-000001', 'Trabajador De Ejemplo Dos', '1 Kit de cambio de sellos · 1 Kit de seguridad reefer', 'Bodeguero Uno', $first->week()])
-            ->assertSee(['D-000002', 'Otro Trabajador'])
+            ->assertSee([$first->number(), 'Trabajador De Ejemplo Dos', '1 Kit de cambio de sellos · 1 Kit de seguridad reefer', 'Bodeguero Uno', $first->week()])
+            ->assertSee([$second->number(), 'Otro Trabajador'])
             ->set('filterComponents.week', $first->week())
-            ->assertSee('D-000001')
-            ->assertDontSee('D-000002')
+            ->assertSee($first->number())
+            ->assertDontSee($second->number())
             ->set('filterComponents.week', '')
             ->set('filterComponents.receiver', (string) $other->id)
-            ->assertSee('D-000002')
-            ->assertDontSee('D-000001')
+            ->assertSee($second->number())
+            ->assertDontSee($first->number())
             ->set('filterComponents.receiver', '')
             ->set('filterComponents.kit_type', (string) $sealsKit->id)
-            ->assertSee('D-000001')
-            ->assertDontSee('D-000002')
+            ->assertSee($first->number())
+            ->assertDontSee($second->number())
             ->set('filterComponents.kit_type', '')
-            ->set('search', 'd-000002')
+            ->set('search', strtolower($second->number()))
             ->assertSee('Otro Trabajador')
-            ->assertDontSee('D-000001')
+            ->assertDontSee($first->number())
             ->set('search', 'ejemplo dos')
-            ->assertSee('D-000001')
-            ->assertDontSee('D-000002');
+            ->assertSee($first->number())
+            ->assertDontSee($second->number());
     }
 
     public function test_the_page_of_a_dispatched_kit_shows_its_dispatch_and_its_pdf_and_no_longer_offers_to_scan_or_remove(): void

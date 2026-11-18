@@ -59,8 +59,8 @@ class BulkDispatchTest extends TestCase
 
     public function test_the_bulk_dispatches_have_their_own_list_apart_from_the_dispatches_of_kits(): void
     {
-        KitDispatch::factory()->create();
-        $this->bulkDispatch(['reason' => BulkDispatchReason::Sale], 2);
+        $kitDispatch = KitDispatch::factory()->create();
+        $bulkDispatch = $this->bulkDispatch(['reason' => BulkDispatchReason::Sale], 2);
 
         $this->get(route('intranet.bulk-dispatches.index'))
             ->assertOk()
@@ -69,8 +69,8 @@ class BulkDispatchTest extends TestCase
             ->assertSeeText('Despachar a granel');
 
         Livewire::test(BulkDispatchesTable::class)
-            ->assertSeeText('DG-000001')
-            ->assertDontSeeText('D-000001 ')
+            ->assertSeeText($bulkDispatch->number())
+            ->assertDontSeeText($kitDispatch->number().' ')
             ->assertSeeText('Venta')
             ->assertSeeText('Agroexportadora del Norte S.A.C.')
             ->assertSeeText('Zona certificación')
@@ -106,7 +106,8 @@ class BulkDispatchTest extends TestCase
         $kit = Kit::factory()->create(['pouch_code' => 'KIT-000046']);
         $kit->devices()->attach($this->deviceOf($lot, 1003)->id);
         $this->setStatus($lot, 1003, SecurityDeviceStatus::InKit);
-        $this->bulkDispatch([], 0)->devices()->attach($this->deviceOf($lot, 1004)->id);
+        $previous = $this->bulkDispatch([], 0);
+        $previous->devices()->attach($this->deviceOf($lot, 1004)->id);
         $this->setStatus($lot, 1004, SecurityDeviceStatus::Dispatched);
 
         $window = Livewire::test(CreateModal::class);
@@ -115,7 +116,7 @@ class BulkDispatchTest extends TestCase
         $window->call('scan', 'SB001001')->assertReturned(['ok' => true, 'message' => 'Ya estaba en este despacho.']);
         $window->call('scan', 'SB001002')->assertReturned(['ok' => false, 'message' => 'No está activado para despacho. Actívalo desde su lote antes de despacharlo.']);
         $window->call('scan', 'SB001003')->assertReturned(['ok' => false, 'message' => 'Está en el kit KIT-000046. Un dispositivo en un kit no se despacha a granel.']);
-        $window->call('scan', 'SB001004')->assertReturned(['ok' => false, 'message' => 'Ya está despachado en el despacho DG-000001.']);
+        $window->call('scan', 'SB001004')->assertReturned(['ok' => false, 'message' => "Ya está despachado en el despacho {$previous->number()}."]);
         $window->call('scan', 'XX999')->assertReturned(['ok' => false, 'message' => 'No encontramos un dispositivo con la serie XX999.']);
 
         $window->assertSet('form.deviceIds', [$this->deviceOf($lot, 1001)->id])
@@ -222,7 +223,7 @@ class BulkDispatchTest extends TestCase
     {
         $lot = $this->lot('SB', 1001, 1003);
 
-        $this->filledWindow(BulkDispatchReason::Sale)
+        $window = $this->filledWindow(BulkDispatchReason::Sale)
             ->set('form.clientId', $this->client->id)
             ->set('form.notes', ' Venta de sellos ')
             ->call('byRange', 'SB001001', 'SB001003', true)
@@ -233,10 +234,11 @@ class BulkDispatchTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('form.openModal', false)
             ->assertSet('form.deviceIds', [])
-            ->assertDispatched('toast', icon: 'success', title: 'Despacho DG-000001 registrado', text: '3 dispositivos despachados a Trabajador De Ejemplo Dos.')
             ->assertDispatched('refreshDatatable');
 
         $dispatch = BulkDispatch::query()->sole();
+
+        $window->assertDispatched('toast', icon: 'success', title: "Despacho {$dispatch->number()} registrado", text: '3 dispositivos despachados a Trabajador De Ejemplo Dos.');
 
         $this->assertSame([$this->receiver->id, $this->user->id, BulkDispatchReason::Sale, $this->client->id, null, $this->yardZone->id, 'Venta de sellos'], [
             $dispatch->receiver_id, $dispatch->created_by, $dispatch->reason, $dispatch->client_id, $dispatch->kit_id, $dispatch->yard_zone_id, $dispatch->notes,
@@ -319,7 +321,7 @@ class BulkDispatchTest extends TestCase
 
         $this->get(route('intranet.bulk-dispatches.show', $dispatch))
             ->assertOk()
-            ->assertSeeText('DG-000001')
+            ->assertSeeText($dispatch->number())
             ->assertSeeText('Agroexportadora del Norte S.A.C.')
             ->assertSeeText('Reposición por precinto roto.')
             ->assertSeeText('Rangos SB001001 – SB001002, SB001005 · Cantidad 3')
