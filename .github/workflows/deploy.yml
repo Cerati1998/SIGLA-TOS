@@ -74,11 +74,11 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
-      # Misma versión que el servidor (PHP 8.5), para que vendor/ funcione allá.
+      # Misma versión que el servidor (PHP 8.4), para que vendor/ funcione allá.
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
-          php-version: '8.5'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
