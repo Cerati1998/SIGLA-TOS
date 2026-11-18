@@ -1,0 +1,206 @@
+name: deploy
+
+# Sube SIGLA a producción (dominio final del cPanel) cuando el
+# workflow "tests" pasa en main. También se puede lanzar a mano desde Actions.
+#
+# Environment de GitHub: production
+#   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
+#   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH
+#   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, se toma
+#   con ssh-keyscan en cada despliegue) y VITE_REVERB_* (para el build de Echo)
+#
+# El .env vive solo en el servidor, dentro de DEPLOY_PATH, y nunca se toca.
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      PHP_BIN: ${{ vars.PHP_BIN || 'php' }}
+
+    steps:
+      - name: Check configuration
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          HAS_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        run: |
+          missing=0
+          for name in APP_URL SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Falta la variable $name en el environment production."
+              missing=1
+            fi
+          done
+          if [ "$HAS_PRIVATE_KEY" != "true" ]; then
+            echo "::error::Falta el secreto SSH_PRIVATE_KEY en el environment production."
+            missing=1
+          fi
+          # rsync --delete borra lo que sobra en DEPLOY_PATH: exige una ruta absoluta
+          # de al menos tres niveles (por ejemplo /home/usuario/sigla) para no
+          # vaciar por error la carpeta personal ni la raíz.
+          depth=$(echo "$DEPLOY_PATH" | tr -s '/' '\n' | grep -c . || true)
+          if [ "${DEPLOY_PATH:0:1}" != "/" ] || [ "$depth" -lt 3 ]; then
+            echo "::error::DEPLOY_PATH debe ser una ruta absoluta de al menos tres niveles, por ejemplo /home/usuario/sigla."
+            missing=1
+          fi
+          exit $missing
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      # Misma versión que el servidor (PHP 8.4), para que vendor/ funcione allá.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      # Tailwind escanea vistas de vendor/, por eso el build va después de composer.
+      - name: Build assets
+        env:
+          VITE_REVERB_APP_KEY: ${{ vars.VITE_REVERB_APP_KEY }}
+          VITE_REVERB_HOST: ${{ vars.VITE_REVERB_HOST }}
+          VITE_REVERB_PORT: ${{ vars.VITE_REVERB_PORT }}
+          VITE_REVERB_SCHEME: ${{ vars.VITE_REVERB_SCHEME }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        id: ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 15 -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+          if [ ! -s ~/.ssh/known_hosts ]; then
+            echo "::error::No se pudo leer la huella de $SSH_HOST en el puerto $SSH_PORT. Revisa SSH_HOST, SSH_PORT y que el firewall deje entrar a GitHub Actions."
+            exit 1
+          fi
+          chmod 644 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName $SSH_HOST
+            Port $SSH_PORT
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ServerAliveInterval 30
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh server "mkdir -p '$DEPLOY_PATH'"
+
+      - name: Enter maintenance mode
+        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan down --retry=15 || true; fi"
+
+      # MultiPHP de cPanel escribe la versión de PHP del dominio en public/.htaccess,
+      # y rsync lo pisa con el del repositorio. Se guarda ese bloque en storage/
+      # (que rsync no toca) para volver a ponerlo después de subir los archivos.
+      - name: Save cPanel PHP handler
+        run: |
+          ssh server bash -s -- "'$DEPLOY_PATH'" <<'REMOTE'
+          set -euo pipefail
+          htaccess="$1/public/.htaccess"
+          saved="$1/storage/app/cpanel-php-handler.txt"
+          if [ -f "$htaccess" ] && grep -q '# php -- BEGIN cPanel-generated handler' "$htaccess"; then
+            mkdir -p "$1/storage/app"
+            sed -n '/# php -- BEGIN cPanel-generated handler/,/# php -- END cPanel-generated handler/p' "$htaccess" > "$saved"
+          fi
+          REMOTE
+
+      # Lo excluido no se sube y tampoco se borra en el servidor: .env, storage,
+      # cachés de bootstrap, el enlace public/storage y lo que crea cPanel.
+      - name: Upload files
+        run: |
+          rsync -az --delete \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/.ai/' \
+            --exclude='/.claude/' \
+            --exclude='/docs/' \
+            --exclude='/tests/' \
+            --exclude='/node_modules/' \
+            --exclude='/.phpunit.cache/' \
+            --exclude='/.env' \
+            --exclude='/.env.*' \
+            --exclude='/storage/' \
+            --exclude='/bootstrap/cache/*.php' \
+            --exclude='/public/storage' \
+            --exclude='/public/hot' \
+            --exclude='/public/.well-known/' \
+            --exclude='/cgi-bin/' \
+            --exclude='.user.ini' \
+            --exclude='php.ini' \
+            --exclude='error_log' \
+            ./ "server:$DEPLOY_PATH/"
+
+      - name: Run release commands
+        run: |
+          ssh server bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" <<'REMOTE'
+          set -euo pipefail
+          cd "$1"
+          php_bin="$2"
+          if [ -s storage/app/cpanel-php-handler.txt ] && ! grep -q '# php -- BEGIN cPanel-generated handler' public/.htaccess; then
+            printf '\n' >> public/.htaccess
+            cat storage/app/cpanel-php-handler.txt >> public/.htaccess
+          fi
+          if [ ! -f .env ]; then
+            echo "Falta el archivo .env en $1. Créalo en el servidor antes de desplegar."
+            exit 1
+          fi
+          mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          $php_bin artisan optimize:clear
+          $php_bin artisan package:discover --ansi
+          $php_bin artisan migrate --force
+          $php_bin artisan storage:link || true
+          $php_bin artisan optimize
+          $php_bin artisan queue:restart
+          REMOTE
+
+      - name: Leave maintenance mode
+        if: always() && steps.ssh.outcome == 'success'
+        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan up || true; fi"
