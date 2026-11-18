@@ -137,6 +137,21 @@ jobs:
       - name: Enter maintenance mode
         run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan down --retry=15 || true; fi"
 
+      # MultiPHP de cPanel escribe la versión de PHP del dominio en public/.htaccess,
+      # y rsync lo pisa con el del repositorio. Se guarda ese bloque en storage/
+      # (que rsync no toca) para volver a ponerlo después de subir los archivos.
+      - name: Save cPanel PHP handler
+        run: |
+          ssh server bash -s -- "'$DEPLOY_PATH'" <<'REMOTE'
+          set -euo pipefail
+          htaccess="$1/public/.htaccess"
+          saved="$1/storage/app/cpanel-php-handler.txt"
+          if [ -f "$htaccess" ] && grep -q '# php -- BEGIN cPanel-generated handler' "$htaccess"; then
+            mkdir -p "$1/storage/app"
+            sed -n '/# php -- BEGIN cPanel-generated handler/,/# php -- END cPanel-generated handler/p' "$htaccess" > "$saved"
+          fi
+          REMOTE
+
       # Lo excluido no se sube y tampoco se borra en el servidor: .env, storage,
       # cachés de bootstrap, el enlace public/storage y lo que crea cPanel.
       - name: Upload files
@@ -169,6 +184,10 @@ jobs:
           set -euo pipefail
           cd "$1"
           php_bin="$2"
+          if [ -s storage/app/cpanel-php-handler.txt ] && ! grep -q '# php -- BEGIN cPanel-generated handler' public/.htaccess; then
+            printf '\n' >> public/.htaccess
+            cat storage/app/cpanel-php-handler.txt >> public/.htaccess
+          fi
           if [ ! -f .env ]; then
             echo "Falta el archivo .env en $1. Créalo en el servidor antes de desplegar."
             exit 1
