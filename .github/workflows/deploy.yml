@@ -1,9 +1,9 @@
-name: deploy-staging
+name: deploy
 
-# Sube SIGLA al entorno de prueba (subdominio temporal del cPanel) cuando el
+# Sube SIGLA a producción (dominio final del cPanel) cuando el
 # workflow "tests" pasa en main. También se puede lanzar a mano desde Actions.
 #
-# Environment de GitHub: staging
+# Environment de GitHub: production
 #   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
 #   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH, SSH_KNOWN_HOSTS
 #   Opcionales: PHP_BIN (por defecto "php") y VITE_REVERB_* (para el build de Echo)
@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-staging
+  group: deploy-production
   cancel-in-progress: false
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     environment:
-      name: staging
+      name: production
       url: ${{ vars.APP_URL }}
 
     env:
@@ -50,20 +50,20 @@ jobs:
           missing=0
           for name in APP_URL SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH SSH_KNOWN_HOSTS; do
             if [ -z "${!name}" ]; then
-              echo "::error::Falta la variable $name en el environment staging."
+              echo "::error::Falta la variable $name en el environment production."
               missing=1
             fi
           done
           if [ "$HAS_PRIVATE_KEY" != "true" ]; then
-            echo "::error::Falta el secreto SSH_PRIVATE_KEY en el environment staging."
+            echo "::error::Falta el secreto SSH_PRIVATE_KEY en el environment production."
             missing=1
           fi
           # rsync --delete borra lo que sobra en DEPLOY_PATH: exige una ruta absoluta
-          # de al menos tres niveles (por ejemplo /home/usuario/staging) para no
+          # de al menos tres niveles (por ejemplo /home/usuario/sigla) para no
           # vaciar por error la carpeta personal ni la raíz.
           depth=$(echo "$DEPLOY_PATH" | tr -s '/' '\n' | grep -c . || true)
           if [ "${DEPLOY_PATH:0:1}" != "/" ] || [ "$depth" -lt 3 ]; then
-            echo "::error::DEPLOY_PATH debe ser una ruta absoluta de al menos tres niveles, por ejemplo /home/usuario/staging.sigla."
+            echo "::error::DEPLOY_PATH debe ser una ruta absoluta de al menos tres niveles, por ejemplo /home/usuario/sigla."
             missing=1
           fi
           exit $missing
@@ -114,7 +114,7 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
           cat > ~/.ssh/config <<EOF
-          Host staging
+          Host server
             HostName $SSH_HOST
             Port $SSH_PORT
             User $SSH_USER
@@ -124,10 +124,10 @@ jobs:
             ServerAliveInterval 30
           EOF
           chmod 600 ~/.ssh/config
-          ssh staging "mkdir -p '$DEPLOY_PATH'"
+          ssh server "mkdir -p '$DEPLOY_PATH'"
 
       - name: Enter maintenance mode
-        run: ssh staging "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan down --retry=15 || true; fi"
+        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan down --retry=15 || true; fi"
 
       # Lo excluido no se sube y tampoco se borra en el servidor: .env, storage,
       # cachés de bootstrap, el enlace public/storage y lo que crea cPanel.
@@ -153,11 +153,11 @@ jobs:
             --exclude='.user.ini' \
             --exclude='php.ini' \
             --exclude='error_log' \
-            ./ "staging:$DEPLOY_PATH/"
+            ./ "server:$DEPLOY_PATH/"
 
       - name: Run release commands
         run: |
-          ssh staging bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" <<'REMOTE'
+          ssh server bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" <<'REMOTE'
           set -euo pipefail
           cd "$1"
           php_bin="$2"
@@ -176,4 +176,4 @@ jobs:
 
       - name: Leave maintenance mode
         if: always() && steps.ssh.outcome == 'success'
-        run: ssh staging "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan up || true; fi"
+        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan up || true; fi"

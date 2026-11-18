@@ -58,7 +58,7 @@ Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el com
 - [ ] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h.
 
 ### Agregada el 2026-11-18
-- [ ] **T57** · Despliegue continuo a un entorno de prueba: un workflow de GitHub Actions que, cuando las pruebas pasan en `main`, sube SIGLA por SSH a un subdominio temporal del cPanel, con su propia base y solo datos de prueba, para que el cliente pruebe lo que ya está construido. Lo del entorno va en un environment de GitHub: como secreto solo la clave privada SSH; el sitio, el host, el puerto, el usuario y la ruta van como variables. Quién: Claude Code; el Scrum Master genera la clave SSH y prepara el subdominio, la base, el `.env` del servidor y el cron. 3 h. Agregada el 2026-11-18 a pedido del usuario, para adelantar la implementación con el cliente. Va en su propia rama, `chore/T57-despliegue-staging`, que parte de `main`.
+- [ ] **T57** · Despliegue continuo a producción: un workflow de GitHub Actions que, cuando las pruebas pasan en `main`, sube SIGLA por SSH al dominio final del cPanel, con su base final. Mientras dure la prueba con el cliente, esa base solo tiene datos de prueba; al terminar se corre `migrate:fresh` y solo los seeders necesarios. Lo del entorno va en un environment de GitHub: como secreto solo la clave privada SSH; el sitio, el host, el puerto, el usuario y la ruta van como variables. Quién: Claude Code; el Scrum Master genera la clave SSH y prepara el dominio, la base, el `.env` del servidor y el cron. 3 h. Agregada el 2026-11-18 a pedido del usuario, para adelantar la implementación con el cliente. Va en su propia rama, `chore/T57-despliegue`, que parte de `main`.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
@@ -89,7 +89,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 8 | T52 · H30 | `feature/H30-despachar-granel` | rama de T51 | H30 aprobada y T56 |
 | 9 | T53 · H17 | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
 | 10 | T54 · Revisar lo posterior a la asignación del kit | — | — | nada |
-| 11 | T57 · Despliegue al entorno de prueba | `chore/T57-despliegue-staging` | `main` | clave SSH, subdominio y `.env` del servidor |
+| 11 | T57 · Despliegue continuo a producción | `chore/T57-despliegue` | `main` | clave SSH, dominio y `.env` del servidor |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
