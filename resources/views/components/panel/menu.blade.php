@@ -15,6 +15,8 @@
                 <x-panel.menu-subitem :href="$sublink['route']" :active="$sublink['active'] ?? false">{{ $sublink['name'] }}</x-panel.menu-subitem>
             @endforeach
         </x-panel.menu-tree>
+    @elseif ($link['disabled'] ?? false)
+        <x-panel.menu-item :icon="$link['icon']" disabled>{{ $link['name'] }}</x-panel.menu-item>
     @else
         <x-panel.menu-item :icon="$link['icon']" :href="$link['route']" :active="$link['active'] ?? false">{{ $link['name'] }}</x-panel.menu-item>
     @endisset

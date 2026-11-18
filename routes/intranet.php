@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BulkDispatchController;
+use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\ClientOptionsController;
 use App\Http\Controllers\DispatchedKitOptionsController;
 use App\Http\Controllers\KitController;
@@ -66,6 +67,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('workers/options', WorkerOptionsController::class)->name('workers.options');
 
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
+
+    Route::view('certifications/create', 'pages.certifications.create')->name('certifications.create');
+
+    Route::get('certifications/{certification}', [CertificationController::class, 'show'])->name('certifications.show');
 
     Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
 

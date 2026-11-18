@@ -54,7 +54,7 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 
 ### Sumadas al sprint el 2026-11-17
 Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el compromiso ya terminado.
-- [ ] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8).
+- [x] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8). (Hecho el 2026-11-18, PR #78, unas 1 h reales contadas desde que empezó el diseño en el lienzo hasta el aviso para probar, el 2026-11-17, porque los commits llegaron al final; el visto bueno llegó al día siguiente. Incluye el diseño de H17, aprobado el 2026-11-17. Las dos decisiones se tomaron ese día: la naviera se enlaza por su nombre, se reactiva si está desactivada y se crea si falta; el kit va en una sola certificación.)
 - [ ] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h.
 
 ## Total estimado

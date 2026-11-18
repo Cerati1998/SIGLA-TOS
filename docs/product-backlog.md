@@ -549,21 +549,23 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H17 · Iniciar una certificación** (aprobada)
 - Como inspector certificado, quiero iniciar una certificación eligiendo la solicitud de retiro y el kit que me despacharon, para empezar a certificar esa unidad.
 - Criterios de aceptación:
-  1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige.
-  2. Al elegirla, el sistema consulta SIGLA 1.0 una sola vez y guarda en la certificación los datos de la solicitud: cliente, producto, booking, naviera y contenedor, además de la referencia al despacho.
+  1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige. En pantalla el contenedor se escribe en dos partes, 4 letras y 7 números, pero se guarda y se consulta junto (ABCU1234567). Si SIGLA 1.0 trae más de una solicitud, se toma la de despacho más reciente (decisiones del usuario del 2026-11-17).
+  2. La certificación guarda solo el id de la solicitud, su booking y su contenedor, además de los enlaces a la naviera y a los catálogos del criterio 3. Cliente, producto, DNI y brevete no se copian: se consultan a SIGLA 1.0 cada vez que se muestran (cambiado por el usuario el 2026-11-17; antes se copiaban cliente, producto, booking, naviera y contenedor).
   3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa. Desde el 2026-11-11 (T45), el conductor también se enlaza con el transportista de esa misma solicitud, si todavía no lo está.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
   6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra. La reinspección reabre esa misma certificación (decisión del 2026-11-04).
-  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15).
-  8. Un kit solo se usa en una certificación (por confirmar).
+  7. El inspector busca su kit escaneando con la cámara del teléfono o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15). El kit debe ser de la misma naviera de la solicitud; si no, se rechaza (decisión del usuario del 2026-11-17). Al iniciar, el kit sigue Despachado.
+  8. Un kit solo se usa en una certificación (confirmado por el usuario el 2026-11-17).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
-  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión).
-  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal.
+  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión). Mientras H18 no exista, pasa a la página de la certificación iniciada, que muestra lo guardado y vuelve a consultar SIGLA 1.0.
+  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal. Se traen de SIGLA 1.0 y solo se muestran, sin copiarse en la certificación (2026-11-17); los roles llegan con H24.
   12. La pantalla se puede usar bien desde el celular.
-  13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04).
-- La naviera que trae la API se copia como texto y código, sin enlazarla al catálogo de E8, así que no hace falta que exista en él (decisión del 2026-11-04). Cliente y producto no tienen catálogo.
-- **Propuesta de cambio (2026-11-10, por aprobar en el PR de H05):** la naviera ya no se copia: se enlaza a `shipping_lines`, y el código es el de SIGLA 2.0 (la API solo trae el nombre, por ejemplo `SEATRADE`). Antes de construir H17 falta decidir cómo se reconoce la naviera de la API en el catálogo y qué pasa si no existe. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta` (falta la lista completa de valores).
+  13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04), entre las activas de su sede (2026-11-17).
+  14. El inspector puede escanear o escribir el código de barras del formato de inspección, que es opcional y no se repite en otra certificación (agregado por el usuario el 2026-11-17).
+  15. En el menú, Certificación lleva Solicitudes de retiro, Inspección (esta pantalla) y Checkpoint, que se ve desactivada y sin enlace hasta que exista E6 (decisión del usuario del 2026-11-17).
+- La naviera que trae la API (solo su nombre, por ejemplo `SEATRADE`) se enlaza a `shipping_lines`: se busca por nombre sin distinguir mayúsculas; si está desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre, sin espacios ni signos (SEATRADE queda SEAT), y si ese código ya existe se le suma un número (MAER1, MAER2). Reemplaza la decisión del 2026-11-04 de copiarla como texto (decisión del usuario del 2026-11-17, que cierra la propuesta del 2026-11-10). Cliente y producto no tienen catálogo. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta`.
+- Diseño aprobado en el lienzo el 2026-11-17 (página E5): en el teléfono, un paso por pantalla (solicitud, kit y zona) con una barra fija de Atrás y Siguiente; en escritorio, los tres pasos juntos. La cámara usa el paquete `barcode-detector`, aprobado por el usuario el 2026-11-17.
 
 **H18 · Completar las secciones con fotos (EN REVISIÓN, no aprobada)**
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.

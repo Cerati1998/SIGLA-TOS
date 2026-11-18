@@ -71,6 +71,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `workers` | E4 · H25 | `en código` | `workers` |
 | `bulk_dispatches` | E4 · H30 | `en código` | `device_dispatches` |
 | `bulk_dispatch_items` | E4 · H30 | `en código` | `device_dispatches_units` |
+| `certifications` | E5 · H17 | `en código` | `security_certifications` |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -442,6 +443,38 @@ erDiagram
     string name "UK con branch_id"
     int capacity
     datetime deleted_at
+  }
+```
+
+### 4.9 Certificaciones (E5)
+
+El inspector inicia la certificación de una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud solo se guardan su id, su booking y su contenedor; lo demás se enlaza con los catálogos.
+
+```mermaid
+erDiagram
+  shipping_lines ||--o{ certifications : "naviera"
+  carriers |o--o{ certifications : "transportista"
+  drivers |o--o{ certifications : "conductor"
+  vehicles |o--o{ certifications : "remolcador y semirremolque"
+  kits ||--o| certifications : "en una sola"
+  yard_zones ||--o{ certifications : "zona"
+  users ||--o{ certifications : "inspector"
+
+  certifications {
+    bigint id PK
+    string gate_out_request_reference UK
+    string booking
+    string container
+    bigint shipping_line_id FK
+    bigint carrier_id FK
+    bigint driver_id FK
+    bigint tractor_id FK
+    bigint semi_trailer_id FK
+    bigint kit_id FK, UK
+    string inspection_sheet_code UK
+    bigint yard_zone_id FK
+    bigint certified_by FK
+    datetime started_at
   }
 ```
 
@@ -877,6 +910,30 @@ Zonas de patio (H26). Se gestionan en Maestros → Zonas de patio. El seeder car
 | `capacity` | int unsigned | Obligatoria, entero mayor que 0, en contenedores. Solo informativa (criterio 6). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Una desactivada no aparece al iniciar una certificación, pero la conservan las ya hechas. |
 
+### 5.22 `certifications` · `en código`
+
+Certificaciones de contenedores (H17). Se inician en Certificación → Inspección. En el ER era `security_certifications`. Por decisión del usuario del 2026-11-17, de la solicitud de retiro solo se guardan su id, su booking y su contenedor, para volver a consultarla en SIGLA 1.0: el cliente, el producto, el DNI y el brevete nunca se copian.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `gate_out_request_reference` | varchar(50) | UK: el id de la solicitud de SIGLA 1.0 (`id_solicitud`). Una solicitud tiene una sola certificación (criterio 6). |
+| `booking` | varchar(50) | El booking de la solicitud, para volver a consultarla. |
+| `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
+| `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, buscada por nombre sin distinguir mayúsculas. Si estaba desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre (SEAT) y un número si se repite (MAER1). |
+| `carrier_id` | bigint FK → `carriers.id` (null) | Buscado por RUC o creado (criterio 3). Null si SIGLA 1.0 no manda el RUC o la razón social. |
+| `driver_id` | bigint FK → `drivers.id` (null) | Buscado por DNI o creado, y enlazado con el transportista en `carrier_driver` (criterio 3). Null si SIGLA 1.0 no manda el DNI, el nombre o el brevete. |
+| `tractor_id` | bigint FK → `vehicles.id` (null) | Remolcador, buscado por placa o creado con `VehicleRegistry`. Null si falta la placa, la marca o la carrocería. |
+| `semi_trailer_id` | bigint FK → `vehicles.id` (null) | Semirremolque, igual que el remolcador. |
+| `kit_id` | bigint FK → `kits.id` | UK: un kit va en una sola certificación (criterio 8). Debe estar `dispatched` y ser de la misma naviera de la solicitud. Al iniciar, el kit sigue `dispatched`. |
+| `inspection_sheet_code` | varchar(50) (null) | Código de barras del formato de inspección, opcional. UK: no se repite en otra certificación. |
+| `yard_zone_id` | bigint FK → `yard_zones.id` | Zona activa de la sede del usuario (criterio 13). |
+| `certified_by` | bigint FK → `users.id` | El inspector que la inició (criterio 9). |
+| `started_at` | datetime | Fecha y hora de inicio (criterio 9). |
+| `timestamps` | | |
+
+Todavía no tiene `status`: los estados se definen con H19 y H20 (P4). Se escribe junto con la naviera, el transportista, el conductor, su enlace y los vehículos que falten, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4).
+
 ## 6. Cambios del ER original que ya aplican
 
 - `int` → `bigint`; casi todo nulo → `NOT NULL`.
@@ -892,7 +949,6 @@ No se migran ahora. Cada fila se amplía (diagrama y diccionario) cuando su hist
 
 | Tabla (nombre en el ER) | Historia | Decisiones |
 | --- | --- | --- |
-| `security_certifications` (`security_certifications`) | H17 | Una por solicitud de retiro; la reinspección la reabre. `source` `api`/`web`: con `api`, la solicitud se copia como texto (sin FK); la naviera se copiaba como texto y código, pero el 2026-11-10 el usuario propuso enlazarla con FK a `shipping_lines` (por aprobar en el PR de H05); con `web`, saldrá FK desde la futura tabla de solicitudes. `yard_zone_id` la elige el inspector al iniciar. `started_at`/`closed_at` pasan a datetime. |
 | `certification_photos` (`external_/internal_certification_photos`) | H18 | `por decidir` (E5 en revisión). Propuesta: una sola tabla. |
 | `affectations`, `containers` | — | `futura`. `containers` trae ids sueltos sin tabla (`reefer_technolgy_id`, `reefer_machine_id`, `warehouse_id`, `own_line_id`). |
 
@@ -904,5 +960,5 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | --- | --- | --- |
 | P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
 | P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
-| P4 | Certificación | Valores de `status` y si remolcador y semirremolque son obligatorios. |
+| P4 | Certificación | Valores de `status`, que `certifications` todavía no tiene (H19 y H20). Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `closed_at`, `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |

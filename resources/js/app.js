@@ -11,4 +11,5 @@ import './toast';
 import './digits-only';
 import './security-device-lot-preview';
 import './kit-scanner';
+import './barcode-scanner';
 import '../../vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables';
