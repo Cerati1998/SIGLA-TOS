@@ -9,7 +9,14 @@ name: deploy
 #   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, se toma
 #   con ssh-keyscan en cada despliegue) y VITE_REVERB_* (para el build de Echo)
 #
-# El .env vive solo en el servidor, dentro de DEPLOY_PATH, y nunca se toca.
+# Estructura en el servidor (DEPLOY_PATH):
+#   .upload/           copia de trabajo de rsync; solo viajan los cambios
+#   releases/<fecha>/  cada despliegue, armado desde .upload con enlaces duros
+#   current            enlace a la release activa; el dominio apunta a current/public
+#   shared/            lo que sobrevive a las releases: .env, storage/,
+#                      public/.user.ini, public/.well-known/ y los bloques de
+#                      cPanel de public/.htaccess (cpanel-htaccess.txt)
+# Volver a la release anterior: ln -sfn releases/<fecha> current
 
 on:
   workflow_run:
@@ -40,6 +47,7 @@ jobs:
       SSH_USER: ${{ vars.SSH_USER }}
       DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
       PHP_BIN: ${{ vars.PHP_BIN || 'php' }}
+      KEEP_RELEASES: 5
 
     steps:
       - name: Check configuration
@@ -58,9 +66,9 @@ jobs:
             echo "::error::Falta el secreto SSH_PRIVATE_KEY en el environment production."
             missing=1
           fi
-          # rsync --delete borra lo que sobra en DEPLOY_PATH: exige una ruta absoluta
-          # de al menos tres niveles (por ejemplo /home/usuario/sigla) para no
-          # vaciar por error la carpeta personal ni la raíz.
+          # El despliegue borra releases viejas dentro de DEPLOY_PATH: exige una ruta
+          # absoluta de al menos tres niveles (por ejemplo /home/usuario/sigla) para no
+          # tocar por error la carpeta personal ni la raíz.
           depth=$(echo "$DEPLOY_PATH" | tr -s '/' '\n' | grep -c . || true)
           if [ "${DEPLOY_PATH:0:1}" != "/" ] || [ "$depth" -lt 3 ]; then
             echo "::error::DEPLOY_PATH debe ser una ruta absoluta de al menos tres niveles, por ejemplo /home/usuario/sigla."
@@ -132,28 +140,31 @@ jobs:
             ServerAliveInterval 30
           EOF
           chmod 600 ~/.ssh/config
-          ssh server "mkdir -p '$DEPLOY_PATH'"
 
-      - name: Enter maintenance mode
-        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan down --retry=15 || true; fi"
-
-      # MultiPHP de cPanel escribe la versión de PHP del dominio en public/.htaccess,
-      # y rsync lo pisa con el del repositorio. Se guarda ese bloque en storage/
-      # (que rsync no toca) para volver a ponerlo después de subir los archivos.
-      - name: Save cPanel PHP handler
+      # Prepara shared/ y guarda los bloques que cPanel escribió en el .htaccess de
+      # la release activa (MultiPHP y el editor de php.ini), para pasarlos a la nueva.
+      - name: Prepare server
         run: |
           ssh server bash -s -- "'$DEPLOY_PATH'" <<'REMOTE'
           set -euo pipefail
-          htaccess="$1/public/.htaccess"
-          saved="$1/storage/app/cpanel-php-handler.txt"
-          if [ -f "$htaccess" ] && grep -q '# php -- BEGIN cPanel-generated handler' "$htaccess"; then
-            mkdir -p "$1/storage/app"
-            sed -n '/# php -- BEGIN cPanel-generated handler/,/# php -- END cPanel-generated handler/p' "$htaccess" > "$saved"
+          base="$1"
+          mkdir -p "$base/.upload" "$base/releases" \
+            "$base/shared/storage/app/public" "$base/shared/storage/app/private" \
+            "$base/shared/storage/framework/cache/data" "$base/shared/storage/framework/sessions" \
+            "$base/shared/storage/framework/views" "$base/shared/storage/logs" \
+            "$base/shared/public/.well-known"
+          if [ ! -f "$base/shared/.env" ]; then
+            echo "Falta $base/shared/.env. Créalo en el servidor antes de desplegar."
+            exit 1
+          fi
+          htaccess="$base/current/public/.htaccess"
+          if [ -f "$htaccess" ] && grep -q 'BEGIN cPanel-generated' "$htaccess"; then
+            sed -n '/BEGIN cPanel-generated/,/END cPanel-generated/p' "$htaccess" > "$base/shared/cpanel-htaccess.txt"
           fi
           REMOTE
 
-      # Lo excluido no se sube y tampoco se borra en el servidor: .env, storage,
-      # cachés de bootstrap, el enlace public/storage y lo que crea cPanel.
+      # Lo excluido no viaja: .env, storage, cachés de bootstrap, el enlace
+      # public/storage y lo que crea cPanel, que vive en shared/.
       - name: Upload files
         run: |
           rsync -az --delete \
@@ -176,31 +187,63 @@ jobs:
             --exclude='.user.ini' \
             --exclude='php.ini' \
             --exclude='error_log' \
-            ./ "server:$DEPLOY_PATH/"
+            ./ "server:$DEPLOY_PATH/.upload/"
 
-      - name: Run release commands
+      - name: Activate release
+        id: release
         run: |
-          ssh server bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" <<'REMOTE'
+          release=$(date -u +%Y%m%d-%H%M%S)
+          echo "name=$release" >> "$GITHUB_OUTPUT"
+          ssh server bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" "'$release'" "'$KEEP_RELEASES'" <<'REMOTE'
           set -euo pipefail
-          cd "$1"
-          php_bin="$2"
-          if [ -s storage/app/cpanel-php-handler.txt ] && ! grep -q '# php -- BEGIN cPanel-generated handler' public/.htaccess; then
-            printf '\n' >> public/.htaccess
-            cat storage/app/cpanel-php-handler.txt >> public/.htaccess
+          base="$1"; php_bin="$2"; release="$3"; keep="$4"
+          dir="$base/releases/$release"
+
+          # Enlaces duros desde .upload: la release casi no ocupa disco y no cambia
+          # aunque el próximo rsync actualice .upload.
+          cp -al "$base/.upload" "$dir"
+          ln -sfn "$base/shared/.env" "$dir/.env"
+          rm -rf "$dir/storage"
+          ln -sfn "$base/shared/storage" "$dir/storage"
+          ln -sfn "$base/shared/public/.well-known" "$dir/public/.well-known"
+          if [ -f "$base/shared/public/.user.ini" ]; then
+            cp "$base/shared/public/.user.ini" "$dir/public/.user.ini"
           fi
-          if [ ! -f .env ]; then
-            echo "Falta el archivo .env en $1. Créalo en el servidor antes de desplegar."
-            exit 1
+          # Archivo nuevo (no se edita el original) para no tocar el enlace duro
+          # que comparte con .upload y las releases anteriores.
+          if [ -s "$base/shared/cpanel-htaccess.txt" ]; then
+            { cat "$dir/public/.htaccess"; printf '\n'; cat "$base/shared/cpanel-htaccess.txt"; } > "$dir/public/.htaccess.new"
+            mv -f "$dir/public/.htaccess.new" "$dir/public/.htaccess"
           fi
-          mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
-          $php_bin artisan optimize:clear
+          mkdir -p "$dir/bootstrap/cache"
+
+          cd "$dir"
           $php_bin artisan package:discover --ansi
-          $php_bin artisan migrate --force
-          $php_bin artisan storage:link || true
+          $php_bin artisan storage:link
+          $php_bin artisan view:clear
           $php_bin artisan optimize
+
+          # El modo mantenimiento vive en storage/ (compartido): cubre las migraciones
+          # y el cambio de release, y se quita desde la release nueva.
+          $php_bin artisan down --retry=10 || true
+          $php_bin artisan migrate --force
+          ln -sfn "$dir" "$base/current.new"
+          mv -Tf "$base/current.new" "$base/current"
           $php_bin artisan queue:restart
+          $php_bin artisan up
+
+          # Deja solo las últimas releases; nunca borra la activa.
+          active=$(readlink -f "$base/current")
+          ls -1d "$base"/releases/*/ | sed 's:/$::' | sort | head -n -"$keep" | while read -r old; do
+            if [ "$(readlink -f "$old")" != "$active" ]; then
+              rm -rf "$old"
+            fi
+          done
+          echo "Release activa: $release"
           REMOTE
 
-      - name: Leave maintenance mode
-        if: always() && steps.ssh.outcome == 'success'
-        run: ssh server "cd '$DEPLOY_PATH' && if [ -f artisan ]; then $PHP_BIN artisan up || true; fi"
+      # Si algo falló después de entrar en mantenimiento, el sitio vuelve a la
+      # release anterior, que sigue activa porque current no cambió.
+      - name: Leave maintenance mode on failure
+        if: failure() && steps.ssh.outcome == 'success'
+        run: ssh server "if [ -f '$DEPLOY_PATH/current/artisan' ]; then cd '$DEPLOY_PATH/current' && $PHP_BIN artisan up || true; fi"
