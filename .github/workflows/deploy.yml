@@ -155,8 +155,9 @@ jobs:
             exit 1
           fi
 
-      # Prepara shared/ y guarda los bloques que cPanel escribió en el .htaccess de
-      # la release activa (MultiPHP y el editor de php.ini), para pasarlos a la nueva.
+      # Prepara shared/ y guarda lo que cPanel escribió en la release activa (MultiPHP
+      # y el editor de php.ini): los bloques del .htaccess y el .user.ini, para
+      # pasarlos a la nueva.
       - name: Prepare server
         run: |
           ssh server bash -s -- "'$DEPLOY_PATH'" <<'REMOTE'
@@ -174,6 +175,9 @@ jobs:
           htaccess="$base/current/public/.htaccess"
           if [ -f "$htaccess" ] && grep -q 'BEGIN cPanel-generated' "$htaccess"; then
             sed -n '/BEGIN cPanel-generated/,/END cPanel-generated/p' "$htaccess" > "$base/shared/cpanel-htaccess.txt"
+          fi
+          if [ -f "$base/current/public/.user.ini" ]; then
+            cp "$base/current/public/.user.ini" "$base/shared/public/.user.ini"
           fi
           REMOTE
 
