@@ -6,8 +6,9 @@ name: deploy
 # Environment de GitHub: production
 #   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
 #   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH
-#   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, se toma
-#   con ssh-keyscan en cada despliegue) y VITE_REVERB_* (para el build de Echo)
+#   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, la huella
+#   se acepta en la primera conexión de cada despliegue) y VITE_REVERB_* (para el
+#   build de Echo)
 #
 # Estructura en el servidor (DEPLOY_PATH):
 #   .upload/           copia de trabajo de rsync; solo viajan los cambios
@@ -119,14 +120,16 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Sin SSH_KNOWN_HOSTS, la huella se acepta en la primera conexión (accept-new).
+          # No se usa ssh-keyscan: abre una conexión por tipo de clave sin iniciar
+          # sesión, y el firewall del cPanel las cuenta como intentos fallidos y
+          # bloquea la IP del runner a mitad del despliegue.
           if [ -n "$SSH_KNOWN_HOSTS" ]; then
             printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            host_key_checking=yes
           else
-            ssh-keyscan -T 15 -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null || true
-          fi
-          if [ ! -s ~/.ssh/known_hosts ]; then
-            echo "::error::No se pudo leer la huella de $SSH_HOST en el puerto $SSH_PORT. Revisa SSH_HOST, SSH_PORT y que el firewall deje entrar a GitHub Actions."
-            exit 1
+            : > ~/.ssh/known_hosts
+            host_key_checking=accept-new
           fi
           chmod 644 ~/.ssh/known_hosts
           cat > ~/.ssh/config <<EOF
@@ -136,10 +139,21 @@ jobs:
             User $SSH_USER
             IdentityFile ~/.ssh/deploy_key
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking $host_key_checking
+            ConnectTimeout 20
             ServerAliveInterval 30
+            ControlMaster auto
+            ControlPath ~/.ssh/cm-%C
+            ControlPersist 20m
           EOF
           chmod 600 ~/.ssh/config
+          # Una sola conexión para todo el despliegue: los ssh y el rsync de los pasos
+          # siguientes viajan por ella, así el firewall no ve muchas conexiones seguidas.
+          if ! ssh -fN server < /dev/null > /dev/null 2> ~/.ssh/connect.log; then
+            cat ~/.ssh/connect.log
+            echo "::error::No se pudo conectar a $SSH_HOST en el puerto $SSH_PORT. Revisa SSH_HOST, SSH_PORT, la clave y que el firewall no tenga bloqueada la IP de GitHub Actions."
+            exit 1
+          fi
 
       # Prepara shared/ y guarda los bloques que cPanel escribió en el .htaccess de
       # la release activa (MultiPHP y el editor de php.ini), para pasarlos a la nueva.
