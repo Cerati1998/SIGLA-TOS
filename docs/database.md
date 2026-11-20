@@ -75,6 +75,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `certification_steps` | E5 · H18 | `en código` | (nueva; en el ER, las secciones de la certificación iban en `certification_criteria_items`) |
 | `certification_step_security_device` | E5 · H18 | `en código` | (nueva) |
 | `certification_photos` | E5 · H18 | `en código` | (nueva; cierra P3) |
+| `certification_reopenings` | E5 · H19 | `en código` | (nueva; con `closed_at` y `closed_by` en `certifications`, cierra P4) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -454,7 +455,7 @@ erDiagram
 
 ### 4.9 Certificaciones (E5)
 
-El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18).
+El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19).
 
 ```mermaid
 erDiagram
@@ -471,6 +472,9 @@ erDiagram
   kits ||--o| certifications : "en una sola"
   yard_zones ||--o{ certifications : "zona"
   users ||--o{ certifications : "inspector"
+  users |o--o{ certifications : "cerró"
+  certifications ||--o{ certification_reopenings : "reaperturas"
+  users ||--o{ certification_reopenings : "reaperturó"
 
   certifications {
     bigint id PK
@@ -489,6 +493,16 @@ erDiagram
     bigint yard_zone_id FK
     bigint certified_by FK
     datetime started_at
+    datetime closed_at
+    bigint closed_by FK
+  }
+  certification_reopenings {
+    bigint id PK
+    bigint certification_id FK
+    string reason
+    bigint reopened_by FK
+    datetime closed_at
+    bigint closed_by FK
   }
   certification_steps {
     bigint id PK
@@ -968,9 +982,25 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | `yard_zone_id` | bigint FK → `yard_zones.id` | Zona activa de la sede del usuario (criterio 13). |
 | `certified_by` | bigint FK → `users.id` | El inspector que la inició (criterio 9). |
 | `started_at` | datetime | Fecha y hora de inicio (criterio 9). |
+| `closed_at` | datetime (null) | Fecha y hora del último cierre (H19, criterio 4). Null mientras está abierta o reaperturada. |
+| `closed_by` | bigint FK → `users.id` (null) | Quién la cerró la última vez. Null igual que `closed_at`. |
 | `timestamps` | | |
 
-Todavía no tiene `status`: los estados se definen con H19 y H20 (P4). Se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).
+No guarda un `status`: el estado se calcula (enum de PHP `CertificationStatus`, H19 y H20). `closed` (Cerrada) si tiene `closed_at`; `reopened` (Reaperturada) si no lo tiene y tiene reaperturas; `ready_to_close` (Lista para cerrar) si cada paso tiene al menos una foto; si no, `in_progress` (A medias). Al cerrarla, el kit y sus dispositivos pasan a `used` en la misma transacción. Al asignarla, se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).
+
+### 5.22b `certification_reopenings` · `en código`
+
+Las reaperturas de una certificación cerrada (H19, criterio 7). Cada una guarda su motivo, quién la reaperturó y cuándo, y también el cierre que deshizo, para que no se pierda ningún cierre. Al reaperturar, el kit y sus dispositivos siguen en `used`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | Índice con `created_at`. |
+| `reason` | varchar(500) | El motivo, obligatorio. |
+| `reopened_by` | bigint FK → `users.id` | Quién la reaperturó. |
+| `closed_at` | datetime | Cuándo se había cerrado. |
+| `closed_by` | bigint FK → `users.id` | Quién la había cerrado. |
+| `timestamps` | | `created_at` es la fecha y hora de la reapertura. |
 
 ### 5.23 `certification_steps` · `en código`
 
@@ -1035,5 +1065,5 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | --- | --- | --- |
 | P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
 | P3 | Fotos | Cerrada el 2026-11-20 en H18: una tabla, `certification_photos`, con la foto y su miniatura en la misma fila. |
-| P4 | Certificación | Valores de `status`, que `certifications` todavía no tiene (H19 y H20). Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `closed_at`, `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
+| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |

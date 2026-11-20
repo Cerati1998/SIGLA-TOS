@@ -33,6 +33,23 @@
         </span>
     </p>
 
+    @if ($certification->isClosed())
+        @php($closedAt = $certification->closed_at->timezone('America/Lima'))
+        <p class="m-0 flex items-start gap-2 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
+            <i class="fa-solid fa-lock mt-0.5" aria-hidden="true"></i>
+            <span><strong>Cerrada</strong> el {{ $closedAt->format('d/m/Y') }} a las {{ $closedAt->format('H:i') }} por <strong>{{ $certification->closer?->name }}</strong>.</span>
+        </p>
+    @elseif ($certification->lastReopening !== null)
+        @php($reopenedAt = ($certification->lastReopening->created_at ?? now())->timezone('America/Lima'))
+        <p class="m-0 flex items-start gap-2 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
+            <i class="fa-solid fa-lock-open mt-0.5" aria-hidden="true"></i>
+            <span>
+                <strong>Reaperturada</strong> el {{ $reopenedAt->format('d/m/Y') }} a las {{ $reopenedAt->format('H:i') }}
+                por <strong>{{ $certification->lastReopening->reopener->name }}</strong>. Motivo: «{{ $certification->lastReopening->reason }}».
+            </span>
+        </p>
+    @endif
+
     <flux:card class="flex flex-col gap-5.25 p-5.25! max-md:p-4!">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h3 class="m-0 flex-[1_1_15rem] font-heading text-h3 font-normal">Solicitud {{ $certification->gate_out_request_reference }}</h3>

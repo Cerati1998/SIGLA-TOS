@@ -24,6 +24,15 @@
             'route' => route('intranet.inspections.index', 'external'),
             'count' => $pending['external'],
         ],
+        [
+            'title' => 'Asignaciones',
+            'text' => 'Todas las unidades asignadas con su avance. Aquí se consultan, se cierran y se reaperturan.',
+            'icon' => 'list',
+            'tone' => 'bg-badge-success text-badge-success-ink',
+            'route' => route('intranet.certifications.list'),
+            'count' => null,
+            'readyToClose' => $readyToClose,
+        ],
     ];
 @endphp
 
@@ -34,7 +43,7 @@
     <div class="flex flex-col gap-4">
         <p class="m-0 text-base text-ink-muted">Primero se asigna el kit. Después, la inspección interna y la externa se hacen en cualquier orden.</p>
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @foreach ($cards as $card)
                 <a href="{{ $card['route'] }}" wire:navigate class="flex items-center gap-4 rounded-card border border-line bg-white p-4 text-ink no-underline shadow-card hover:border-brand hover:text-ink md:flex-col md:items-start md:p-5.25">
                     <span class="flex size-14 flex-none items-center justify-center rounded-xl {{ $card['tone'] }}">
@@ -48,6 +57,11 @@
                                 <x-status-badge :variant="$card['count'] > 0 ? 'warning' : 'success'">
                                     {{ $card['count'] === 0 ? 'Sin pendientes' : trans_choice(':count pendiente|:count pendientes', $card['count']) }}
                                 </x-status-badge>
+                            </span>
+                        @endif
+                        @if (($card['readyToClose'] ?? 0) > 0)
+                            <span class="self-start">
+                                <x-status-badge variant="success">{{ trans_choice(':count lista para cerrar|:count listas para cerrar', $card['readyToClose']) }}</x-status-badge>
                             </span>
                         @endif
                     </span>

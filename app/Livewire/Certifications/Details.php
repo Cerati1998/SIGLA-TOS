@@ -67,7 +67,7 @@ class Details extends Component
      */
     public function render(): View
     {
-        $this->certification->loadMissing(['shippingLine', 'carrier', 'driver', 'tractor', 'semiTrailer', 'kit.kitType', 'kit.devices', 'yardZone', 'certifier']);
+        $this->certification->loadMissing(['shippingLine', 'carrier', 'driver', 'tractor', 'semiTrailer', 'kit.kitType', 'kit.devices', 'yardZone', 'certifier', 'closer', 'lastReopening.reopener']);
 
         return view('pages.certifications.details', [
             'inspections' => array_map(
