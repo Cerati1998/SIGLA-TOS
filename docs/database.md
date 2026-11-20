@@ -151,6 +151,8 @@ erDiagram
     string name UK
     string kind "seal, container_seal, tape, other"
     boolean splits_internal_external
+    boolean uses_series
+    boolean requires_lot_approval
     datetime deleted_at
   }
 ```
@@ -192,7 +194,8 @@ erDiagram
   security_devices {
     bigint id PK
     bigint security_device_lot_id FK
-    string serial_number UK
+    bigint serial_number_scope "UK con serial_number"
+    string serial_number
     string status "inactive, available, in_kit, used, damaged"
     bigint security_device_lot_approval_id FK "null"
   }
@@ -607,6 +610,8 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 | `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
 | `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
 | `splits_internal_external` | boolean | Por defecto `false`. Si está marcado, en el tipo de kit su cantidad se reparte entre la asignación interna y la externa (casilla en crear y editar; corrección del 2026-11-16, T55). Se puede cambiar al editar: los tipos de kit ya guardados conservan sus cantidades hasta que se editen. |
+| `uses_series` | boolean | Por defecto `true`. La casilla «No utiliza serie» lo deja en `false`: sus lotes no piden inicio ni final de serie y cada serie es solo el correlativo con ceros, única dentro del tipo (corrección del 2026-11-20, T62). |
+| `requires_lot_approval` | boolean | Por defecto `true`. Si está en `false` («Requiere aprobación en lote» desmarcada), los dispositivos de sus lotes nacen `available` y no pasan por la aprobación de H29 (T62). `uses_series` y `requires_lot_approval` solo cambian mientras el tipo no tenga lotes. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
 `SecurityDeviceTypeSeeder` carga los 8 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
@@ -621,10 +626,10 @@ El origen de un lote: de quién viene y cómo se arman sus series. Se crea uno p
 | `shipping_line_id` | bigint FK | Naviera activa al ingresar el lote (H07, criterio 1). |
 | `provider_id` | bigint FK | Proveedor activo. Vive solo aquí: el lote no lo repite. |
 | `security_device_type_id` | bigint FK | Tipo activo (H07, criterio 2). |
-| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. |
+| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. Vacío en un tipo que no utiliza serie (T62). |
 | `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
 | `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
-| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). |
+| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). Null en un tipo que no utiliza serie (T62). |
 | `timestamps` | | |
 
 La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
@@ -648,8 +653,9 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del que vino. |
-| `serial_number` | varchar(50) | UK: cada dispositivo es único. ER: `serie_number`. |
-| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado) y `dispatched` (Despachado, al salir en un despacho a granel, H30). Confirmados el 2026-11-09 (T27). |
+| `serial_number_scope` | bigint sin signo | Por defecto `0`. Dónde es única la serie (T62): `0` si su tipo utiliza serie, que es única en todo SIGLA, o el id de su tipo si no la utiliza, que es única solo dentro de ese tipo. UK compuesta con `serial_number`. Al corregir un lote (H28) y cambiar entre dos tipos sin serie, sus dispositivos pasan al alcance del tipo nuevo. |
+| `serial_number` | varchar(50) | Índice. Única con `serial_number_scope` (antes UK sola; cambiado el 2026-11-20, T62). ER: `serie_number`. Una serie sin serie tampoco puede repetir la de un tipo con serie: lo revisa `ReceiveSecurityDeviceLot::takenSerialNumbers()`. |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16; en un tipo que no requiere aprobación, el inicial es `available`, T62), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado) y `dispatched` (Despachado, al salir en un despacho a granel, H30). Confirmados el 2026-11-09 (T27). |
 | `security_device_lot_approval_id` | bigint FK (null) | Aprobación que lo pasó a Disponible (H29). Null mientras siga Inactivo. Quién y cuándo se leen de la aprobación. |
 | `timestamps` | | |
 
