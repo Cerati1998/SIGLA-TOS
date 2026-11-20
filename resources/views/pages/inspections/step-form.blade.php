@@ -6,12 +6,17 @@
     $tone = $type === \App\Enums\CertificationSectionType::Internal ? 'purple' : 'info';
 @endphp
 
-<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($certification->isClosed()) })"
+<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($certification->isReadOnly()) })"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
 
-    @if ($certification->isClosed())
+    @if ($certification->isAnnulled())
+        <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-danger p-3.5 text-sm text-badge-danger-ink">
+            <x-feather name="slash" class="mt-0.5 size-4 shrink-0" />
+            <span>Asignación anulada: solo lectura.</span>
+        </p>
+    @elseif ($certification->isClosed())
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
             <x-feather name="lock" class="mt-0.5 size-4 shrink-0" />
             <span>Certificación cerrada: solo lectura. Para corregir sus fotos, reapertúrala desde Asignaciones.</span>

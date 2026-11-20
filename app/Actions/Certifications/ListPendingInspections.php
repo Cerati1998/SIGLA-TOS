@@ -25,7 +25,7 @@ class ListPendingInspections
         $other = $type === CertificationSectionType::Internal ? CertificationSectionType::External : CertificationSectionType::Internal;
 
         /** @var Collection<int, Certification> $certifications */
-        $certifications = $this->withProgress(Certification::query(), $type, $other)
+        $certifications = $this->withProgress(Certification::query()->whereNull('annulled_at'), $type, $other)
             ->with(['kit:id,pouch_code', 'shippingLine:id,code'])
             ->latest('started_at')
             ->get()

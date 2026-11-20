@@ -344,7 +344,7 @@ erDiagram
     string pouch_code UK "funda"
     bigint kit_type_id FK
     bigint shipping_line_id FK
-    string status "building, built, dispatched, used"
+    string status "building, built, dispatched, used, disabled"
     bigint created_by FK
   }
   kit_security_device_type {
@@ -491,13 +491,17 @@ erDiagram
     bigint driver_id FK
     bigint tractor_id FK
     bigint semi_trailer_id FK
-    bigint kit_id FK, UK
+    bigint kit_id FK "índice"
     string inspection_sheet_code UK
     bigint yard_zone_id FK
     bigint certified_by FK
     datetime started_at
     datetime closed_at
     bigint closed_by FK
+    datetime annulled_at "null"
+    bigint annulled_by FK "null"
+    string annulment_reason "null"
+    string kit_decision "reuse, disable"
   }
   certification_reopenings {
     bigint id PK
@@ -862,7 +866,7 @@ Kits que arma bodega (H14). Se crean en Bodega → Kits → Nuevo.
 | `pouch_code` | varchar(50) | UK. Código de barras de la funda, escaneado o escrito; se guarda en mayúsculas y sin espacios a los lados. En el ER era `series_code`: se renombra por el glosario (funda = `pouch`). |
 | `kit_type_id` | bigint FK | Tipo de kit (`kit_types`). Solo se eligen los activos; no cambia después de crear el kit. |
 | `shipping_line_id` | bigint FK | Naviera (`shipping_lines`). Solo se eligen las activas. El kit solo acepta dispositivos de lotes de esta naviera (criterio 13). |
-| `status` | varchar(20) | Índice. Enum de PHP `KitStatus`: `building` (Armando, el inicial y mientras falten dispositivos), `built` (Armado, completo), `dispatched` (Despachado, H15) y `used` (Usado, H17). Pasa solo entre Armando y Armado al agregar o quitar (criterio 14). |
+| `status` | varchar(20) | Índice. Enum de PHP `KitStatus`: `building` (Armando, el inicial y mientras falten dispositivos), `built` (Armado, completo), `dispatched` (Despachado, H15), `used` (Usado, H17) y `disabled` (Inhabilitado, al anular su asignación, H32). Pasa solo entre Armando y Armado al agregar o quitar (criterio 14). |
 | `created_by` | bigint FK | Usuario que creó el kit (`users`). Con `created_at`, cumple el criterio 11. |
 | `timestamps` | | La semana del kit no es columna: es la semana ISO de `created_at` en hora de Lima (2026-W47). |
 
@@ -983,13 +987,17 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | `driver_id` | bigint FK → `drivers.id` (null) | Buscado por DNI o creado, y enlazado con el transportista en `carrier_driver` (criterio 3). Null si SIGLA 1.0 no manda el DNI, el nombre o el brevete. |
 | `tractor_id` | bigint FK → `vehicles.id` (null) | Remolcador, buscado por placa o creado con `VehicleRegistry`. Null si falta la placa, la marca o la carrocería. |
 | `semi_trailer_id` | bigint FK → `vehicles.id` (null) | Semirremolque, igual que el remolcador. |
-| `kit_id` | bigint FK → `kits.id` | UK: un kit va en una sola certificación (criterio 8). Debe estar `dispatched` y ser de la misma naviera de la solicitud. Al iniciar, el kit sigue `dispatched`. |
+| `kit_id` | bigint FK → `kits.id` | Índice (antes UK; cambiado el 2026-11-20 en H32): un kit va en una sola certificación que no esté anulada (criterio 8), lo revisa `FindKitToCertify`. Debe estar `dispatched` y ser de la misma naviera de la solicitud. Al iniciar, el kit sigue `dispatched`. Una anulada conserva su kit aunque se reutilice. |
 | `inspection_sheet_code` | varchar(50) (null) | Código de barras del formato de inspección, opcional. UK: no se repite en otra certificación. |
 | `yard_zone_id` | bigint FK → `yard_zones.id` | Zona activa de la sede del usuario (criterio 13). |
 | `certified_by` | bigint FK → `users.id` | El inspector que la inició (criterio 9). |
 | `started_at` | datetime | Fecha y hora de inicio (criterio 9). |
 | `closed_at` | datetime (null) | Fecha y hora del último cierre (H19, criterio 4). Null mientras está abierta o reaperturada. |
 | `closed_by` | bigint FK → `users.id` (null) | Quién la cerró la última vez. Null igual que `closed_at`. |
+| `annulled_at` | timestamp (null) | Cuándo se anuló la asignación del kit (H32). Una anulada no se edita ni se cierra, y solo se anula una que no esté cerrada. |
+| `annulled_by` | bigint FK → `users.id` (null) | Quién la anuló (H32). |
+| `annulment_reason` | varchar(500) (null) | Motivo de la anulación, obligatorio al anular (H32). |
+| `kit_decision` | varchar(20) (null) | Enum de PHP `CertificationKitDecision`: `reuse` (el kit vuelve a `dispatched` y sus dispositivos salen de las secciones) o `disable` (el kit pasa a `disabled` y sus dispositivos a `discarded`), según responda la naviera (H32). |
 | `timestamps` | | |
 
 No guarda un `status`: el estado se calcula (enum de PHP `CertificationStatus`, H19 y H20). `closed` (Cerrada) si tiene `closed_at`; `reopened` (Reaperturada) si no lo tiene y tiene reaperturas; `ready_to_close` (Lista para cerrar) si cada paso tiene al menos una foto; si no, `in_progress` (A medias). Al cerrarla, el kit y sus dispositivos pasan a `used` en la misma transacción. Al asignarla, se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).

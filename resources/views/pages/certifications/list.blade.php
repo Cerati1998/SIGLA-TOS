@@ -8,4 +8,5 @@
     </x-panel.list-card>
 
     <livewire:certifications.reopen-modal />
+    <livewire:certifications.annul-modal />
 </x-layouts::app>

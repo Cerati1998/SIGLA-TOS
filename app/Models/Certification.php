@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CertificationKitDecision;
 use App\Enums\CertificationSectionType;
 use App\Enums\CertificationStatus;
 use Database\Factories\CertificationFactory;
@@ -42,6 +43,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon $started_at
  * @property Carbon|null $closed_at
  * @property int|null $closed_by
+ * @property Carbon|null $annulled_at
+ * @property int|null $annulled_by
+ * @property string|null $annulment_reason
+ * @property CertificationKitDecision|null $kit_decision
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read ShippingLine $shippingLine
@@ -53,6 +58,7 @@ use Illuminate\Support\Carbon;
  * @property-read YardZone $yardZone
  * @property-read User $certifier
  * @property-read User|null $closer
+ * @property-read User|null $annuller
  * @property-read Collection<int, CertificationStep> $steps
  * @property-read Collection<int, CertificationReopening> $reopenings
  * @property-read CertificationReopening|null $lastReopening
@@ -60,6 +66,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
     'semi_trailer_id', 'kit_id', 'inspection_sheet_code', 'yard_zone_id', 'certified_by', 'started_at', 'closed_at', 'closed_by',
+    'annulled_at', 'annulled_by', 'annulment_reason', 'kit_decision',
 ])]
 class Certification extends Model
 {
@@ -76,6 +83,8 @@ class Certification extends Model
         return [
             'started_at' => 'datetime',
             'closed_at' => 'datetime',
+            'annulled_at' => 'datetime',
+            'kit_decision' => CertificationKitDecision::class,
         ];
     }
 
@@ -170,6 +179,16 @@ class Certification extends Model
     }
 
     /**
+     * Get the user who annulled the assignment of the kit, even if they were deactivated afterwards (H32).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function annuller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'annulled_by')->withTrashed();
+    }
+
+    /**
      * Get the reopenings of the certification, the oldest first.
      *
      * @return HasMany<CertificationReopening, $this>
@@ -197,6 +216,22 @@ class Certification extends Model
     public function steps(): HasMany
     {
         return $this->hasMany(CertificationStep::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Whether the assignment of its kit was annulled: then it is kept, but it is neither edited nor closed (H32).
+     */
+    public function isAnnulled(): bool
+    {
+        return $this->annulled_at !== null;
+    }
+
+    /**
+     * Whether the certification can no longer be edited: closed until it is reopened (H19), or annulled (H32).
+     */
+    public function isReadOnly(): bool
+    {
+        return $this->isClosed() || $this->isAnnulled();
     }
 
     /**
@@ -235,6 +270,14 @@ class Certification extends Model
         $complete = fn (Builder $certifications) => $certifications
             ->has('steps')
             ->whereDoesntHave('steps', fn (Builder $steps) => $steps->doesntHave('photos'));
+
+        if ($status === CertificationStatus::Annulled) {
+            $query->whereNotNull('certifications.annulled_at');
+
+            return;
+        }
+
+        $query->whereNull('certifications.annulled_at');
 
         match ($status) {
             CertificationStatus::Closed => $query->whereNotNull('certifications.closed_at'),
@@ -285,6 +328,7 @@ class Certification extends Model
         $wasReopened = $this->getAttribute('reopenings_exists') ?? $this->reopenings()->exists();
 
         return match (true) {
+            $this->isAnnulled() => CertificationStatus::Annulled,
             $this->isClosed() => CertificationStatus::Closed,
             (bool) $wasReopened => CertificationStatus::Reopened,
             $this->inspectionsAreComplete() => CertificationStatus::ReadyToClose,

@@ -41,6 +41,7 @@ class FindKitToDispatch
             KitStatus::Building => sprintf('Está Armando: le faltan %s. Complétalo antes de despacharlo.', $kit->missingDescription()),
             KitStatus::Dispatched => 'Ya está despachado.',
             KitStatus::Used => 'Ya se usó en una certificación.',
+            KitStatus::Disabled => 'Está Inhabilitado: se anuló su asignación.',
         };
     }
 }

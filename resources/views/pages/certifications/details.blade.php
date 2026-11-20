@@ -42,7 +42,17 @@
         @endif
     </div>
 
-    @if ($certification->isClosed())
+    @if ($certification->isAnnulled())
+        @php $annulledAt = $lima($certification->annulled_at); @endphp
+        <p class="m-0 flex items-start gap-2 rounded-control bg-badge-danger p-3.5 text-sm text-badge-danger-ink">
+            <i class="fa-solid fa-ban mt-0.5" aria-hidden="true"></i>
+            <span>
+                <strong>Asignación anulada</strong> el {{ $annulledAt->format('d/m/Y') }} a las {{ $annulledAt->format('H:i') }} por <strong>{{ $certification->annuller?->name }}</strong>.
+                Motivo: {{ $certification->annulment_reason }}. Decisión sobre el kit: <strong>{{ $certification->kit_decision?->label() }}</strong>.
+                Iniciada el {{ $startedAt->format('d/m/Y') }} a las {{ $startedAt->format('H:i') }} por <strong>{{ $certification->certifier->name }}</strong>.
+            </span>
+        </p>
+    @elseif ($certification->isClosed())
         @php $closedAt = $lima($certification->closed_at); @endphp
         <p class="m-0 flex items-start gap-2 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
             <i class="fa-solid fa-lock mt-0.5" aria-hidden="true"></i>
@@ -101,7 +111,7 @@
         </section>
     </flux:card>
 
-    @unless ($certification->isClosed())
+    @unless ($certification->isReadOnly())
         <section class="grid gap-4 md:grid-cols-2">
             @foreach ($inspections as $inspection)
                 @php $done = $steps->where('type', $inspection['type'])->filter(fn ($step) => $step->photos->isNotEmpty())->count(); @endphp

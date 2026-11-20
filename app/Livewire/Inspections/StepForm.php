@@ -116,11 +116,20 @@ class StepForm extends Component
     }
 
     /**
-     * Refuse a change when the certification was closed, even if the screen was opened before (H18, criterion 11).
+     * Refuse a change when the certification was closed, even if the screen was opened before (H18, criterion 11), or
+     * when the assignment of its kit was annulled (H32).
      */
     private function refusedBecauseClosed(): bool
     {
-        if (! $this->certification->refresh()->isClosed()) {
+        $certification = $this->certification->refresh();
+
+        if ($certification->isAnnulled()) {
+            $this->dispatch('toast', icon: 'warning', title: 'Asignación anulada', text: 'No se puede editar: se anuló la asignación de su kit.');
+
+            return true;
+        }
+
+        if (! $certification->isClosed()) {
             return false;
         }
 

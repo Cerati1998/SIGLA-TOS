@@ -8,6 +8,7 @@ enum KitStatus: string
     case Built = 'built';
     case Dispatched = 'dispatched';
     case Used = 'used';
+    case Disabled = 'disabled';
 
     /**
      * Get the name shown on screen.
@@ -19,6 +20,7 @@ enum KitStatus: string
             self::Built => 'Armado',
             self::Dispatched => 'Despachado',
             self::Used => 'Usado',
+            self::Disabled => 'Inhabilitado',
         };
     }
 
@@ -32,6 +34,7 @@ enum KitStatus: string
             self::Built => 'success',
             self::Dispatched => 'info',
             self::Used => 'neutral',
+            self::Disabled => 'danger',
         };
     }
 
@@ -50,6 +53,6 @@ enum KitStatus: string
      */
     public function hasContentsPdf(): bool
     {
-        return $this !== self::Building;
+        return $this !== self::Building && $this !== self::Disabled;
     }
 }

@@ -45,7 +45,7 @@ class FindKitToCertify
                 : sprintf('El kit %s está %s y todavía no se despachó.', $kit->pouch_code, $kit->status->label());
         }
 
-        $certification = Certification::query()->where('kit_id', $kit->id)->first();
+        $certification = Certification::query()->where('kit_id', $kit->id)->whereNull('annulled_at')->first();
 
         if ($certification !== null) {
             return sprintf('El kit %s ya está en la certificación del contenedor %s.', $kit->pouch_code, $certification->container);
