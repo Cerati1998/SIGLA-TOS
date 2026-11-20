@@ -46,7 +46,8 @@ trait OffersSecurityDeviceLotOrigins
     }
 
     /**
-     * Get the types of security device to choose from, by name (H07, criterion 2).
+     * Get the types of security device to choose from, by name (H07, criterion 2), with whether they use a series and
+     * require the approval of their lots (T62).
      *
      * @return Collection<int, SecurityDeviceType>
      */
@@ -56,7 +57,20 @@ trait OffersSecurityDeviceLotOrigins
         return SecurityDeviceType::withTrashed()
             ->where(fn (Builder $query) => $this->activeOrCurrent($query, 'securityDeviceTypeId'))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'uses_series', 'requires_lot_approval']);
+    }
+
+    /**
+     * Get the boxes of each type to choose from, by its id, for the form to hide the series and warn in the browser.
+     *
+     * @return array<int, array{usesSeries: bool, requiresApproval: bool}>
+     */
+    #[Computed]
+    public function securityDeviceTypeBoxes(): array
+    {
+        return $this->securityDeviceTypes
+            ->mapWithKeys(fn (SecurityDeviceType $type): array => [$type->id => ['usesSeries' => $type->uses_series, 'requiresApproval' => $type->requires_lot_approval]])
+            ->all();
     }
 
     /**

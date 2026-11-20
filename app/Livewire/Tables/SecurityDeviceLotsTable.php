@@ -43,7 +43,7 @@ class SecurityDeviceLotsTable extends BaseTable
     public function builder(): Builder
     {
         return SecurityDeviceLot::query()
-            ->with('announcement')
+            ->with('announcement.securityDeviceType')
             ->withCount(['devices as approved_devices_count' => fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value)])
             ->orderByDesc('security_device_lots.received_at')
             ->orderByDesc('security_device_lots.id');
@@ -60,17 +60,20 @@ class SecurityDeviceLotsTable extends BaseTable
             Column::make('Tipo', 'announcement.securityDeviceType.name'),
             Column::make('Naviera', 'announcement.shippingLine.code'),
             Column::make('Proveedor', 'announcement.provider.business_name'),
-            Column::make('Serie', 'announcement.series_prefix'),
+            Column::make('Serie', 'announcement.series_prefix')
+                ->format(fn (string $value): string => $value === '' ? '—' : $value),
             Column::make('Rango')
                 ->label(fn (SecurityDeviceLot $row): string => $row->announcement->rangeLabel()),
             Column::make('Cantidad', 'quantity')
                 ->format(fn (int $value): string => number_format($value, 0, ',', ' ')),
             Column::make('Aprobados')
-                ->label(fn (SecurityDeviceLot $row): string => sprintf(
-                    '%s de %s',
-                    number_format((int) $row->getAttribute('approved_devices_count'), 0, ',', ' '),
-                    number_format($row->quantity, 0, ',', ' '),
-                )),
+                ->label(fn (SecurityDeviceLot $row): string => $row->requiresApproval()
+                    ? sprintf(
+                        '%s de %s',
+                        number_format((int) $row->getAttribute('approved_devices_count'), 0, ',', ' '),
+                        number_format($row->quantity, 0, ',', ' '),
+                    )
+                    : 'No requiere'),
             Column::make('Recepción', 'received_at')
                 ->format(fn ($value): string => $value->format('d/m/Y')),
             Column::make('Acciones')
@@ -87,7 +90,7 @@ class SecurityDeviceLotsTable extends BaseTable
     {
         return [
             SelectFilter::make('Aprobación', 'approval')
-                ->options(['' => 'Todos', 'none' => 'Sin aprobar', 'partial' => 'A medias', 'full' => 'Todo aprobado'])
+                ->options(['' => 'Todos', 'none' => 'Sin aprobar', 'partial' => 'A medias', 'full' => 'Todo aprobado', 'not_required' => 'No requiere'])
                 ->setInputAttributes(self::CONTROL_ATTRIBUTES)
                 ->filter(fn (Builder $builder, string $value) => $this->filterByApproval($builder, $value)),
             $this->announcementFilter('Naviera', 'shipping_line', 'shipping_line_id', ['' => 'Todas'] + ShippingLine::withTrashed()->orderBy('code')->pluck('code', 'id')->all()),
@@ -103,7 +106,8 @@ class SecurityDeviceLotsTable extends BaseTable
     }
 
     /**
-     * Keep the lots with none, some or all of their devices approved (H29, criterion 12).
+     * Keep the lots with none, some or all of their devices approved (H29, criterion 12), or the ones whose type does
+     * not require approval (T62), which are left out of the other three.
      *
      * @param  Builder<SecurityDeviceLot>  $builder
      * @return Builder<SecurityDeviceLot>
@@ -113,12 +117,35 @@ class SecurityDeviceLotsTable extends BaseTable
         $approved = fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value);
         $inactive = fn (Builder $devices) => $devices->where('status', SecurityDeviceStatus::Inactive->value);
 
+        if ($value === 'not_required') {
+            return $this->whereTypeRequiresApproval($builder, false);
+        }
+
+        if (! in_array($value, ['none', 'partial', 'full'], true)) {
+            return $builder;
+        }
+
+        $builder = $this->whereTypeRequiresApproval($builder, true);
+
         return match ($value) {
             'none' => $builder->whereDoesntHave('devices', $approved),
             'partial' => $builder->whereHas('devices', $approved)->whereHas('devices', $inactive),
-            'full' => $builder->whereDoesntHave('devices', $inactive),
-            default => $builder,
+            default => $builder->whereDoesntHave('devices', $inactive),
         };
+    }
+
+    /**
+     * Keep the lots whose type requires, or not, the approval of their devices (T62).
+     *
+     * @param  Builder<SecurityDeviceLot>  $builder
+     * @return Builder<SecurityDeviceLot>
+     */
+    private function whereTypeRequiresApproval(Builder $builder, bool $requiresApproval): Builder
+    {
+        return $builder->whereHas(
+            'announcement.securityDeviceType',
+            fn (Builder $type) => $type->where('requires_lot_approval', $requiresApproval),
+        );
     }
 
     /**

@@ -7,7 +7,9 @@ use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
 use App\Enums\SecurityDeviceLotCorrection;
 use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
+use App\Models\SecurityDeviceType;
 use App\Models\User;
+use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
@@ -98,10 +100,10 @@ class SecurityDeviceLotForm extends Form
         return [
             'shippingLineId' => ['required', $this->activeOrCurrent('shipping_lines', 'shippingLineId')],
             'providerId' => ['required', $this->activeOrCurrent('providers', 'providerId')],
-            'securityDeviceTypeId' => ['required', $this->activeOrCurrent('security_device_types', 'securityDeviceTypeId')],
+            'securityDeviceTypeId' => ['required', $this->activeOrCurrent('security_device_types', 'securityDeviceTypeId'), $this->sameBoxesAsCurrentType(...)],
             'receivedAt' => ['required', 'date_format:Y-m-d'],
             'dispatchNumber' => ['required', 'string', 'max:50'],
-            'seriesPrefix' => ['required', 'alpha_num:ascii', 'max:20'],
+            'seriesPrefix' => [Rule::requiredIf(fn (): bool => $this->selectedType()->uses_series ?? true), 'alpha_num:ascii', 'max:20'],
             'minDigits' => ['required', 'integer', 'between:1,15'],
             'seriesStart' => ['required', 'digits_between:1,15'],
             'seriesEnd' => ['required', 'digits_between:1,15'],
@@ -122,6 +124,39 @@ class SecurityDeviceLotForm extends Form
         return Rule::exists($table, 'id')->where(fn (Builder $query) => $query->where(
             fn (Builder $active) => $active->whereNull('deleted_at')->when($currentId, fn (Builder $current, int $id) => $current->orWhere('id', $id)),
         ));
+    }
+
+    /**
+     * Let the lot being corrected change its type only to one with the same boxes, so the status and the serial numbers
+     * of its devices stay right (H28, T62).
+     */
+    private function sameBoxesAsCurrentType(string $attribute, mixed $value, Closure $fail): void
+    {
+        $currentId = $this->currentOriginIds['securityDeviceTypeId'];
+        $selected = $this->selectedType();
+
+        if ($currentId === null || $selected === null || $selected->id === $currentId) {
+            return;
+        }
+
+        $current = SecurityDeviceType::withTrashed()->find($currentId);
+
+        if ($current !== null && ($current->uses_series !== $selected->uses_series || $current->requires_lot_approval !== $selected->requires_lot_approval)) {
+            $fail(sprintf(
+                'Solo puedes cambiarlo por un tipo que también %s y %s aprobación en lote, como %s.',
+                $current->uses_series ? 'utilice serie' : 'no utilice serie',
+                $current->requires_lot_approval ? 'requiera' : 'no requiera',
+                $current->name,
+            ));
+        }
+    }
+
+    /**
+     * Get the type of security device chosen in the form, if any.
+     */
+    public function selectedType(): ?SecurityDeviceType
+    {
+        return ctype_digit($this->securityDeviceTypeId) ? SecurityDeviceType::withTrashed()->find((int) $this->securityDeviceTypeId) : null;
     }
 
     /**
@@ -176,7 +211,8 @@ class SecurityDeviceLotForm extends Form
         $lot = $receiveLot->handle($announcement, $this->lotAttributes(), $user);
 
         if ($lot === null) {
-            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($receiveLot->takenSerialNumbers($announcement->serialNumbers())));
+            $type = $announcement->securityDeviceType;
+            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($receiveLot->takenSerialNumbers($announcement->serialNumbers(), $type), $type));
 
             return null;
         }
@@ -212,7 +248,8 @@ class SecurityDeviceLotForm extends Form
         }
 
         if ($correction === SecurityDeviceLotCorrection::SerialNumbersTaken) {
-            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($correctLot->takenSerialNumbers($this->announcement(), $lot)));
+            $announcement = $this->announcement();
+            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($correctLot->takenSerialNumbers($announcement, $lot), $announcement->securityDeviceType));
 
             return null;
         }
@@ -233,12 +270,14 @@ class SecurityDeviceLotForm extends Form
     }
 
     /**
-     * Clean up and validate the fields, and check the range.
+     * Clean up and validate the fields, and check the range. A type that does not use a series has neither a start nor
+     * an end of series: each serial number is only its correlative (T62).
      */
     private function validateLot(): bool
     {
-        $this->seriesPrefix = mb_strtoupper(trim($this->seriesPrefix));
-        $this->seriesSuffix = mb_strtoupper(trim($this->seriesSuffix));
+        $usesSeries = $this->selectedType()->uses_series ?? true;
+        $this->seriesPrefix = $usesSeries ? mb_strtoupper(trim($this->seriesPrefix)) : '';
+        $this->seriesSuffix = $usesSeries ? mb_strtoupper(trim($this->seriesSuffix)) : '';
         $this->dispatchNumber = trim($this->dispatchNumber);
         $this->validate();
 
@@ -314,25 +353,28 @@ class SecurityDeviceLotForm extends Form
 
     /**
      * Describe the serial numbers that already exist: all of them when they are few, the first ones and the total otherwise.
+     * For a type that does not use a series, they exist in that type (T62).
      *
      * @param  list<string>  $takenSerialNumbers
      */
-    private function takenSerialNumbersMessage(array $takenSerialNumbers): string
+    private function takenSerialNumbersMessage(array $takenSerialNumbers, SecurityDeviceType $type): string
     {
         $total = count($takenSerialNumbers);
         $listed = Arr::join(array_slice($takenSerialNumbers, 0, self::LISTED_TAKEN_SERIAL_NUMBERS), ', ', ' y ');
+        $where = $type->uses_series ? 'en el sistema' : 'en '.$type->name;
 
         if ($total === 1) {
-            return "1 serie ya existe en el sistema: {$listed}. Revisa el rango.";
+            return "1 serie ya existe {$where}: {$listed}. Revisa el rango.";
         }
 
         if ($total <= self::LISTED_TAKEN_SERIAL_NUMBERS) {
-            return "{$total} series ya existen en el sistema: {$listed}. Revisa el rango.";
+            return "{$total} series ya existen {$where}: {$listed}. Revisa el rango.";
         }
 
         return sprintf(
-            '%s series ya existen en el sistema. Las %d primeras: %s. Revisa el rango.',
+            '%s series ya existen %s. Las %d primeras: %s. Revisa el rango.',
             $this->formatNumber($total),
+            $where,
             self::LISTED_TAKEN_SERIAL_NUMBERS,
             $listed,
         );

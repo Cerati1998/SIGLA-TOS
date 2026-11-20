@@ -48,6 +48,10 @@ class SecurityDeviceTypesTable extends BaseTable
             Column::make('Nombre', 'name')->searchable(),
             Column::make('Tipo', 'kind')
                 ->format(fn ($value, SecurityDeviceType $row): string => $row->kind->label()),
+            Column::make('Serie', 'uses_series')
+                ->format(fn ($value, SecurityDeviceType $row): View => view('pages.security-device-types.partials.box', ['checked' => $row->uses_series, 'yes' => 'Utiliza', 'no' => 'No utiliza'])),
+            Column::make('Aprobación en lote', 'requires_lot_approval')
+                ->format(fn ($value, SecurityDeviceType $row): View => view('pages.security-device-types.partials.box', ['checked' => $row->requires_lot_approval, 'yes' => 'Requiere', 'no' => 'No requiere'])),
             Column::make('Estado', 'deleted_at')
                 ->format(fn ($value, SecurityDeviceType $row): View => view('pages.security-device-types.partials.status', ['securityDeviceType' => $row])),
             Column::make('Acciones')

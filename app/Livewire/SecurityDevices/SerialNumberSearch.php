@@ -18,13 +18,15 @@ class SerialNumberSearch extends Component
     public ?string $searchedSerialNumber = null;
 
     /**
-     * The device found by the last search.
+     * The devices found by the last search: more than one when types that do not use a series share it (T62).
+     *
+     * @var list<int>
      */
     #[Locked]
-    public ?int $deviceId = null;
+    public array $deviceIds = [];
 
     /**
-     * Look up the device with the written or scanned serial number.
+     * Look up the devices with the written or scanned serial number.
      */
     public function search(): void
     {
@@ -36,7 +38,9 @@ class SerialNumberSearch extends Component
         );
 
         $this->searchedSerialNumber = $this->serialNumber;
-        $this->deviceId = SecurityDevice::query()->where('serial_number', $this->serialNumber)->value('id');
+        $this->deviceIds = array_values(SecurityDevice::query()->where('serial_number', $this->serialNumber)->orderBy('id')->get(['id'])
+            ->map(fn (SecurityDevice $device): int => $device->id)
+            ->all());
     }
 
     /**
@@ -45,9 +49,9 @@ class SerialNumberSearch extends Component
     public function render(): View
     {
         return view('pages.security-device-lots.serial-number-search', [
-            'device' => $this->deviceId === null
-                ? null
-                : SecurityDevice::query()->with(['lot.announcement', 'approval.approver'])->find($this->deviceId),
+            'devices' => $this->deviceIds === []
+                ? collect()
+                : SecurityDevice::query()->with(['lot.announcement.securityDeviceType', 'approval.approver'])->whereKey($this->deviceIds)->orderBy('id')->get(),
         ]);
     }
 }
