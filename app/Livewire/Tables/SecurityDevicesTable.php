@@ -45,7 +45,7 @@ class SecurityDevicesTable extends BaseTable
     public function builder(): Builder
     {
         return SecurityDevice::query()
-            ->with('approval')
+            ->with(['approval', 'kits'])
             ->where('security_device_lot_id', $this->lotId)
             ->orderBy('security_devices.id');
     }
@@ -64,7 +64,9 @@ class SecurityDevicesTable extends BaseTable
             Column::make('Aprobado')
                 ->label(fn (SecurityDevice $row): string => $row->approval?->created_at?->timezone('America/Lima')->format('d/m/Y H:i') ?? '—'),
             Column::make('Kit')
-                ->label(fn (): string => '—'),
+                ->label(fn (SecurityDevice $row): string => $row->kits->first()->pouch_code ?? '—'),
+            Column::make('Acciones')
+                ->label(fn (SecurityDevice $row): View => view('pages.security-devices.partials.actions', ['device' => $row])),
         ];
     }
 

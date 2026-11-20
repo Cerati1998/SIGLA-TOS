@@ -29,11 +29,7 @@ class AddSecurityDeviceToKit
                 return 'Ese campo no es de este kit.';
             }
 
-            $device = SecurityDevice::query()
-                ->with(['lot.announcement.securityDeviceType', 'lot.announcement.shippingLine', 'kits'])
-                ->where('serial_number', $serialNumber)
-                ->lockForUpdate()
-                ->first();
+            $device = $this->device($serialNumber, $slot['securityDeviceTypeId']) ?? $this->device($serialNumber);
 
             $reason = $device === null ? 'No encontramos un dispositivo con esa serie.' : $this->rejectionReason($kit, $slot, $device);
 
@@ -47,6 +43,20 @@ class AddSecurityDeviceToKit
 
             return null;
         });
+    }
+
+    /**
+     * Find the device with the serial number, locked for the change, of the type of the slot when given: two types that
+     * do not use a series can share a serial number (T62).
+     */
+    private function device(string $serialNumber, ?int $securityDeviceTypeId = null): ?SecurityDevice
+    {
+        return SecurityDevice::query()
+            ->with(['lot.announcement.securityDeviceType', 'lot.announcement.shippingLine', 'kits'])
+            ->where('serial_number', $serialNumber)
+            ->when($securityDeviceTypeId, fn ($query, int $typeId) => $query->ofType($typeId))
+            ->lockForUpdate()
+            ->first();
     }
 
     /**

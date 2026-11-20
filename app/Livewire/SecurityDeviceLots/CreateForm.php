@@ -18,6 +18,7 @@ use Livewire\Component;
  * @property-read Collection<int, ShippingLine> $shippingLines
  * @property-read Collection<int, Provider> $providers
  * @property-read Collection<int, SecurityDeviceType> $securityDeviceTypes
+ * @property-read array<int, array{usesSeries: bool, requiresApproval: bool}> $securityDeviceTypeBoxes
  */
 class CreateForm extends Component
 {
@@ -47,10 +48,14 @@ class CreateForm extends Component
             return;
         }
 
+        $quantity = number_format($lot->quantity, 0, ',', ' ');
+
         session()->flash('toast', [
             'icon' => 'success',
             'title' => 'Lote guardado',
-            'text' => sprintf('Se registraron %s dispositivos inactivos, a la espera de la aprobación de la naviera.', number_format($lot->quantity, 0, ',', ' ')),
+            'text' => $lot->requiresApproval()
+                ? sprintf('Se registraron %s dispositivos inactivos, a la espera de la aprobación de la naviera.', $quantity)
+                : sprintf('Se registraron %s dispositivos disponibles: su tipo no requiere aprobación en lote.', $quantity),
         ]);
 
         $this->redirectRoute('intranet.security-device-lots.show', $lot, navigate: true);

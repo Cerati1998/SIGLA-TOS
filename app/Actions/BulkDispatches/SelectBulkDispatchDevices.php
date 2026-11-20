@@ -33,14 +33,14 @@ class SelectBulkDispatchDevices
 
     /**
      * Choose the devices from the first serial number to the last one, both of the same lot. The correlatives without
-     * a device are skipped.
+     * a device are skipped. When given, only the devices of the type are looked up (T62).
      *
      * @return array{deviceIds: list<int>, error: string|null, summary: string|null}
      */
-    public function byRange(string $firstSerialNumber, string $lastSerialNumber): array
+    public function byRange(string $firstSerialNumber, string $lastSerialNumber, ?SecurityDeviceType $type = null): array
     {
-        $first = $this->device($firstSerialNumber);
-        $last = $this->device($lastSerialNumber);
+        $first = $this->findDeviceToBulkDispatch->find($firstSerialNumber, $type);
+        $last = $this->findDeviceToBulkDispatch->find($lastSerialNumber, $type);
 
         if (is_string($first)) {
             return $this->rejected($first);
@@ -103,7 +103,8 @@ class SelectBulkDispatchDevices
             return $this->rejected(sprintf('La cantidad debe estar entre 1 y %s.', self::format(self::MAX_DEVICES)));
         }
 
-        $first = SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->first();
+        $first = SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->ofType($type->id)->first()
+            ?? SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->first();
         $lots = $first === null ? $this->lotsOfPrefix($start) : collect([$first->lot]);
         $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->announcement->security_device_type_id !== $type->id);
 
@@ -152,15 +153,6 @@ class SelectBulkDispatchDevices
             ->orderBy('id')
             ->get()
             ->collect();
-    }
-
-    /**
-     * Find a device by its serial number, with its lot, or say that it does not exist.
-     */
-    private function device(string $serialNumber): SecurityDevice|string
-    {
-        return SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $serialNumber)->first()
-            ?? sprintf('No encontramos un dispositivo con la serie %s.', $serialNumber);
     }
 
     /**

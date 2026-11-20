@@ -28,6 +28,22 @@ class SecurityDeviceTypeForm extends Form
     public bool $splitsInternalExternal = false;
 
     /**
+     * Whether the lots of the type have neither a start nor an end of series: each serial number is its correlative (T62).
+     */
+    public bool $withoutSeries = false;
+
+    /**
+     * Whether the devices of its lots need the approval of their shipping line before they can be used (T62).
+     */
+    public bool $requiresLotApproval = true;
+
+    /**
+     * Whether the type being edited already has lots, so its series and approval boxes can no longer change (T62).
+     */
+    #[Locked]
+    public bool $hasLots = false;
+
+    /**
      * Fill the form with the security device type being edited.
      */
     public function setSecurityDeviceType(SecurityDeviceType $securityDeviceType): void
@@ -36,6 +52,9 @@ class SecurityDeviceTypeForm extends Form
         $this->kindLabel = $securityDeviceType->kind->label();
         $this->name = $securityDeviceType->name;
         $this->splitsInternalExternal = $securityDeviceType->splits_internal_external;
+        $this->withoutSeries = ! $securityDeviceType->uses_series;
+        $this->requiresLotApproval = $securityDeviceType->requires_lot_approval;
+        $this->hasLots = $securityDeviceType->hasLots();
     }
 
     /**
@@ -48,6 +67,8 @@ class SecurityDeviceTypeForm extends Form
         $rules = [
             'name' => ['required', 'string', 'max:100', Rule::unique(SecurityDeviceType::class)->ignore($this->securityDeviceTypeId)],
             'splitsInternalExternal' => ['boolean'],
+            'withoutSeries' => ['boolean'],
+            'requiresLotApproval' => ['boolean'],
         ];
 
         if ($this->securityDeviceTypeId === null) {
@@ -68,6 +89,8 @@ class SecurityDeviceTypeForm extends Form
             'name' => 'nombre',
             'kind' => 'tipo',
             'splitsInternalExternal' => 'reparto entre interna y externa',
+            'withoutSeries' => 'no utiliza serie',
+            'requiresLotApproval' => 'requiere aprobación en lote',
         ];
     }
 
@@ -82,21 +105,31 @@ class SecurityDeviceTypeForm extends Form
             'name' => $this->name,
             'kind' => $this->kind,
             'splits_internal_external' => $this->splitsInternalExternal,
+            'uses_series' => ! $this->withoutSeries,
+            'requires_lot_approval' => $this->requiresLotApproval,
         ]);
     }
 
     /**
      * Save the new name of the given security device type and whether it is split between internal and external. The
-     * kit types already saved keep their quantities until they are edited.
+     * kit types already saved keep their quantities until they are edited. Whether it uses a series and requires the
+     * approval of its lots only changes while the type has no lots (T62); after that, they are kept as they are.
      */
     public function update(SecurityDeviceType $securityDeviceType): void
     {
         $this->validateWithTrimmedName();
 
-        $securityDeviceType->update([
+        $attributes = [
             'name' => $this->name,
             'splits_internal_external' => $this->splitsInternalExternal,
-        ]);
+        ];
+
+        if (! $securityDeviceType->hasLots()) {
+            $attributes['uses_series'] = ! $this->withoutSeries;
+            $attributes['requires_lot_approval'] = $this->requiresLotApproval;
+        }
+
+        $securityDeviceType->update($attributes);
     }
 
     /**

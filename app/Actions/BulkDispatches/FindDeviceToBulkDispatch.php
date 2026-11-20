@@ -4,25 +4,43 @@ namespace App\Actions\BulkDispatches;
 
 use App\Enums\SecurityDeviceStatus;
 use App\Models\SecurityDevice;
+use App\Models\SecurityDeviceType;
 
 class FindDeviceToBulkDispatch
 {
     /**
      * Find the device with the scanned or written serial number, or get why it cannot be dispatched in bulk, to show
-     * it on screen.
+     * it on screen. When given, only the devices of the type are looked up (T62).
      */
-    public function handle(string $serialNumber): SecurityDevice|string
+    public function handle(string $serialNumber, ?SecurityDeviceType $type = null): SecurityDevice|string
     {
-        $device = SecurityDevice::query()
-            ->with(['lot.announcement.securityDeviceType', 'kits', 'bulkDispatches'])
-            ->where('serial_number', $serialNumber)
-            ->first();
+        $device = $this->find($serialNumber, $type, ['lot.announcement.securityDeviceType', 'kits', 'bulkDispatches']);
 
-        if ($device === null) {
-            return sprintf('No encontramos un dispositivo con la serie %s.', $serialNumber);
+        return is_string($device) ? $device : ($this->rejectionReason($device) ?? $device);
+    }
+
+    /**
+     * Find the only device with the serial number, of the type when given, or say that there is none or that the serial
+     * number exists in more than one type, which happens with the types that do not use a series (T62).
+     *
+     * @param  list<string>  $with
+     */
+    public function find(string $serialNumber, ?SecurityDeviceType $type = null, array $with = ['lot.announcement.securityDeviceType']): SecurityDevice|string
+    {
+        $devices = SecurityDevice::query()
+            ->with($with)
+            ->where('serial_number', $serialNumber)
+            ->when($type, fn ($query, SecurityDeviceType $type) => $query->ofType($type->id))
+            ->limit(2)
+            ->get();
+
+        if ($devices->count() > 1) {
+            return sprintf('La serie %s existe en más de un tipo. Elige el tipo de dispositivo.', $serialNumber);
         }
 
-        return $this->rejectionReason($device) ?? $device;
+        return $devices->first() ?? ($type === null
+            ? sprintf('No encontramos un dispositivo con la serie %s.', $serialNumber)
+            : sprintf('No encontramos un dispositivo de %s con la serie %s.', $type->name, $serialNumber));
     }
 
     /**

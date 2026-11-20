@@ -24,11 +24,12 @@ class CreateModal extends Component
     public BulkDispatchForm $form;
 
     /**
-     * Add the device with the scanned or written serial number. The answer feeds the list of the last scans.
+     * Add the device with the scanned or written serial number, of the type when one is chosen (T62). The answer feeds
+     * the list of the last scans.
      *
      * @return array{ok: bool, message: string}
      */
-    public function scan(FindDeviceToBulkDispatch $findDevice, string $serialNumber): array
+    public function scan(FindDeviceToBulkDispatch $findDevice, string $serialNumber, string $typeId = ''): array
     {
         $serialNumber = mb_strtoupper(trim($serialNumber));
 
@@ -36,7 +37,7 @@ class CreateModal extends Component
             return ['ok' => false, 'message' => 'Escanea o escribe una serie de hasta 50 caracteres.'];
         }
 
-        $device = $findDevice->handle($serialNumber);
+        $device = $findDevice->handle($serialNumber, $this->chosenType($typeId));
 
         if (is_string($device)) {
             return ['ok' => false, 'message' => $device];
@@ -52,11 +53,12 @@ class CreateModal extends Component
     }
 
     /**
-     * Preview the devices from the first serial number to the last one or, with $add, add them to the dispatch.
+     * Preview the devices from the first serial number to the last one, of the type when one is chosen (T62), or, with
+     * $add, add them to the dispatch.
      *
      * @return array{ok: bool, message: string, count: int}
      */
-    public function byRange(SelectBulkDispatchDevices $selectDevices, string $firstSerialNumber, string $lastSerialNumber, bool $add = false): array
+    public function byRange(SelectBulkDispatchDevices $selectDevices, string $firstSerialNumber, string $lastSerialNumber, bool $add = false, string $typeId = ''): array
     {
         $first = mb_strtoupper(trim($firstSerialNumber));
         $last = mb_strtoupper(trim($lastSerialNumber));
@@ -65,7 +67,15 @@ class CreateModal extends Component
             return ['ok' => false, 'message' => 'Escribe la serie inicial y la final.', 'count' => 0];
         }
 
-        return $this->answer($selectDevices->byRange($first, $last), $add);
+        return $this->answer($selectDevices->byRange($first, $last, $this->chosenType($typeId)), $add);
+    }
+
+    /**
+     * Get the type chosen to look the serial numbers up, or null for all of them.
+     */
+    private function chosenType(string $typeId): ?SecurityDeviceType
+    {
+        return ctype_digit($typeId) ? SecurityDeviceType::query()->find((int) $typeId) : null;
     }
 
     /**

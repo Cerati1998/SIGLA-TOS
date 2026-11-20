@@ -93,7 +93,8 @@ class CertificationSectionForm extends Form
     }
 
     /**
-     * Get the validation rules of the form. The name is unique even among the deactivated sections. A security
+     * Get the validation rules of the form. The name is unique within the type of the section, even among the
+     * deactivated sections: an internal and an external section can be called the same (T63). A security
      * device type appears once, and its quantity is a whole number greater than zero.
      *
      * @return array<string, array<int, mixed>>
@@ -101,7 +102,7 @@ class CertificationSectionForm extends Form
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', Rule::unique(CertificationSection::class)->ignore($this->certificationSectionId)],
+            'name' => ['required', 'string', 'max:100', Rule::unique(CertificationSection::class)->where('type', $this->type)->ignore($this->certificationSectionId)],
             'type' => ['required', Rule::enum(CertificationSectionType::class)],
             'devices' => ['array', $this->onlyChoosableDevices(...)],
             'devices.*.id' => ['required', 'integer', 'distinct'],
@@ -117,7 +118,7 @@ class CertificationSectionForm extends Form
     protected function messages(): array
     {
         return [
-            'name.unique' => 'Ya existe una sección con este nombre, aunque esté desactivada.',
+            'name.unique' => sprintf('Ya existe una sección %s con este nombre, aunque esté desactivada.', mb_strtolower(CertificationSectionType::tryFrom($this->type)?->label() ?? '')),
             'type.required' => 'Elige si la sección es interna o externa.',
             'devices.*.id.distinct' => 'Un tipo de dispositivo va una sola vez en la sección: cambia su cantidad.',
             'devices.*.quantity.required' => 'Escribe una cantidad entera mayor que cero.',

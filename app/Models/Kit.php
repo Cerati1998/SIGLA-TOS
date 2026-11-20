@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -117,6 +118,16 @@ class Kit extends Model
     public function dispatches(): BelongsToMany
     {
         return $this->belongsToMany(KitDispatch::class, 'kit_dispatch_items')->withTimestamps();
+    }
+
+    /**
+     * Get the certification the kit was assigned to, if any: a kit goes in a single certification (H17, criterion 8).
+     *
+     * @return HasOne<Certification, $this>
+     */
+    public function certification(): HasOne
+    {
+        return $this->hasOne(Certification::class);
     }
 
     /**

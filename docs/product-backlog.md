@@ -39,7 +39,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Lo que pide cada sección (tipo de dispositivo y cantidad) no existe en BUMMOCK; el técnico lo tiene interiorizado. Es una oportunidad de mejora de SIGLA 2.0.
 - Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un trabajador (H25), (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
 - Una certificación usa un solo kit. "El ticket" que se asigna al iniciar es la solicitud de retiro.
-- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel.
+- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel. (Corrección del 2026-11-20, T62: no aplica a los tipos de dispositivo que no requieren aprobación en lote, H06.)
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario. El trabajador que recibe solo queda registrado en el despacho: no limita qué kits ve el inspector, que puede escanear cualquier kit Despachado (cambiado por el usuario el 2026-11-17, en H15; antes el inspector se reconocía comparando el tipo y número de documento de su usuario con los del trabajador, decisión del 2026-11-04).
@@ -118,6 +118,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. Cada pantalla y cada acción validan el rol en el servidor.
   4. Las pantallas de empresa y sucursales (H27) se protegen con un permiso de acceso (indicado por el usuario el 2026-11-04).
   5. Las pantallas de líneas navieras y proveedores (H09, H10) quedan solo para el admin. La de tipos de dispositivo (H06) queda para el admin y el usuario de bodega, y solo el admin desactiva (T21, 2026-11-04).
+  6. Por definir: qué rol puede anular la asignación de un kit (H32) y qué rol puede descartar dispositivos de un lote (T65). Pedido por el usuario el 2026-11-20.
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
@@ -238,6 +239,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
 - Corrección del 2026-11-16 (T55), pedida por el usuario: la cinta interna y la externa son un solo tipo, la **cinta de inspección**. El seeder carga solo esta. Al crear y editar un tipo hay una casilla, «Se reparte entre asignación interna y externa», que hace que el tipo de kit pida su cantidad repartida (H13). El seeder la marca solo en la cinta de inspección. Se puede cambiar al editar.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: al crear y editar un tipo hay dos casillas más, que se validan al ingresar un lote (H07):
+  - «No utiliza serie», desmarcada por defecto. Si se marca, el lote de ese tipo no pide el inicio ni el final de serie: pide el mínimo de dígitos y el correlativo inicial y el final, y la serie es solo el correlativo con ceros (ver H07).
+  - «Requiere aprobación en lote», marcada por defecto. Si se desmarca, los dispositivos de los lotes de ese tipo no necesitan la aprobación de la naviera (H29) para armar un kit (H14) ni para despacharlos a granel (H30).
+  - Las dos se ven en la lista de tipos. Los tipos que ya existen quedan con los valores por defecto (usan serie y requieren aprobación), así que nada cambia hasta que alguien los marque. Las casillas se pueden cambiar al editar solo mientras el tipo no tenga lotes. Cuando ya tiene uno, quedan bloqueadas con un aviso, como el tipo (criterio 3), y si el tipo se creó mal se crea otro (confirmado por el usuario el 2026-11-20).
 
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
@@ -257,6 +262,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, aprobado por el usuario el 2026-11-10).
 - En el menú va en el grupo "Bodega", como "Lotes de dispositivos" (decisión del usuario del 2026-11-10).
 - Una carga desde Excel con series sueltas sería otra historia (no pedida por ahora).
+- Corrección del 2026-11-20 (T62), pedida por el usuario, según las dos casillas nuevas del tipo de dispositivo (H06):
+  - **Tipo que no utiliza serie.** El formulario oculta el inicio y el final de serie y pide el mínimo de dígitos como ahora, más el correlativo inicial y el final, que son obligatorios. La serie de cada dispositivo es solo el correlativo con ceros a la izquierda hasta ese mínimo, sin letras: mínimo 6, del 25 al 30 da 000025 a 000030 (confirmado por el usuario el 2026-11-20). La cantidad, la vista previa y el máximo de 10 000 siguen igual (criterios 3, 4 y 10). Una serie es única dentro de su tipo de dispositivo: dos lotes del mismo tipo no pueden traer la misma serie, y si un lote trae una que ya existe en su tipo, no se guarda nada y se muestra cuáles chocan (criterio 6). Dos tipos distintos sí pueden tener la misma serie: por ejemplo, un candado y un sello pueden ser 000050. Esta regla vale solo para los tipos que no utilizan serie. Los tipos con serie siguen como hoy: su serie es única en todo SIGLA, así que un GSW0000200 no puede existir en dos tipos. Cuando una serie existe en dos tipos sin serie, la búsqueda de dispositivos (H08) muestra todas las coincidencias, y el despacho a granel (H30) usa un selector de tipo opcional (ver H08 y H30). Todo esto lo confirmó el usuario el 2026-11-20.
+  - **Tipo que no requiere aprobación en lote.** Sus dispositivos nacen **Disponibles**, no Inactivos (excepción al criterio 8), y se pueden usar de inmediato para armar un kit o despacharlos a granel.
+  - El formulario cambia en cuanto se elige el tipo: con un tipo sin serie se ocultan el inicio y el final de serie, y con un tipo sin aprobación se avisa que los dispositivos quedarán Disponibles. Diseño: se ajusta en la página "E2 · Dispositivos de seguridad" del lienzo y se aprueba antes de construir.
 
 **H08 · Consultar lotes y dispositivos**
 - Como usuario de bodega, supervisor o admin, quiero ver los lotes ingresados y buscar un dispositivo por su serie, para saber qué tengo, en qué estado está y de qué lote viene.
@@ -272,6 +281,15 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27). Desde el 2026-11-13 (T46) hay un quinto estado, Despachado, para los dispositivos despachados a granel (H30). Desde el 2026-11-16 (H29) hay un estado Inactivo, con el que nace cada dispositivo hasta que se registra la aprobación de la naviera; reemplaza a la marca aparte de activación que se había acordado el 2026-11-13.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
 - Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
+- Corrección del 2026-11-20 (T65), pedida por el usuario:
+  - La columna «Kit» de los dispositivos del lote muestra la funda del kit en que está el dispositivo, en cualquier estado. Hasta ahora quedaba siempre en «—».
+  - Cada dispositivo del lote se puede **descartar**, por ejemplo por llegar en mal estado o romperse después: de un lote de 100 se pueden descartar 5. Hay un estado nuevo, **Descartado**.
+  - Solo se descarta un dispositivo Inactivo o Disponible que no esté en un kit ni despachado. Se pide un motivo obligatorio y queda registrado quién lo descartó y cuándo. El descarte no se deshace.
+  - Un dispositivo Descartado no se agrega a un kit (H14) ni se despacha a granel (H30). El detalle del lote lo cuenta aparte.
+  - Descartar cambia el estado del dispositivo, así que la serie del lote ya no se puede corregir (H28, criterio 3).
+  - Hay un segundo camino de descarte, desde un kit cuya asignación se anuló (H32).
+  - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón rojo por fila y un modal con el motivo, como «Reaperturar» de H19.
+- Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al buscar una serie se muestran todas las coincidencias, cada una con su tipo y su lote.
 
 **H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
 - Como usuario de bodega, quiero corregir los datos de un lote ya ingresado, para arreglar un error de digitación sin borrar el lote y volver a ingresarlo.
@@ -285,6 +303,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. La pantalla se puede usar bien desde el celular.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
+- Corrección del 2026-11-20 (T62): al corregir un lote se aplican las mismas reglas de H07 según las casillas de su tipo (H06). En un lote cuyo tipo no requiere aprobación, el criterio 3 se cumple si todos sus dispositivos siguen Disponibles (ninguno en un kit ni despachado). El tipo de dispositivo solo se puede cambiar por otro con las mismas dos casillas («No utiliza serie» y «Requiere aprobación en lote»). Si las casillas son distintas, el cambio se bloquea con un aviso que explica por qué. Así, cambiar el tipo nunca toca el estado ni las series de los dispositivos ya ingresados (confirmado por el usuario el 2026-11-20).
 
 **H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero registrar la aprobación de la naviera por tramos de un lote, para que solo se armen kits y se despachen dispositivos que la naviera ya aprobó.
@@ -307,6 +326,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Cambios del 2026-11-16, pedidos por el usuario antes de construir: la activación deja de ser una marca aparte y pasa a ser el estado Inactivo, con el que nacen los dispositivos; se quitan la aprobación del lote entero de una vez y la aprobación por serie inicial y final desde la lista de lotes (y con ellas la regla de huecos y la de varios lotes); se suma la bitácora de aprobaciones con su panel lateral en el detalle del lote. Si el tramo trae dispositivos ya aprobados, se aprueban solo los Inactivos y se cuentan los demás. Esto también cambia H07 (los dispositivos nacen Inactivos), H08 (el conteo y la columna) y H28 (un lote se corrige solo si todos sus dispositivos siguen Inactivos).
 - Diseño: aprobado el 2026-11-13 en la página "E2 · Dispositivos de seguridad" del lienzo (T47). Se actualiza con los cambios del 2026-11-16 y espera una nueva aprobación.
 - Los dispositivos ingresados antes de H29 pasan a Inactivos: bodega registra su aprobación por tramos antes de armar kits con ellos.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: la aprobación solo aplica a los lotes cuyo tipo de dispositivo tiene marcada «Requiere aprobación en lote» (H06), que es lo normal. Si el tipo no la requiere, sus dispositivos nacen Disponibles (H07), el detalle del lote no ofrece registrar aprobaciones y el criterio 13 se cumple sin aprobación. En la lista de lotes, su columna «Aprobados» dice «No requiere» en vez de «120 de 200», y el filtro de aprobación suma esa opción: sin aprobar, a medias, todo aprobado y no requiere. En el detalle del lote se ocultan «Registrar aprobación» e «Historial de aprobaciones» (confirmado por el usuario el 2026-11-20).
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
@@ -316,7 +336,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como admin, quiero crear, editar, ordenar y desactivar las secciones que se inspeccionan en un contenedor, marcando si son internas o externas, para que la certificación y el checkpoint pidan siempre lo correcto.
 - Criterios de aceptación:
   1. El admin crea una sección con nombre y tipo (interna o externa), por ejemplo "Fotografía de evaporadores".
-  2. No se pueden crear dos secciones con el mismo nombre.
+  2. No se pueden crear dos secciones del mismo tipo con el mismo nombre, aunque una esté desactivada. Una interna y una externa sí pueden llamarse igual, por ejemplo «Puertas» interna y «Puertas» externa. (Cambiado el 2026-11-20 en T63, a pedido del usuario; antes el nombre no se repetía nunca.)
   3. El admin edita el nombre y el tipo de una sección.
   4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación. Es un solo orden para internas y externas.
   5. El admin desactiva una sección en vez de borrarla. Una desactivada sale del orden y no aparece en certificaciones nuevas, pero se conserva en las ya hechas. Una nueva o reactivada va al final.
@@ -420,6 +440,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   14. El kit está Armando mientras le falten dispositivos y pasa solo a Armado al completarse. Si se le quita un dispositivo, vuelve a Armando (T46, 2026-11-13).
 - Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47), y cambiado a su pedido el 2026-11-16, tomando como referencia la pantalla de BUMMOCK: el paso 2 tiene un campo de escaneo por cada tipo de dispositivo que lleva el kit; la serie se escanea o se escribe en el campo de su tipo y se agrega con Enter, y si es de otro tipo se rechaza con el motivo. Al completarse un tipo, su campo se bloquea y el cursor pasa solo al siguiente. Al costado, el avance total, lo que falta y los últimos escaneos.
 - Cinta de inspección (cambio del usuario del 2026-11-16, por T55): tiene dos campos, primero **Externa** y después **Interna**, con las cantidades del tipo de kit, y cada cinta guarda a qué lado va. Suposición por confirmar: SIGLA no revisa que los correlativos de las externas sean menores que los de las internas.
+- Corrección del 2026-11-20 (T62), al construir: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al escanear en un campo se busca primero el dispositivo del tipo de ese campo. Si la serie solo existe en otro tipo, se rechaza como hasta ahora.
 - Lista de kits (decisión del usuario del 2026-11-16): H14 deja una lista base en Bodega → Kits (funda, tipo de kit, naviera, semana, avance y estado, con «Nuevo» y abrir el kit), para retomar un kit Armando. H16 le suma filtros, búsqueda y el detalle del despacho.
 - La semana no se escribe: es la semana ISO de la fecha de creación del kit, en hora de Lima, y se usa para listar y filtrar en H16. La zona de patio no va en el kit: la elige el inspector al iniciar la certificación, H17 (decisión del 2026-11-04).
 
@@ -465,7 +486,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Los despachos a granel tienen su propia lista, en Bodega → Despachos → «A granel», separada de la de despachos de kits. Cada despacho se numera con su propia secuencia, `DG-000001`.
   2. El despacho se registra con el trabajador que recibe, elegido de la lista de trabajadores activos (H25) como en H15. Quién entrega es el usuario que despacha, y queda registrado solo, con la fecha y la semana.
-  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe).
+  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe). El selector lista y busca los contenedores de las certificaciones cuyo kit está **Usado** (se usa al cerrar la certificación, H19), cada uno con el kit que se le asignó al iniciarla (H17), por ejemplo «MSKU1234567 · KIT-000046»; también se busca por funda. Al elegir un contenedor se toma su kit original, y los dispositivos del despacho quedan enlazados a ese kit, para mantener la relación entre el contenedor, el kit y los dispositivos, como en una reinspección. Un kit que no está Usado no se ofrece. (Cambiado el 2026-11-20 en T64, a pedido del cliente y del usuario: un kit Usado siempre tiene contenedor. Antes se ofrecían los kits Despachados cuya certificación no se había cerrado y se buscaban solo por funda.)
   4. Se elige el patio de destino entre las zonas de patio activas de la sede del usuario (H26). Es obligatorio (suposición por confirmar).
   5. Se puede escribir una observación, opcional.
   6. Los dispositivos se agregan de tres formas: escaneando uno por uno, y cada escaneo se agrega solo a la lista; por rango, con la serie inicial y la final; o eligiendo el tipo de dispositivo, la serie inicial y la cantidad, y el sistema calcula hasta dónde llega. La serie inicial puede ser la serie completa (HLS0000009) o solo su prefijo (HLS), y con el prefijo se empieza por el primer disponible de esa serie (pedido por el usuario el 2026-11-17, al probar la construcción). En los campos de rango y de cantidad, Enter muestra la vista previa.
@@ -477,8 +498,9 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
   13. La pantalla se puede usar bien desde el celular.
 - Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
-- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
+- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). (Reemplazado el 2026-11-20 en T64: por Operación solo se ofrecen kits Usados, es decir, de certificaciones ya cerradas.) Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
 - Depende de: H31, por el cliente de una venta (2026-11-17).
+- Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), el despacho suma un selector de tipo de dispositivo, opcional, para el escaneo y el rango. Si no se elige el tipo y la serie existe en más de un tipo, no se agrega y se avisa «Elige el tipo de dispositivo». Si se elige, solo se buscan series de ese tipo. La forma por tipo y cantidad no cambia, porque ya lleva el tipo. El selector va arriba de las pestañas y sirve para «Escanear» y «Por rango» (al construir, el 2026-11-20; en el diseño estaba dentro de la columna del escaneo).
 - Fuera de esta historia: editar o anular un despacho, su PDF, y cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector), que se define al revisar E6 y lo posterior a H17.
 - Diseño: el del 2026-11-13 (página "E4 · Kits", T47) se rehace con estas decisiones y se vuelve a aprobar en el lienzo antes de construir.
 
@@ -622,6 +644,22 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
 - Decisiones del usuario del 2026-11-19 (T54): por ahora todos los usuarios con sesión ven todas las certificaciones, por la regla de roles vigente; quién ve todas o solo las suyas se define con H24. El PDF se hace con DomPDF y toma como referencia el informe de inspección actual (parecido o mejorado, no igual: ese formato es de Risk Protection S.A.). El bloque de cintas usa tres dibujos propios del contenedor en SVG (interior con puertas abiertas, exterior del lado de las puertas y exterior del lado de la máquina) y, junto a cada uno, sus cintas con la serie y la sección, armadas desde el reparto de H18. Las marcas numeradas sobre el dibujo, en el lugar de cada sección, pasan al Sprint 4 como mejora. La tabla de daños por área del formato de referencia no va: es del EIR del gate out, una inspección previa a la certificación que se construye en otra etapa; cuando exista, se podrá sumar a este PDF. Tampoco van la lista de procedimientos de seguridad ni la trazabilidad GPS (los puntos del recorrido). El PDF lleva solo la cabecera, los dispositivos asignados y las fotos, con el formato de PDF ya estandarizado en el lienzo, y se descarga solo de una certificación cerrada. Se confirma el resto de lo conversado (filtros, búsqueda y detalle de solo consulta).
+
+**H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
+- Como inspector o supervisor, quiero anular la asignación de un kit a su certificación cuando se cancela el servicio de despacho, para inhabilitar el kit o reutilizarlo según responda la naviera.
+- Criterios de aceptación:
+  1. Desde el listado de Asignaciones (H20), una certificación que no esté cerrada tiene la acción «Anular asignación». Una certificación cerrada no se anula.
+  2. Se pide un motivo obligatorio y la decisión sobre el kit, según la respuesta de la naviera: **Reutilizar el kit** o **Inhabilitar el kit**. Se pide confirmación antes de anular.
+  3. Con «Reutilizar», el kit vuelve a Despachado con sus dispositivos, que dejan de estar repartidos en las secciones de la certificación, y se puede asignar a otra certificación (H17).
+  4. Con «Inhabilitar», el kit queda **Inhabilitado** y todos sus dispositivos pasan a Descartado (T65), con el motivo de la anulación. Un kit Inhabilitado no se asigna, no se despacha ni recibe dispositivos.
+  5. La certificación queda **Anulada**: se conserva, ya no se edita ni se cierra, y no tiene PDF. Queda registrado quién la anuló, cuándo, el motivo y la decisión sobre el kit, y se ve en su detalle (H20).
+  6. El listado de Asignaciones muestra el estado Anulada y lo suma a su filtro de estado.
+  7. Todo se guarda junto o nada.
+  8. Por ahora, cualquier usuario con sesión anula asignaciones. Qué rol puede hacerlo se define en H24.
+  9. La pantalla se usa bien desde el celular.
+- Un kit va en una sola certificación que no esté anulada (H17, criterio 8): al reutilizarlo, la anulada conserva su referencia al kit.
+- Depende de: H18 a H20 (listado de Asignaciones y detalle) y T65 (estado Descartado). Se construye en una rama que parte de la de H20.
+- Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón por fila y un modal con el motivo y la decisión, como «Reaperturar» de H19.
 
 ### E6 · Checkpoint (EN REVISIÓN, sin historias aprobadas)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.

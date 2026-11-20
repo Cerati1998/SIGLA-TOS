@@ -63,13 +63,13 @@
                             id="bulk-dispatch-kit"
                             wire:model="form.kitId"
                             label="Kit despachado"
-                            placeholder="Busca por funda"
+                            placeholder="Busca por contenedor o funda"
                             :async-data="['api' => route('intranet.kits.dispatched-options'), 'method' => 'POST']"
                             option-label="name"
                             option-value="id"
                             option-description="description"
                         />
-                        <span class="text-sm text-ink-muted">Solo kits despachados cuya certificación sigue abierta.</span>
+                        <span class="text-sm text-ink-muted">Elige el contenedor: se toma el kit que se le asignó y que ya se usó en su certificación.</span>
                     </div>
                     <p x-show="hasNoReason" class="m-0 pt-7 text-sm text-ink-muted">Elige el motivo: con Venta se pide el cliente y con Operación, el kit despachado.</p>
                 </div>
@@ -96,6 +96,11 @@
                             class="-mb-px min-h-11 flex-1 cursor-pointer border-0 border-b-3 bg-transparent px-1.5 text-sm whitespace-nowrap md:flex-none md:px-3.5 md:text-[0.9375rem]"
                         >{{ $label }}</button>
                     @endforeach
+                </div>
+
+                <div x-show="!isTab('quantity')" class="grid grid-cols-1 gap-1.75 md:max-w-[calc(50%-0.5rem)]">
+                    <x-wire-native-select id="bulk-dispatch-filter-type" label="Tipo de dispositivo (opcional)" x-model="filterType" x-on:change="forgetPreview" :options="['' => 'Todos los tipos'] + $deviceTypes->all()" option-key-value />
+                    <span class="text-sm text-ink-muted">Elígelo cuando la serie se repite en más de un tipo, como en los tipos sin serie.</span>
                 </div>
 
                 <div x-show="isTab('scan')" class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
@@ -213,6 +218,7 @@
             rangeFirst: '',
             rangeLast: '',
             quantityType: '',
+            filterType: '',
             quantityFirst: '',
             quantity: '',
 
@@ -266,7 +272,7 @@
                 this.tab = 'scan';
                 this.scans = [];
                 this.preview = null;
-                this.rangeFirst = this.rangeLast = this.quantityType = this.quantityFirst = this.quantity = '';
+                this.rangeFirst = this.rangeLast = this.quantityType = this.quantityFirst = this.quantity = this.filterType = '';
                 this.$nextTick(() => document.getElementById('bulk-dispatch-serial')?.focus());
             },
 
@@ -319,7 +325,7 @@
 
                 try {
                     answer = mode === 'range'
-                        ? await $wire.byRange(this.rangeFirst, this.rangeLast, add)
+                        ? await $wire.byRange(this.rangeFirst, this.rangeLast, add, this.filterType)
                         : await $wire.byQuantity(this.quantityType, this.quantityFirst, this.quantity, add);
                 } catch {
                     answer = { ok: false, message: 'Sin conexión: no se pudo consultar. Vuelve a intentarlo.', count: 0 };
@@ -346,7 +352,7 @@
                     return;
                 }
 
-                const scan = { id: this.nextScanId++, serialNumber, state: 'pending', message: 'Buscando…' };
+                const scan = { id: this.nextScanId++, serialNumber, typeId: this.filterType, state: 'pending', message: 'Buscando…' };
 
                 this.scans = [scan, ...this.scans].slice(0, MAX_SCANS);
                 this.sendScan(scan.id, input);
@@ -373,7 +379,7 @@
                 let result;
 
                 try {
-                    result = await $wire.scan(scan.serialNumber);
+                    result = await $wire.scan(scan.serialNumber, scan.typeId);
                 } catch {
                     result = undefined;
                 }

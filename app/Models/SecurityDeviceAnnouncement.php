@@ -84,11 +84,12 @@ class SecurityDeviceAnnouncement extends Model
     }
 
     /**
-     * Get the name of the lot: its prefix and its range, as in "GSW 0000200 – 0000399".
+     * Get the name of the lot: its prefix and its range, as in "GSW 0000200 – 0000399", or only its range when its type
+     * does not use a series (T62).
      */
     public function lotName(): string
     {
-        return $this->series_prefix.' '.$this->rangeLabel();
+        return ltrim($this->series_prefix.' '.$this->rangeLabel());
     }
 
     /**

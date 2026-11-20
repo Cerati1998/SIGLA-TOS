@@ -22,6 +22,7 @@ use Livewire\Component;
  * @property-read Collection<int, ShippingLine> $shippingLines
  * @property-read Collection<int, Provider> $providers
  * @property-read Collection<int, SecurityDeviceType> $securityDeviceTypes
+ * @property-read array<int, array{usesSeries: bool, requiresApproval: bool}> $securityDeviceTypeBoxes
  */
 class EditForm extends Component
 {
@@ -55,7 +56,11 @@ class EditForm extends Component
             'icon' => 'success',
             'title' => 'Lote corregido',
             'text' => $correction === SecurityDeviceLotCorrection::Regenerated
-                ? sprintf('Se rehicieron sus %s dispositivos, todos inactivos.', number_format($this->lot->quantity, 0, ',', ' '))
+                ? sprintf(
+                    'Se rehicieron sus %s dispositivos, todos %s.',
+                    number_format($this->lot->quantity, 0, ',', ' '),
+                    mb_strtolower($this->lot->initialDeviceStatus()->pluralLabel()),
+                )
                 : 'Se guardaron los cambios del lote.',
         ]);
 
@@ -80,7 +85,7 @@ class EditForm extends Component
      */
     private function seriesLockedNotice(): string
     {
-        $counts = Arr::except($this->lot->deviceCountsByStatus(), SecurityDeviceStatus::Inactive->value);
+        $counts = Arr::except($this->lot->deviceCountsByStatus(), $this->lot->initialDeviceStatus()->value);
         $changed = array_sum($counts);
 
         $parts = collect($counts)
