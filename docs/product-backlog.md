@@ -554,7 +554,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como inspector certificado, quiero iniciar una certificación eligiendo la solicitud de retiro y el kit que me despacharon, para empezar a certificar esa unidad.
 - Criterios de aceptación:
   1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige. En pantalla el contenedor se escribe en dos partes, 4 letras y 7 números, pero se guarda y se consulta junto (ABCU1234567). Si SIGLA 1.0 trae más de una solicitud, se toma la de despacho más reciente (decisiones del usuario del 2026-11-17).
-  2. La certificación guarda solo el id de la solicitud, su booking y su contenedor, además de los enlaces a la naviera y a los catálogos del criterio 3. Cliente, producto, DNI y brevete no se copian: se consultan a SIGLA 1.0 cada vez que se muestran (cambiado por el usuario el 2026-11-17; antes se copiaban cliente, producto, booking, naviera y contenedor).
+  2. La certificación guarda el id de la solicitud, su booking, su contenedor, su cliente y su producto, además de los enlaces a la naviera y a los catálogos del criterio 3. El DNI y el brevete del conductor están en el catálogo de conductores (E9) y no se copian en la certificación (cambiado por el usuario el 2026-11-20 en T58: el cliente y el producto se guardan como texto al asignar, para que el detalle y el PDF no dependan de SIGLA 1.0; antes, desde el 2026-11-17, se consultaban cada vez).
   3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa. Desde el 2026-11-11 (T45), el conductor también se enlaza con el transportista de esa misma solicitud, si todavía no lo está.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
@@ -562,59 +562,62 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. El inspector busca su kit escaneando con la cámara del teléfono o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15). El kit debe ser de la misma naviera de la solicitud; si no, se rechaza (decisión del usuario del 2026-11-17). Al iniciar, el kit sigue Despachado.
   8. Un kit solo se usa en una certificación (confirmado por el usuario el 2026-11-17).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
-  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, aprobada el 2026-11-20). Mientras H18 no exista, pasa a la página de la certificación iniciada, que muestra lo guardado y vuelve a consultar SIGLA 1.0.
-  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal. Se traen de SIGLA 1.0 y solo se muestran, sin copiarse en la certificación (2026-11-17); los roles llegan con H24.
+  10. Al asignar, el inspector vuelve al listado de Asignaciones (H20), donde la unidad queda con sus dos inspecciones pendientes (cambiado el 2026-11-20 en T58; antes pasaba al formulario de las secciones).
+  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal. Salen del catálogo de conductores (E9), que se llena desde SIGLA 1.0 al asignar, sin copiarse en la certificación (corregido el 2026-11-20 en T58); los roles llegan con H24.
   12. La pantalla se puede usar bien desde el celular.
   13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04), entre las activas de su sede (2026-11-17).
   14. El inspector puede escanear o escribir el código de barras del formato de inspección, que es opcional y no se repite en otra certificación (agregado por el usuario el 2026-11-17).
-  15. En el menú, Certificación lleva Solicitudes de retiro, Inspección (esta pantalla) y Checkpoint, que se ve desactivada y sin enlace hasta que exista E6 (decisión del usuario del 2026-11-17).
+  15. En el menú, Certificación lleva Solicitudes de retiro, Inspección y Checkpoint, que se ve desactivada y sin enlace hasta que exista E6 (decisión del usuario del 2026-11-17). Desde el 2026-11-20 (T58), Inspección es un desplegable con Certificaciones, que abre un panel con tres tarjetas con icono: Asignación (esta historia), Inspección interna e Inspección externa (H18).
+  16. Al asignar, el kit se valida contra las secciones activas (H11 y H12): si sus dispositivos no alcanzan o sobran, no se asigna y se dice qué falta o qué sobra (agregado por el usuario el 2026-11-20 en T58; antes se validaba al entrar a las secciones, en H18).
 - La naviera que trae la API (solo su nombre, por ejemplo `SEATRADE`) se enlaza a `shipping_lines`: se busca por nombre sin distinguir mayúsculas; si está desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre, sin espacios ni signos (SEATRADE queda SEAT), y si ese código ya existe se le suma un número (MAER1, MAER2). Reemplaza la decisión del 2026-11-04 de copiarla como texto (decisión del usuario del 2026-11-17, que cierra la propuesta del 2026-11-10). Cliente y producto no tienen catálogo. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta`.
 - Diseño aprobado en el lienzo el 2026-11-17 (página E5): en el teléfono, un paso por pantalla (solicitud, kit y zona) con una barra fija de Atrás y Siguiente; en escritorio, los tres pasos juntos. La cámara usa el paquete `barcode-detector`, aprobado por el usuario el 2026-11-17.
 
-**H18 · Completar las secciones con fotos** (aprobada el 2026-11-20, revisada en T54)
-- Como inspector certificado, quiero recorrer las secciones de la certificación tomando sus fotos, para dejar la evidencia de cada parte del contenedor y de los dispositivos que lleva.
+**H18 · Hacer la inspección interna y la externa con fotos** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: dos inspecciones independientes)
+- Como inspector certificado, quiero hacer la inspección interna o la externa de una unidad ya asignada, tomando las fotos de sus secciones, para dejar la evidencia de cada parte del contenedor y de los dispositivos que lleva.
 - Criterios de aceptación:
-  1. Al entrar a las secciones, el sistema reparte solo los dispositivos del kit entre las secciones activas del catálogo (H11), según lo que pide cada una (H12). Las cintas de inspección se reparten entre internas y externas como indica el tipo de kit (T55). El inspector no elige los dispositivos.
-  2. Si los dispositivos del kit no alcanzan o sobran para lo que piden las secciones, no se puede avanzar: se avisa qué falta o qué sobra, y el inspector pide otro kit.
-  3. El inspector recorre las secciones una por una, en el orden de H11, en un formulario por pasos con barra de progreso. En cada paso ve el nombre de la sección, si es interna o externa, y los dispositivos que lleva, con su serie.
-  4. Cada sección lleva de 1 a n fotos, sin máximo. Cada foto se toma con la cámara del teléfono, una por vez, nunca desde la galería.
-  5. Cada foto se comprime en el navegador antes de subirse, sin paquete nuevo: de unos 7 MB a unos 700 KB. Al comprimirla se le imprimen encima la fecha, la hora y el contenedor.
-  6. La subida empieza apenas se toma la foto: su miniatura aparece al instante con su avance, y el inspector puede seguir tomando otras. Lo ya subido se muestra en miniatura liviana.
-  7. De cada foto queda quién la subió y la fecha y hora de la subida.
-  8. El avance se guarda en cada paso. El inspector puede volver atrás, borrar o reemplazar fotos, y dejar la certificación a medias.
-  9. Cualquier inspector puede seguir una certificación a medias desde la página de la certificación iniciada, aunque no la haya iniciado.
-  10. Una certificación cerrada (H19) no se puede seguir editando.
-  11. La pantalla se usa bien desde el celular.
+  1. Cada unidad asignada (H17) tiene dos inspecciones: la interna, con las secciones internas activas del catálogo (H11), y la externa, con las externas. Se hacen en cualquier orden o al mismo tiempo, por el mismo inspector o por dos distintos.
+  2. Las tarjetas Inspección interna e Inspección externa del panel de Certificaciones abren la lista de unidades asignadas que tienen esa inspección pendiente o a medias, con su contenedor y su avance. Arriba hay un buscador por contenedor y un botón para escanear la funda. Al tocar una unidad empieza su paso a paso.
+  3. El sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12). Las cintas de inspección se reparten entre internas y externas como indica el tipo de kit (T55). El inspector no elige los dispositivos. El kit ya se validó al asignar (H17, criterio 16).
+  4. El inspector recorre las secciones de esa inspección una por una, en el orden de H11, en un formulario por pasos con barra de progreso. En cada paso ve el nombre de la sección y los dispositivos que lleva, con su serie. Puede ir a cualquier sección y pasar a la siguiente sin foto: la sección queda pendiente.
+  5. Cada sección lleva de 1 a n fotos, sin máximo. Cada foto se toma con la cámara del teléfono, una por vez, nunca desde la galería. En escritorio, las inspecciones se ven en solo lectura, con el aviso de que las fotos se toman desde el teléfono.
+  6. Cada foto se comprime en el navegador antes de subirse, sin paquete nuevo: de unos 7 MB a unos 700 KB. Al comprimirla se le imprimen encima la fecha, la hora y el contenedor.
+  7. La subida empieza apenas se toma la foto: su miniatura aparece al instante con su avance, y el inspector puede seguir tomando otras. Si una subida falla, se reintenta tocando la foto. Lo ya subido se muestra en miniatura liviana.
+  8. De cada foto queda quién la subió y la fecha y hora de la subida. De cada inspección se muestra su inspector y su inicio y fin, tomados de su primera y su última foto.
+  9. El avance se guarda en cada foto. El inspector puede volver atrás, ver una foto en grande, borrarla (con confirmación) o reemplazarla, y dejar la inspección a medias. Cualquier inspector la puede seguir.
+  10. Una inspección está completa cuando cada una de sus secciones tiene al menos una foto.
+  11. Una certificación cerrada (H19) no se puede editar hasta que se reapertura.
+  12. La pantalla se usa bien desde el celular.
 - Fuera: marcar daños por sección (son del EIR del gate out) y la reinspección (E6).
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.
 - Dudas abiertas: cómo se colocan los dispositivos en cada sección (el sistema podría asignarlos por defecto desde el kit y el inspector solo etiquetaría), cuántas fotos por sección y cómo se reducen desde celular (unas 30 por unidad).
 - Decisiones del usuario del 2026-11-19 (T54): el sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12), y el inspector solo toma las fotos. Las fotos se comprimen en el navegador con lo que este ya trae, sin paquete nuevo, de unos 7 MB a unos 700 KB. Cada foto se toma siempre con la cámara, nunca desde la galería. La subida empieza apenas se toma la foto y lo ya subido carga liviano en pantalla. El botón de tomar foto abre la cámara del teléfono, una foto por vez, y no la galería. Cada sección lleva de 1 a n fotos, sin máximo, guardadas en una tabla propia de fotos (una fila por foto). De cada foto queda quién la subió y la fecha y hora de la subida, y al comprimirla se le imprimen encima la fecha, la hora y el contenedor, como marca de agua. Si los dispositivos del kit no alcanzan o sobran para lo que piden las secciones activas, no se puede avanzar: se avisa al entrar a las secciones y el inspector pide otro kit. Se confirma la versión conversada (recorrido por pasos, avance guardado en cada paso, volver atrás, borrar o reemplazar fotos y dejarla a medias), con un multi-step form que muestra una barra de progreso.
 
-**H19 · Cerrar la certificación** (aprobada el 2026-11-20, revisada en T54)
-- Como inspector certificado, quiero cerrar la certificación cuando todas sus secciones tienen foto, para dejarla terminada y sus dispositivos como usados.
+**H19 · Cerrar y reaperturar la certificación** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: se cierra desde el listado de Asignaciones y se puede reaperturar)
+- Como inspector certificado, quiero cerrar la certificación cuando sus dos inspecciones están completas, y reaperturarla si hace falta corregirla, para dejarla terminada con sus dispositivos como usados.
 - Criterios de aceptación:
-  1. Antes de cerrar se ve un resumen de las secciones, con y sin foto.
-  2. Solo se cierra si cada sección tiene al menos una foto. No hay excepciones: si falta una, la certificación queda a medias.
+  1. El cierre es manual, desde el listado de Asignaciones (H20). El botón «Cerrar» se activa solo cuando la inspección interna y la externa están completas; mientras tanto la fila muestra el avance de cada una, y con las dos completas, «Lista para cerrar».
+  2. No hay excepciones: si una sección no tiene foto, no se cierra.
   3. Se pide confirmación antes de cerrar.
-  4. Cualquier inspector puede cerrarla, aunque no la haya iniciado. Queda registrado quién la cerró, con la fecha y la hora.
+  4. Cualquier inspector puede cerrarla. Queda registrado quién la cerró, con la fecha y la hora.
   5. Al cerrar, el kit pasa a Usado y sus dispositivos también. Todo se guarda junto o nada.
   6. Una certificación cerrada no se edita.
-  7. La pantalla se usa bien desde el celular.
-- Fuera: reabrir una certificación cerrada para la reinspección (se define con E6 en el Sprint 4).
+  7. Desde el mismo listado, una certificación cerrada se puede reaperturar con un motivo obligatorio. Queda registrado quién la reaperturó, cuándo y por qué, y se ve en el detalle. Al reaperturar, el kit y sus dispositivos siguen en Usado: solo se pueden corregir o sumar fotos, y después se vuelve a cerrar.
+  8. La pantalla se usa bien desde el celular.
+- Fuera: la reinspección del checkpoint (E6, Sprint 4).
 - Versión conversada, a revisar: resumen de secciones con y sin foto; todas las secciones obligatorias para cerrar; confirmación antes de cerrar; una certificación cerrada no se edita; el kit y sus dispositivos quedan usados; solo cierra quien la inició (por confirmar).
 - Riesgo: si una sección no se puede fotografiar por una avería, el inspector queda trabado.
 - Decisiones del usuario del 2026-11-19 (T54): cualquier inspector puede seguir y cerrar una certificación, aunque no la haya iniciado, y queda registrado quién la cerró, con la fecha y la hora (reemplaza «solo cierra quien la inició»). No hay excepción para una sección sin foto: sin al menos una foto en cada sección no se cierra, y la certificación queda a medias hasta resolverlo (el riesgo se acepta). Se confirma el resto de lo conversado: resumen de secciones con y sin foto, confirmación antes de cerrar, una cerrada no se edita, y al cerrar el kit y sus dispositivos pasan a Usado. La reapertura para la reinspección queda fuera: se define con E6 en el Sprint 4.
 
-**H20 · Consultar certificaciones** (aprobada el 2026-11-20, revisada en T54)
-- Como usuario de la intranet, quiero consultar las certificaciones y descargar el PDF de las cerradas, para revisar y compartir la evidencia de cada unidad.
+**H20 · Listado de asignaciones y consulta de certificaciones** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: la consulta es el mismo listado de Asignaciones)
+- Como usuario de la intranet, quiero un listado de las unidades asignadas, para seguir su avance, cerrarlas o reaperturarlas, consultarlas y descargar el PDF de las cerradas.
 - Criterios de aceptación:
-  1. Hay una lista de certificaciones que se filtra por fecha, naviera, inspector y estado (a medias o cerrada), y se busca por contenedor, booking o placa.
-  2. Por ahora todos los usuarios con sesión ven todas las certificaciones; la restricción por rol llega con H24.
-  3. El detalle es de solo consulta: datos de la solicitud, transportista, conductor, vehículos, kit, y cada sección con sus dispositivos y sus fotos.
-  4. Los datos personales del conductor (DNI y brevete) se muestran como en H17: se traen de SIGLA 1.0 y no se copian.
-  5. El PDF se descarga solo de una certificación cerrada. Lleva la cabecera, los dispositivos asignados y las fotos por sección, con el formato de PDF del lienzo.
-  6. En el PDF, los dispositivos asignados van con tres dibujos propios del contenedor (interior con las puertas abiertas, exterior del lado de las puertas y exterior del lado de la máquina) y, junto a cada uno, sus cintas con la serie y la sección.
-  7. La lista y el detalle se usan bien desde el celular.
+  1. La tarjeta Asignación del panel de Certificaciones abre el listado de Asignaciones, con el botón «Nueva asignación» (H17). Se filtra por fecha, naviera, inspector y estado (a medias, lista para cerrar, cerrada o reaperturada), y se busca por contenedor, booking o placa.
+  2. Cada fila muestra el avance de las dos inspecciones (por ejemplo, Interna 8/13 y Externa 7/7) y las acciones que correspondan: ver, cerrar y reaperturar (H19), y PDF.
+  3. Por ahora todos los usuarios con sesión ven todas las certificaciones; la restricción por rol llega con H24.
+  4. El detalle es de solo consulta: datos de la solicitud, transportista, conductor, vehículos, kit, cada inspección con su inspector, inicio y fin, y cada sección con sus dispositivos y sus fotos. Si se reaperturó, muestra quién, cuándo y el motivo.
+  5. El PDF se descarga solo de una certificación cerrada. Lleva la cabecera (con el nombre y el DNI del conductor, del catálogo de conductores), los dispositivos asignados y las fotos por sección, con el formato de PDF del lienzo.
+  6. En el PDF, los dispositivos asignados van con tres dibujos propios del contenedor: el interior con las puertas abiertas, con su lista de dispositivos de las secciones internas, y los dos exteriores (lado de las puertas y lado de la máquina) juntos, con una sola lista de las secciones externas. Cada dispositivo lleva su serie y su sección.
+  7. El listado y el detalle se usan bien desde el celular.
 - Fuera: marcas numeradas sobre los dibujos (Sprint 4), tabla de daños por área (EIR del gate out), lista de procedimientos de seguridad y trazabilidad GPS.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
