@@ -1,6 +1,6 @@
 # Product Backlog · SIGLA 2.0 (TOS)
 
-**Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17).
+**Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17). El 2026-11-20 se aprobaron H18, H19 y H20 (E5).
 
 **Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Sus "por confirmar" se cerraron en T46 y el usuario las aprobó el 2026-11-13.
 
@@ -8,7 +8,7 @@
 
 **En revisión desde el 2026-10-28:** el proceso posterior a la asignación del kit a la certificación (H18, H19 y H20 de E5, y toda E6). El límite acordado es H17: se queda lo que llega hasta iniciar la certificación y asignarle el kit. Lo posterior se vuelve a revisar con el usuario antes de darlo por aprobado. Lo conversado queda marcado y no se borra.
 
-**Revisadas el 2026-11-19 en T54:** H18, H19 y H20 tienen criterios propuestos, por aprobar, para construirse en el Sprint 3 (T59 a T61). E6 sigue en revisión y pasa al Sprint 4.
+**Revisadas el 2026-11-19 en T54:** H18, H19 y H20 quedaron aprobadas el 2026-11-20, para construirse en el Sprint 3 (T59 a T61). E6 sigue en revisión y pasa al Sprint 4.
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -545,7 +545,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 ### E5 · Certificación del contenedor
-- Que el inspector certificado certifique el contenedor con su kit. Aprobado hasta aquí: iniciar la certificación con la solicitud de retiro y la funda del kit (H17). Lo posterior (colocar los dispositivos, fotos por sección, cerrar, consultar, PDF y reinspección) está EN REVISIÓN.
+- Que el inspector certificado certifique el contenedor con su kit. Aprobado: iniciar la certificación (H17), completar las secciones con fotos (H18), cerrarla (H19) y consultarla con su PDF (H20); H18 a H20 se aprobaron el 2026-11-20. La reinspección sigue EN REVISIÓN con E6.
 - La certificación es opcional (ver decisiones). El inspector decide a qué unidades aplicarla.
 - Fuera: EIR del gate out y fin de lavado (proceso de gate out de SIGLA, aún no se construye).
 - Depende de: E1, E2, E3, E4, E7, E9. La necesita E6.
@@ -562,7 +562,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. El inspector busca su kit escaneando con la cámara del teléfono o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15). El kit debe ser de la misma naviera de la solicitud; si no, se rechaza (decisión del usuario del 2026-11-17). Al iniciar, el kit sigue Despachado.
   8. Un kit solo se usa en una certificación (confirmado por el usuario el 2026-11-17).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
-  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión). Mientras H18 no exista, pasa a la página de la certificación iniciada, que muestra lo guardado y vuelve a consultar SIGLA 1.0.
+  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, aprobada el 2026-11-20). Mientras H18 no exista, pasa a la página de la certificación iniciada, que muestra lo guardado y vuelve a consultar SIGLA 1.0.
   11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal. Se traen de SIGLA 1.0 y solo se muestran, sin copiarse en la certificación (2026-11-17); los roles llegan con H24.
   12. La pantalla se puede usar bien desde el celular.
   13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04), entre las activas de su sede (2026-11-17).
@@ -571,7 +571,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - La naviera que trae la API (solo su nombre, por ejemplo `SEATRADE`) se enlaza a `shipping_lines`: se busca por nombre sin distinguir mayúsculas; si está desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre, sin espacios ni signos (SEATRADE queda SEAT), y si ese código ya existe se le suma un número (MAER1, MAER2). Reemplaza la decisión del 2026-11-04 de copiarla como texto (decisión del usuario del 2026-11-17, que cierra la propuesta del 2026-11-10). Cliente y producto no tienen catálogo. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta`.
 - Diseño aprobado en el lienzo el 2026-11-17 (página E5): en el teléfono, un paso por pantalla (solicitud, kit y zona) con una barra fija de Atrás y Siguiente; en escritorio, los tres pasos juntos. La cámara usa el paquete `barcode-detector`, aprobado por el usuario el 2026-11-17.
 
-**H18 · Completar las secciones con fotos** (propuesta del 2026-11-19 en T54, por aprobar)
+**H18 · Completar las secciones con fotos** (aprobada el 2026-11-20, revisada en T54)
 - Como inspector certificado, quiero recorrer las secciones de la certificación tomando sus fotos, para dejar la evidencia de cada parte del contenedor y de los dispositivos que lleva.
 - Criterios de aceptación:
   1. Al entrar a las secciones, el sistema reparte solo los dispositivos del kit entre las secciones activas del catálogo (H11), según lo que pide cada una (H12). Las cintas de inspección se reparten entre internas y externas como indica el tipo de kit (T55). El inspector no elige los dispositivos.
@@ -590,7 +590,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Dudas abiertas: cómo se colocan los dispositivos en cada sección (el sistema podría asignarlos por defecto desde el kit y el inspector solo etiquetaría), cuántas fotos por sección y cómo se reducen desde celular (unas 30 por unidad).
 - Decisiones del usuario del 2026-11-19 (T54): el sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12), y el inspector solo toma las fotos. Las fotos se comprimen en el navegador con lo que este ya trae, sin paquete nuevo, de unos 7 MB a unos 700 KB. Cada foto se toma siempre con la cámara, nunca desde la galería. La subida empieza apenas se toma la foto y lo ya subido carga liviano en pantalla. El botón de tomar foto abre la cámara del teléfono, una foto por vez, y no la galería. Cada sección lleva de 1 a n fotos, sin máximo, guardadas en una tabla propia de fotos (una fila por foto). De cada foto queda quién la subió y la fecha y hora de la subida, y al comprimirla se le imprimen encima la fecha, la hora y el contenedor, como marca de agua. Si los dispositivos del kit no alcanzan o sobran para lo que piden las secciones activas, no se puede avanzar: se avisa al entrar a las secciones y el inspector pide otro kit. Se confirma la versión conversada (recorrido por pasos, avance guardado en cada paso, volver atrás, borrar o reemplazar fotos y dejarla a medias), con un multi-step form que muestra una barra de progreso.
 
-**H19 · Cerrar la certificación** (propuesta del 2026-11-19 en T54, por aprobar)
+**H19 · Cerrar la certificación** (aprobada el 2026-11-20, revisada en T54)
 - Como inspector certificado, quiero cerrar la certificación cuando todas sus secciones tienen foto, para dejarla terminada y sus dispositivos como usados.
 - Criterios de aceptación:
   1. Antes de cerrar se ve un resumen de las secciones, con y sin foto.
@@ -605,7 +605,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Riesgo: si una sección no se puede fotografiar por una avería, el inspector queda trabado.
 - Decisiones del usuario del 2026-11-19 (T54): cualquier inspector puede seguir y cerrar una certificación, aunque no la haya iniciado, y queda registrado quién la cerró, con la fecha y la hora (reemplaza «solo cierra quien la inició»). No hay excepción para una sección sin foto: sin al menos una foto en cada sección no se cierra, y la certificación queda a medias hasta resolverlo (el riesgo se acepta). Se confirma el resto de lo conversado: resumen de secciones con y sin foto, confirmación antes de cerrar, una cerrada no se edita, y al cerrar el kit y sus dispositivos pasan a Usado. La reapertura para la reinspección queda fuera: se define con E6 en el Sprint 4.
 
-**H20 · Consultar certificaciones** (propuesta del 2026-11-19 en T54, por aprobar)
+**H20 · Consultar certificaciones** (aprobada el 2026-11-20, revisada en T54)
 - Como usuario de la intranet, quiero consultar las certificaciones y descargar el PDF de las cerradas, para revisar y compartir la evidencia de cada unidad.
 - Criterios de aceptación:
   1. Hay una lista de certificaciones que se filtra por fecha, naviera, inspector y estado (a medias o cerrada), y se busca por contenedor, booking o placa.
