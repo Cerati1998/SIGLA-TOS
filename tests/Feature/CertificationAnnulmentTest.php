@@ -59,6 +59,20 @@ class CertificationAnnulmentTest extends TestCase
             ->assertSet('form.container', 'ABCU1234567');
     }
 
+    public function test_a_reopened_certification_cannot_be_annulled(): void
+    {
+        $certification = $this->certification();
+        $certification->reopenings()->create(['reason' => 'Foto borrosa.', 'reopened_by' => $this->inspector->id, 'closed_at' => now(), 'closed_by' => $this->inspector->id]);
+
+        Livewire::test(CertificationsTable::class)
+            ->assertDontSeeHtml('aria-label="Anular la asignación de ABCU1234567"');
+
+        Livewire::test(AnnulModal::class)
+            ->call('open', $certification->id)
+            ->assertSet('form.openModal', false)
+            ->assertDispatched('toast', icon: 'warning');
+    }
+
     public function test_the_reason_and_the_decision_about_the_kit_are_required(): void
     {
         $certification = $this->certification();

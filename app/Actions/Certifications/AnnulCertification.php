@@ -33,8 +33,8 @@ class AnnulCertification
                 throw ValidationException::withMessages(['certification' => 'Su asignación ya estaba anulada.']);
             }
 
-            if ($locked->isClosed()) {
-                throw ValidationException::withMessages(['certification' => 'Está cerrada: una certificación cerrada no se anula.']);
+            if (! $locked->canBeAnnulled()) {
+                throw ValidationException::withMessages(['certification' => 'Ya se cerró una vez: su kit está Usado y la asignación no se anula.']);
             }
 
             $locked->update([

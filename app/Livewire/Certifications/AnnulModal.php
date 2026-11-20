@@ -28,8 +28,8 @@ class AnnulModal extends Component
     {
         $certification = Certification::query()->with('kit')->findOrFail($certificationId);
 
-        if ($certification->isReadOnly()) {
-            $this->dispatch('toast', icon: 'warning', title: 'No se puede anular', text: $certification->isAnnulled() ? 'Su asignación ya estaba anulada.' : 'Está cerrada: una certificación cerrada no se anula.');
+        if (! $certification->canBeAnnulled()) {
+            $this->dispatch('toast', icon: 'warning', title: 'No se puede anular', text: $certification->isAnnulled() ? 'Su asignación ya estaba anulada.' : 'Ya se cerró una vez: su kit está Usado y la asignación no se anula.');
             $this->dispatch('refreshDatatable');
 
             return;

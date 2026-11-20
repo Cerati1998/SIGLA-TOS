@@ -59,7 +59,7 @@
         </x-wire-button>
     @endif
 
-    @unless ($certification->isReadOnly())
+    @if ($certification->canBeAnnulled())
         <x-wire-button
             negative
             x-on:click="$dispatch('annul-certification', { certificationId: id })"
@@ -69,5 +69,5 @@
         >
             <i class="fa-solid fa-ban text-sm" aria-hidden="true"></i>
         </x-wire-button>
-    @endunless
+    @endif
 </div>

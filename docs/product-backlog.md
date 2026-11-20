@@ -648,7 +648,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
 - Como inspector o supervisor, quiero anular la asignación de un kit a su certificación cuando se cancela el servicio de despacho, para inhabilitar el kit o reutilizarlo según responda la naviera.
 - Criterios de aceptación:
-  1. Desde el listado de Asignaciones (H20), una certificación que no esté cerrada tiene la acción «Anular asignación». Una certificación cerrada no se anula.
+  1. Desde el listado de Asignaciones (H20), una certificación que nunca se cerró tiene la acción «Anular asignación». Una certificación cerrada, o reaperturada después de cerrarse, no se anula, porque al cerrarla su kit y sus dispositivos pasaron a Usado (H19). (Precisado al construir, el 2026-11-20.)
   2. Se pide un motivo obligatorio y la decisión sobre el kit, según la respuesta de la naviera: **Reutilizar el kit** o **Inhabilitar el kit**. Se pide confirmación antes de anular.
   3. Con «Reutilizar», el kit vuelve a Despachado con sus dispositivos, que dejan de estar repartidos en las secciones de la certificación, y se puede asignar a otra certificación (H17).
   4. Con «Inhabilitar», el kit queda **Inhabilitado** y todos sus dispositivos pasan a Descartado (T65), con el motivo de la anulación. Un kit Inhabilitado no se asigna, no se despacha ni recibe dispositivos.

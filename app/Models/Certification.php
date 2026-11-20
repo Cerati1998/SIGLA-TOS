@@ -227,6 +227,17 @@ class Certification extends Model
     }
 
     /**
+     * Whether the assignment of its kit can still be annulled (H32): only while it was never closed, because closing it
+     * turned its kit and its devices into Usado, which they stay after a reopening.
+     */
+    public function canBeAnnulled(): bool
+    {
+        $wasReopened = $this->getAttribute('reopenings_exists') ?? $this->reopenings()->exists();
+
+        return ! $this->isReadOnly() && ! $wasReopened;
+    }
+
+    /**
      * Whether the certification can no longer be edited: closed until it is reopened (H19), or annulled (H32).
      */
     public function isReadOnly(): bool
