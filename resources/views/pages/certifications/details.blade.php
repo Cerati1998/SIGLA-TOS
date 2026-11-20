@@ -3,12 +3,12 @@
 
     $value = fn (?string ...$parts): string => implode(' · ', array_filter($parts, fn (?string $part): bool => $part !== null)) ?: '—';
     $fromSigla1 = $gateOutRequest === null ? [] : [
-        'Cliente' => $value($gateOutRequest['client']['name']),
-        'Producto' => $value($gateOutRequest['product']),
         'DNI' => $value($gateOutRequest['driver']['document_number']),
         'Brevete' => $value($gateOutRequest['driver']['license']),
     ];
     $kept = [
+        'Cliente' => $value($certification->client),
+        'Producto' => $value($certification->product),
         'Booking' => $certification->booking,
         'Línea naviera' => $certification->shippingLine->code.' · '.$certification->shippingLine->name,
         'Transportista' => $value($certification->carrier?->business_name),
@@ -74,9 +74,9 @@
                         <span class="flex items-start gap-2">
                             <i class="fa-solid fa-circle-xmark mt-0.5" aria-hidden="true"></i>
                             @if ($status === Sigla1LookupStatus::NotFound)
-                                SIGLA 1.0 ya no devuelve esta solicitud: no se pueden mostrar el cliente, el producto ni los datos del conductor. Lo guardado en SIGLA 2.0 sí se ve.
+                                SIGLA 1.0 ya no devuelve esta solicitud: no se pueden mostrar el DNI ni el brevete del conductor. Lo guardado en SIGLA 2.0 sí se ve.
                             @else
-                                SIGLA 1.0 no responde: no se pueden mostrar el cliente, el producto ni los datos del conductor. Lo guardado en SIGLA 2.0 sí se ve.
+                                SIGLA 1.0 no responde: no se pueden mostrar el DNI ni el brevete del conductor. Lo guardado en SIGLA 2.0 sí se ve.
                             @endif
                         </span>
                         <flux:button wire:click="lookUp" wire:loading.attr="disabled" wire:target="lookUp" class="max-md:h-13 max-md:w-full">
@@ -101,12 +101,30 @@
         </section>
     </flux:card>
 
-    <section class="flex flex-col items-center gap-1.5 rounded-card border-2 border-dashed border-control px-4 py-6 text-center text-ink-muted">
-        <strong class="font-heading text-lg font-medium text-ink">Siguiente paso: las secciones con fotos</strong>
-        <span class="max-w-140 text-sm">Esta parte es H18, que sigue en revisión. Hasta entonces, la certificación queda iniciada y se vuelve a abrir buscando su solicitud en Inspección.</span>
+    <section class="grid gap-4 md:grid-cols-2">
+        @foreach ($inspections as $inspection)
+            <a wire:key="inspection-{{ $inspection['type']->value }}" href="{{ route('intranet.inspections.show', [$inspection['type'], $certification]) }}" wire:navigate
+                class="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4 text-ink no-underline shadow-card hover:border-brand hover:text-ink">
+                <span class="flex items-center justify-between gap-2">
+                    <strong class="font-heading text-lg font-medium text-brand">Inspección {{ mb_strtolower($inspection['type']->label()) }}</strong>
+                    @if ($inspection['total'] > 0 && $inspection['done'] === $inspection['total'])
+                        <x-status-badge variant="success">Completa</x-status-badge>
+                    @elseif ($inspection['done'] > 0)
+                        <x-status-badge variant="info">A medias</x-status-badge>
+                    @else
+                        <x-status-badge variant="warning">Sin empezar</x-status-badge>
+                    @endif
+                </span>
+                <span class="h-1.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
+                    <span class="block h-full rounded-full {{ $inspection['done'] === $inspection['total'] ? 'bg-status-green' : 'bg-logo-orange' }}"
+                        style="width: {{ $inspection['total'] === 0 ? 0 : round($inspection['done'] * 100 / $inspection['total']) }}%"></span>
+                </span>
+                <span class="text-sm text-ink-muted">{{ $inspection['done'] }} de {{ $inspection['total'] }} secciones con foto</span>
+            </a>
+        @endforeach
     </section>
 
     <div class="flex justify-end">
-        <flux:button :href="route('intranet.certifications.create')" wire:navigate class="max-md:h-13 max-md:w-full">Iniciar otra certificación</flux:button>
+        <flux:button :href="route('intranet.certifications.create')" wire:navigate class="max-md:h-13 max-md:w-full">Nueva asignación</flux:button>
     </div>
 </div>
