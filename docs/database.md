@@ -72,6 +72,10 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `bulk_dispatches` | E4 · H30 | `en código` | `device_dispatches` |
 | `bulk_dispatch_items` | E4 · H30 | `en código` | `device_dispatches_units` |
 | `certifications` | E5 · H17 | `en código` | `security_certifications` |
+| `certification_steps` | E5 · H18 | `en código` | (nueva; en el ER, las secciones de la certificación iban en `certification_criteria_items`) |
+| `certification_step_security_device` | E5 · H18 | `en código` | (nueva) |
+| `certification_photos` | E5 · H18 | `en código` | (nueva; cierra P3) |
+| `certification_reopenings` | E5 · H19 | `en código` | (nueva; con `closed_at` y `closed_by` en `certifications`, cierra P4) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -454,10 +458,16 @@ erDiagram
 
 ### 4.9 Certificaciones (E5)
 
-El inspector inicia la certificación de una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud solo se guardan su id, su booking y su contenedor; lo demás se enlaza con los catálogos.
+El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19).
 
 ```mermaid
 erDiagram
+  certifications ||--o{ certification_steps : "secciones copiadas"
+  certification_sections ||--o{ certification_steps : "sección del catálogo"
+  certification_steps ||--o{ certification_step_security_device : "dispositivos"
+  security_devices ||--o| certification_step_security_device : "en un solo paso"
+  certification_steps ||--o{ certification_photos : "fotos"
+  users ||--o{ certification_photos : "subió"
   shipping_lines ||--o{ certifications : "naviera"
   carriers |o--o{ certifications : "transportista"
   drivers |o--o{ certifications : "conductor"
@@ -465,12 +475,17 @@ erDiagram
   kits ||--o| certifications : "en una sola"
   yard_zones ||--o{ certifications : "zona"
   users ||--o{ certifications : "inspector"
+  users |o--o{ certifications : "cerró"
+  certifications ||--o{ certification_reopenings : "reaperturas"
+  users ||--o{ certification_reopenings : "reaperturó"
 
   certifications {
     bigint id PK
     string gate_out_request_reference UK
     string booking
     string container
+    string client
+    string product
     bigint shipping_line_id FK
     bigint carrier_id FK
     bigint driver_id FK
@@ -481,6 +496,35 @@ erDiagram
     bigint yard_zone_id FK
     bigint certified_by FK
     datetime started_at
+    datetime closed_at
+    bigint closed_by FK
+  }
+  certification_reopenings {
+    bigint id PK
+    bigint certification_id FK
+    string reason
+    bigint reopened_by FK
+    datetime closed_at
+    bigint closed_by FK
+  }
+  certification_steps {
+    bigint id PK
+    bigint certification_id FK
+    bigint certification_section_id FK
+    string type "internal, external"
+    smallint position
+  }
+  certification_step_security_device {
+    bigint id PK
+    bigint certification_step_id FK
+    bigint security_device_id FK, UK
+  }
+  certification_photos {
+    bigint id PK
+    bigint certification_step_id FK
+    string path
+    string thumbnail_path
+    bigint uploaded_by FK
   }
 ```
 
@@ -924,7 +968,7 @@ Zonas de patio (H26). Se gestionan en Maestros → Zonas de patio. El seeder car
 
 ### 5.22 `certifications` · `en código`
 
-Certificaciones de contenedores (H17). Se inician en Certificación → Inspección. En el ER era `security_certifications`. Por decisión del usuario del 2026-11-17, de la solicitud de retiro solo se guardan su id, su booking y su contenedor, para volver a consultarla en SIGLA 1.0: el cliente, el producto, el DNI y el brevete nunca se copian.
+Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspección → Certificaciones. En el ER era `security_certifications`. Por decisión del usuario del 2026-11-17, de la solicitud de retiro se guardan su id, su booking y su contenedor, para volver a consultarla en SIGLA 1.0; desde el 2026-11-20 (T58) también su cliente y su producto, para que el detalle y el PDF no dependan de la API. El DNI y el brevete nunca se copian: están en `drivers`.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -932,6 +976,8 @@ Certificaciones de contenedores (H17). Se inician en Certificación → Inspecci
 | `gate_out_request_reference` | varchar(50) | UK: el id de la solicitud de SIGLA 1.0 (`id_solicitud`). Una solicitud tiene una sola certificación (criterio 6). |
 | `booking` | varchar(50) | El booking de la solicitud, para volver a consultarla. |
 | `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
+| `client` | varchar(255) (null) | El cliente (operador) de la solicitud, como lo manda SIGLA 1.0 (T58). |
+| `product` | varchar(255) (null) | El producto de la solicitud, como lo manda SIGLA 1.0 (T58). |
 | `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, buscada por nombre sin distinguir mayúsculas. Si estaba desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre (SEAT) y un número si se repite (MAER1). |
 | `carrier_id` | bigint FK → `carriers.id` (null) | Buscado por RUC o creado (criterio 3). Null si SIGLA 1.0 no manda el RUC o la razón social. |
 | `driver_id` | bigint FK → `drivers.id` (null) | Buscado por DNI o creado, y enlazado con el transportista en `carrier_driver` (criterio 3). Null si SIGLA 1.0 no manda el DNI, el nombre o el brevete. |
@@ -942,9 +988,62 @@ Certificaciones de contenedores (H17). Se inician en Certificación → Inspecci
 | `yard_zone_id` | bigint FK → `yard_zones.id` | Zona activa de la sede del usuario (criterio 13). |
 | `certified_by` | bigint FK → `users.id` | El inspector que la inició (criterio 9). |
 | `started_at` | datetime | Fecha y hora de inicio (criterio 9). |
+| `closed_at` | datetime (null) | Fecha y hora del último cierre (H19, criterio 4). Null mientras está abierta o reaperturada. |
+| `closed_by` | bigint FK → `users.id` (null) | Quién la cerró la última vez. Null igual que `closed_at`. |
 | `timestamps` | | |
 
-Todavía no tiene `status`: los estados se definen con H19 y H20 (P4). Se escribe junto con la naviera, el transportista, el conductor, su enlace y los vehículos que falten, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4).
+No guarda un `status`: el estado se calcula (enum de PHP `CertificationStatus`, H19 y H20). `closed` (Cerrada) si tiene `closed_at`; `reopened` (Reaperturada) si no lo tiene y tiene reaperturas; `ready_to_close` (Lista para cerrar) si cada paso tiene al menos una foto; si no, `in_progress` (A medias). Al cerrarla, el kit y sus dispositivos pasan a `used` en la misma transacción. Al asignarla, se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).
+
+### 5.22b `certification_reopenings` · `en código`
+
+Las reaperturas de una certificación cerrada (H19, criterio 7). Cada una guarda su motivo, quién la reaperturó y cuándo, y también el cierre que deshizo, para que no se pierda ningún cierre. Al reaperturar, el kit y sus dispositivos siguen en `used`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | Índice con `created_at`. |
+| `reason` | varchar(500) | El motivo, obligatorio. |
+| `reopened_by` | bigint FK → `users.id` | Quién la reaperturó. |
+| `closed_at` | datetime | Cuándo se había cerrado. |
+| `closed_by` | bigint FK → `users.id` | Quién la había cerrado. |
+| `timestamps` | | `created_at` es la fecha y hora de la reapertura. |
+
+### 5.23 `certification_steps` · `en código`
+
+Las secciones activas del catálogo (`certification_sections`), copiadas en la certificación al asignar el kit (H18). La copia guarda el tipo y la posición que la sección tenía, para que un cambio posterior del catálogo no cambie la certificación. El tipo dice a qué inspección pertenece el paso: la interna o la externa.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | |
+| `certification_section_id` | bigint FK → `certification_sections.id` | UK junto con `certification_id`: una sección va una sola vez en cada certificación. |
+| `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` o `external`, copiado de la sección. Índice con `certification_id` y `position`. |
+| `position` | smallint | Orden del paso, el de la sección en el catálogo al asignar. |
+| `timestamps` | | |
+
+### 5.24 `certification_step_security_device` · `en código`
+
+Los dispositivos del kit que el sistema coloca en cada paso, según lo que pide la sección (H12). Una cinta que se reparte va a los pasos de su lado: las internas a las secciones internas y las externas a las externas (T55).
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_step_id` | bigint FK → `certification_steps.id` | |
+| `security_device_id` | bigint FK → `security_devices.id` | UK: un dispositivo va en un solo paso. |
+| `timestamps` | | |
+
+### 5.25 `certification_photos` · `en código`
+
+Las fotos de cada paso (H18), de 1 a n, sin máximo. Se toman con la cámara del teléfono y se comprimen en el navegador (unos 1920 px y 700 KB, con la marca de agua de fecha, hora y contenedor), que también arma la miniatura de 320 px. Los dos archivos van en el disco privado (`storage/app/private/certifications/{id}`) y solo se sirven con sesión. El inspector, el inicio y el fin de cada inspección salen de sus fotos.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_step_id` | bigint FK → `certification_steps.id` | Índice con `created_at`. |
+| `path` | varchar(255) | Ruta de la foto en el disco privado. |
+| `thumbnail_path` | varchar(255) | Ruta de la miniatura, en la subcarpeta `thumbnails`. |
+| `uploaded_by` | bigint FK → `users.id` | Quién la subió. Al reemplazarla, quien la reemplazó. |
+| `timestamps` | | `created_at` es la fecha y hora de la subida; al reemplazar la foto, toma la del reemplazo. |
 
 ## 6. Cambios del ER original que ya aplican
 
@@ -971,6 +1070,6 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | # | Tema | Detalle |
 | --- | --- | --- |
 | P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
-| P3 | Fotos | Una tabla o dos. Depende de la revisión de H18. |
-| P4 | Certificación | Valores de `status`, que `certifications` todavía no tiene (H19 y H20). Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `closed_at`, `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
+| P3 | Fotos | Cerrada el 2026-11-20 en H18: una tabla, `certification_photos`, con la foto y su miniatura en la misma fila. |
+| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |

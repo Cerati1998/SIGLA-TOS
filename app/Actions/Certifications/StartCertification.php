@@ -27,6 +27,7 @@ class StartCertification
 {
     public function __construct(
         private FindKitToCertify $findKit,
+        private DistributeKitDevices $distributeKitDevices,
         private ShippingLineRegistry $shippingLines,
         private VehicleRegistry $vehicles,
     ) {}
@@ -59,10 +60,12 @@ class StartCertification
             $carrier = $this->carrier($gateOutRequest['carrier']);
             $driver = $this->driver($gateOutRequest['driver'], $carrier);
 
-            return Certification::query()->create([
+            $certification = Certification::query()->create([
                 'gate_out_request_reference' => $gateOutRequest['reference'],
                 'booking' => (string) $gateOutRequest['booking'],
                 'container' => (string) $gateOutRequest['container'],
+                'client' => $gateOutRequest['client']['name'],
+                'product' => $gateOutRequest['product'],
                 'shipping_line_id' => $this->shippingLines->findOrRegister((string) $gateOutRequest['shipping_line'])->id,
                 'carrier_id' => $carrier?->id,
                 'driver_id' => $driver?->id,
@@ -74,7 +77,29 @@ class StartCertification
                 'certified_by' => $inspector->id,
                 'started_at' => now(),
             ]);
+
+            $this->copySteps($certification, $kit);
+
+            return $certification;
         });
+    }
+
+    /**
+     * Copy the active sections into the certification, with the devices of the kit the system places in each one
+     * (H18, criterion 3). The kit already fits: it was checked with the other reasons to reject it.
+     */
+    private function copySteps(Certification $certification, Kit $kit): void
+    {
+        foreach ($this->distributeKitDevices->handle($kit)['steps'] as $position => $step) {
+            $certification->steps()
+                ->create([
+                    'certification_section_id' => $step['section']->id,
+                    'type' => $step['section']->type,
+                    'position' => $position + 1,
+                ])
+                ->devices()
+                ->attach($step['deviceIds']);
+        }
     }
 
     /**

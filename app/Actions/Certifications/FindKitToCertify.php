@@ -9,7 +9,10 @@ use App\Services\ShippingLineRegistry;
 
 class FindKitToCertify
 {
-    public function __construct(private ShippingLineRegistry $shippingLines) {}
+    public function __construct(
+        private ShippingLineRegistry $shippingLines,
+        private DistributeKitDevices $distributeKitDevices,
+    ) {}
 
     /**
      * Find the kit with the scanned or written pouch code, or get why it cannot be used to certify the unit of a
@@ -32,7 +35,7 @@ class FindKitToCertify
     /**
      * Get why the kit cannot be used, or null when it can: any kit Despachado, whoever it was dispatched to
      * (criterion 7), of the same shipping line as the request (decision of the user of 2026-11-17), that is in no
-     * other certification (criterion 8).
+     * other certification (criterion 8) and that has exactly what the active sections ask for (criterion 16).
      */
     public function rejectionReason(Kit $kit, ?string $shippingLineName): ?string
     {
@@ -57,6 +60,16 @@ class FindKitToCertify
                 $kit->shippingLine->code,
                 $kit->shippingLine->name,
                 $requestShippingLine === null ? ($shippingLineName ?? 'una naviera sin nombre') : "{$requestShippingLine->code} · {$requestShippingLine->name}",
+            );
+        }
+
+        $problems = $this->distributeKitDevices->problems($kit);
+
+        if ($problems !== []) {
+            return sprintf(
+                'El kit %s no calza con lo que piden las secciones activas: %s. Escanea otra funda o pide otro kit en bodega.',
+                $kit->pouch_code,
+                implode('; ', $problems),
             );
         }
 

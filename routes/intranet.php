@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\BulkDispatchController;
 use App\Http\Controllers\CertificationController;
+use App\Http\Controllers\CertificationPhotoController;
 use App\Http\Controllers\ClientOptionsController;
 use App\Http\Controllers\DispatchedKitOptionsController;
+use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\KitDispatchController;
 use App\Http\Controllers\ProviderOptionsController;
@@ -68,9 +70,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('gate-out-requests', 'pages.gate-out-requests.index')->name('gate-out-requests.index');
 
+    Route::get('certifications', [CertificationController::class, 'index'])->name('certifications.index');
+
     Route::view('certifications/create', 'pages.certifications.create')->name('certifications.create');
 
+    Route::view('certifications/list', 'pages.certifications.list')->name('certifications.list');
+
+    Route::get('inspections/{type}', [InspectionController::class, 'index'])->name('inspections.index');
+
+    Route::get('inspections/{type}/{certification}', [InspectionController::class, 'show'])->name('inspections.show');
+
+    Route::get('certification-photos/{certificationPhoto}', [CertificationPhotoController::class, 'show'])->name('certification-photos.show');
+
+    Route::get('certification-photos/{certificationPhoto}/thumbnail', [CertificationPhotoController::class, 'thumbnail'])->name('certification-photos.thumbnail');
+
     Route::get('certifications/{certification}', [CertificationController::class, 'show'])->name('certifications.show');
+
+    Route::get('certifications/{certification}/pdf', [CertificationController::class, 'pdf'])->name('certifications.pdf');
 
     Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
 
