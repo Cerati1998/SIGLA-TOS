@@ -241,7 +241,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Corrección del 2026-11-20 (T62), pedida por el usuario: al crear y editar un tipo hay dos casillas más, que se validan al ingresar un lote (H07):
   - «No utiliza serie», desmarcada por defecto. Si se marca, el lote de ese tipo no pide el inicio ni el final de serie: pide el mínimo de dígitos y el correlativo inicial y el final, y la serie es solo el correlativo con ceros (ver H07).
   - «Requiere aprobación en lote», marcada por defecto. Si se desmarca, los dispositivos de los lotes de ese tipo no necesitan la aprobación de la naviera (H29) para armar un kit (H14) ni para despacharlos a granel (H30).
-  - Las dos se ven en la lista de tipos y se pueden cambiar al editar. Los tipos que ya existen quedan con los valores por defecto (usan serie y requieren aprobación), así que nada cambia hasta que alguien los marque. Suposición por confirmar: cambiar una casilla solo afecta a los lotes que se ingresen después; los lotes y dispositivos ya ingresados quedan como están.
+  - Las dos se ven en la lista de tipos. Los tipos que ya existen quedan con los valores por defecto (usan serie y requieren aprobación), así que nada cambia hasta que alguien los marque. Las casillas se pueden cambiar al editar solo mientras el tipo no tenga lotes. Cuando ya tiene uno, quedan bloqueadas con un aviso, como el tipo (criterio 3), y si el tipo se creó mal se crea otro (confirmado por el usuario el 2026-11-20).
 
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
