@@ -48,7 +48,7 @@
                 </div>
                 <div class="flex flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">Kit</dt>
-                    <dd class="m-0">—</dd>
+                    <dd class="m-0">{{ $device->kits->first()->pouch_code ?? '—' }}</dd>
                 </div>
                 <div class="col-span-full flex flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">Aprobado</dt>

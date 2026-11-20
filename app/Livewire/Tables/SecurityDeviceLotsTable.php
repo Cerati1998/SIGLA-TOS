@@ -44,7 +44,7 @@ class SecurityDeviceLotsTable extends BaseTable
     {
         return SecurityDeviceLot::query()
             ->with('announcement.securityDeviceType')
-            ->withCount(['devices as approved_devices_count' => fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value)])
+            ->withCount(['devices as approved_devices_count' => fn (Builder $devices) => $devices->whereNotIn('status', [SecurityDeviceStatus::Inactive->value, SecurityDeviceStatus::Discarded->value])])
             ->orderByDesc('security_device_lots.received_at')
             ->orderByDesc('security_device_lots.id');
     }
@@ -114,7 +114,7 @@ class SecurityDeviceLotsTable extends BaseTable
      */
     private function filterByApproval(Builder $builder, string $value): Builder
     {
-        $approved = fn (Builder $devices) => $devices->where('status', '!=', SecurityDeviceStatus::Inactive->value);
+        $approved = fn (Builder $devices) => $devices->whereNotIn('status', [SecurityDeviceStatus::Inactive->value, SecurityDeviceStatus::Discarded->value]);
         $inactive = fn (Builder $devices) => $devices->where('status', SecurityDeviceStatus::Inactive->value);
 
         if ($value === 'not_required') {

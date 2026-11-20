@@ -10,6 +10,7 @@ enum SecurityDeviceStatus: string
     case Used = 'used';
     case Damaged = 'damaged';
     case Dispatched = 'dispatched';
+    case Discarded = 'discarded';
 
     /**
      * Get the name shown on screen.
@@ -23,6 +24,7 @@ enum SecurityDeviceStatus: string
             self::Used => 'Usado',
             self::Damaged => 'Dañado',
             self::Dispatched => 'Despachado',
+            self::Discarded => 'Descartado',
         };
     }
 
@@ -38,6 +40,7 @@ enum SecurityDeviceStatus: string
             self::Used => 'Usados',
             self::Damaged => 'Dañados',
             self::Dispatched => 'Despachados',
+            self::Discarded => 'Descartados',
         };
     }
 
@@ -53,7 +56,16 @@ enum SecurityDeviceStatus: string
             self::Used => 'neutral',
             self::Damaged => 'warning',
             self::Dispatched => 'purple',
+            self::Discarded => 'danger',
         };
+    }
+
+    /**
+     * Check whether a device in this status can be discarded from its lot (T65): only while it is Inactive or Available.
+     */
+    public function canBeDiscarded(): bool
+    {
+        return $this === self::Inactive || $this === self::Available;
     }
 
     /**
