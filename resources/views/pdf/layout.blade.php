@@ -1,6 +1,6 @@
 @php
     $generatedAt = now('America/Lima');
-    $logo = 'data:image/png;base64,'.base64_encode((string) file_get_contents(public_path('images/sigla-logo2.png')));
+    $logo = 'data:image/png;base64,'.base64_encode((string) file_get_contents(public_path('images/sigla-logo-cropped.png')));
 @endphp
 <!doctype html>
 <html lang="es">
