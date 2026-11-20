@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\KitStatus;
-use App\Livewire\Certifications\Details;
 use App\Livewire\Certifications\StartForm;
 use App\Models\Branch;
 use App\Models\Carrier;
@@ -251,7 +250,7 @@ class CertificationStartTest extends TestCase
         $this->assertSame([0, 0, 0], [Certification::query()->count(), Carrier::query()->count(), Driver::query()->count()]);
     }
 
-    public function test_a_started_certification_shows_what_it_keeps_and_looks_up_the_rest_in_sigla1(): void
+    public function test_a_started_certification_shows_what_it_keeps_without_asking_sigla1(): void
     {
         $certification = Certification::factory()->create([
             'gate_out_request_reference' => '10001',
@@ -262,7 +261,7 @@ class CertificationStartTest extends TestCase
             'yard_zone_id' => $this->yardZone->id,
             'certified_by' => $this->inspector->id,
         ]);
-        $this->fakeSigla1([$this->gateOutRequest()]);
+        Http::preventStrayRequests();
 
         $this->actingAs($this->inspector)
             ->get(route('intranet.certifications.show', $certification))
@@ -270,22 +269,9 @@ class CertificationStartTest extends TestCase
             ->assertSeeText('Certificación ABCU1234567')
             ->assertSeeText('por Inspector Uno, en la zona Zona A · Lavado.')
             ->assertSeeText('FMT-0001234')
-            ->assertSeeText('OPERADOR DE EJEMPLO S.A.C.')
-            ->assertSeeText('B00000001');
-    }
+            ->assertSeeText('OPERADOR DE EJEMPLO S.A.C.');
 
-    public function test_a_started_certification_still_shows_what_it_keeps_when_sigla1_does_not_answer(): void
-    {
-        $certification = Certification::factory()->create(['container' => 'ABCU1234567', 'inspection_sheet_code' => 'FMT-0001234']);
-        Http::preventStrayRequests();
-        Http::fake([self::API_URL.'*' => Http::response(null, 500)]);
-
-        Livewire::actingAs($this->inspector)
-            ->test(Details::class, ['certification' => $certification])
-            ->assertSet('status', Sigla1LookupStatus::Unavailable)
-            ->assertSeeText('SIGLA 1.0 no responde')
-            ->assertSeeText('FMT-0001234')
-            ->assertSeeText('Reintentar');
+        Http::assertNothingSent();
     }
 
     /**

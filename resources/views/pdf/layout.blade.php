@@ -52,6 +52,9 @@
             <td style="width: 150px; background: #f3f5f9;">
                 <div class="numero-rotulo">@yield('number-label')</div>
                 <div class="numero">@yield('number')</div>
+                @hasSection('number-note')
+                    <div class="subtitulo" style="text-transform: none; letter-spacing: 0;">@yield('number-note')</div>
+                @endif
             </td>
         </tr>
     </table>

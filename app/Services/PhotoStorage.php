@@ -48,4 +48,14 @@ class PhotoStorage
     {
         return Storage::disk(self::DISK)->response($path, headers: ['Cache-Control' => 'private, max-age=604800']);
     }
+
+    /**
+     * Get a stored JPEG as a data URI, to put it inside a PDF. A missing file gives an empty string.
+     */
+    public function dataUri(string $path): string
+    {
+        $contents = Storage::disk(self::DISK)->get($path);
+
+        return $contents === null ? '' : 'data:image/jpeg;base64,'.base64_encode($contents);
+    }
 }

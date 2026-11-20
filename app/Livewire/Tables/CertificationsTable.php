@@ -3,13 +3,19 @@
 namespace App\Livewire\Tables;
 
 use App\Actions\Certifications\CloseCertification;
+use App\Enums\CertificationStatus;
 use App\Models\Certification;
+use App\Models\ShippingLine;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use Rappasoft\LaravelLivewireTables\Views\Filter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Throwable;
 
 /**
@@ -31,7 +37,7 @@ class CertificationsTable extends BaseTable
             'certifications.closed_at as closed_at',
             'certifications.started_at as started_at',
         ])
-            ->setSearchDisabled()
+            ->setSearchPlaceholder('Contenedor, booking o placa')
             ->setEmptyMessage('Todavía no hay asignaciones. Usa «Nueva asignación» para asignar el primer kit.')
             ->setConfigurableAreas([
                 'toolbar-right-end' => 'pages.certifications.partials.options',
@@ -62,7 +68,12 @@ class CertificationsTable extends BaseTable
     {
         return [
             Column::make('Contenedor', 'container')
-                ->format(fn (string $value): View => view('pages.certifications.partials.container', ['container' => $value])),
+                ->format(fn (string $value): View => view('pages.certifications.partials.container', ['container' => $value]))
+                ->searchable(fn (Builder $query, string $search) => $query
+                    ->orWhere('certifications.container', 'like', '%'.self::compact($search).'%')
+                    ->orWhere('certifications.booking', 'like', '%'.trim($search).'%')
+                    ->orWhereHas('tractor', fn (Builder $vehicles) => $vehicles->where('plate', 'like', '%'.self::compact($search).'%'))
+                    ->orWhereHas('semiTrailer', fn (Builder $vehicles) => $vehicles->where('plate', 'like', '%'.self::compact($search).'%'))),
             Column::make('Estado')
                 ->label(fn (Certification $row): View => view('pages.certifications.partials.status', ['status' => $row->status()])),
             Column::make('Avance')
@@ -77,6 +88,53 @@ class CertificationsTable extends BaseTable
             Column::make('Asignada')
                 ->label(fn (Certification $row): string => $row->started_at->timezone('America/Lima')->format('d/m/Y H:i')),
         ];
+    }
+
+    /**
+     * Get the filters of the table (H20, criterion 1).
+     *
+     * @return array<int, Filter>
+     */
+    public function filters(): array
+    {
+        return [
+            DateFilter::make('Fecha de asignación', 'started_on')
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(function (Builder $builder, string $value): void {
+                    $day = Carbon::parse($value, 'America/Lima');
+                    $builder->whereBetween('certifications.started_at', [$day->copy()->startOfDay()->utc(), $day->copy()->endOfDay()->utc()]);
+                }),
+            SelectFilter::make('Línea naviera', 'shipping_line')
+                ->options(['' => 'Todas'] + ShippingLine::withTrashed()
+                    ->whereIn('id', Certification::query()->select('shipping_line_id'))
+                    ->orderBy('code')
+                    ->pluck('code', 'id')
+                    ->all())
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(fn (Builder $builder, string $value) => $builder->where('certifications.shipping_line_id', (int) $value)),
+            SelectFilter::make('Inspector', 'inspector')
+                ->options(['' => 'Todos'] + User::withTrashed()
+                    ->whereIn('id', Certification::query()->select('certified_by'))
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->all())
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(fn (Builder $builder, string $value) => $builder->where('certifications.certified_by', (int) $value)),
+            SelectFilter::make('Estado', 'status')
+                ->options(['' => 'Todas'] + collect(CertificationStatus::cases())
+                    ->mapWithKeys(fn (CertificationStatus $status): array => [$status->value => $status->label()])
+                    ->all())
+                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
+                ->filter(fn (Builder $builder, string $value) => $builder->whereStatus(CertificationStatus::from($value))),
+        ];
+    }
+
+    /**
+     * Get what was searched without spaces or dashes and in capitals, the way containers and plates are kept.
+     */
+    private static function compact(string $search): string
+    {
+        return mb_strtoupper((string) preg_replace('/[\s-]+/', '', $search));
     }
 
     /**
@@ -102,6 +160,6 @@ class CertificationsTable extends BaseTable
             return;
         }
 
-        $this->dispatch('toast', icon: 'success', title: 'Certificación cerrada', text: "Certificación de {$certification->container} cerrada.");
+        $this->dispatch('toast', icon: 'success', title: 'Certificación cerrada', text: "Certificación de {$certification->container} cerrada. Ya puedes descargar su PDF.");
     }
 }

@@ -21,6 +21,10 @@
     </x-wire-button>
 
     @if ($status === \App\Enums\CertificationStatus::Closed)
+        <x-wire-button negative :href="route('intranet.certifications.pdf', $certification)" target="_blank" title="Descargar PDF" aria-label="Descargar el PDF de {{ $certification->container }}" xs>
+            <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
+        </x-wire-button>
+
         <x-wire-button
             primary
             x-on:click="$dispatch('reopen-certification', { certificationId: id })"
