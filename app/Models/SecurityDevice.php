@@ -21,14 +21,18 @@ use Illuminate\Support\Carbon;
  * @property string $serial_number
  * @property SecurityDeviceStatus $status
  * @property int|null $security_device_lot_approval_id
+ * @property Carbon|null $discarded_at
+ * @property int|null $discarded_by
+ * @property string|null $discard_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read SecurityDeviceLot $lot
  * @property-read SecurityDeviceLotApproval|null $approval
+ * @property-read User|null $discarder
  * @property-read Collection<int, Kit> $kits
  * @property-read Collection<int, BulkDispatch> $bulkDispatches
  */
-#[Fillable(['security_device_lot_id', 'serial_number_scope', 'serial_number', 'status'])]
+#[Fillable(['security_device_lot_id', 'serial_number_scope', 'serial_number', 'status', 'discarded_at', 'discarded_by', 'discard_reason'])]
 class SecurityDevice extends Model
 {
     /** @use HasFactory<SecurityDeviceFactory> */
@@ -43,6 +47,7 @@ class SecurityDevice extends Model
     {
         return [
             'status' => SecurityDeviceStatus::class,
+            'discarded_at' => 'datetime',
         ];
     }
 
@@ -75,6 +80,16 @@ class SecurityDevice extends Model
     public function approval(): BelongsTo
     {
         return $this->belongsTo(SecurityDeviceLotApproval::class, 'security_device_lot_approval_id');
+    }
+
+    /**
+     * Get the user who discarded the device, if it was discarded (T65).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function discarder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'discarded_by')->withTrashed();
     }
 
     /**

@@ -118,6 +118,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. Cada pantalla y cada acción validan el rol en el servidor.
   4. Las pantallas de empresa y sucursales (H27) se protegen con un permiso de acceso (indicado por el usuario el 2026-11-04).
   5. Las pantallas de líneas navieras y proveedores (H09, H10) quedan solo para el admin. La de tipos de dispositivo (H06) queda para el admin y el usuario de bodega, y solo el admin desactiva (T21, 2026-11-04).
+  6. Por definir: qué rol puede anular la asignación de un kit (H32) y qué rol puede descartar dispositivos de un lote (T65). Pedido por el usuario el 2026-11-20.
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
@@ -280,6 +281,14 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27). Desde el 2026-11-13 (T46) hay un quinto estado, Despachado, para los dispositivos despachados a granel (H30). Desde el 2026-11-16 (H29) hay un estado Inactivo, con el que nace cada dispositivo hasta que se registra la aprobación de la naviera; reemplaza a la marca aparte de activación que se había acordado el 2026-11-13.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
 - Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
+- Corrección del 2026-11-20 (T65), pedida por el usuario:
+  - La columna «Kit» de los dispositivos del lote muestra la funda del kit en que está el dispositivo, en cualquier estado. Hasta ahora quedaba siempre en «—».
+  - Cada dispositivo del lote se puede **descartar**, por ejemplo por llegar en mal estado o romperse después: de un lote de 100 se pueden descartar 5. Hay un estado nuevo, **Descartado**.
+  - Solo se descarta un dispositivo Inactivo o Disponible que no esté en un kit ni despachado. Se pide un motivo obligatorio y queda registrado quién lo descartó y cuándo. El descarte no se deshace.
+  - Un dispositivo Descartado no se agrega a un kit (H14) ni se despacha a granel (H30). El detalle del lote lo cuenta aparte.
+  - Descartar cambia el estado del dispositivo, así que la serie del lote ya no se puede corregir (H28, criterio 3).
+  - Hay un segundo camino de descarte, desde un kit cuya asignación se anuló (H32).
+  - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón rojo por fila y un modal con el motivo, como «Reaperturar» de H19.
 - Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al buscar una serie se muestran todas las coincidencias, cada una con su tipo y su lote.
 
 **H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
@@ -327,7 +336,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como admin, quiero crear, editar, ordenar y desactivar las secciones que se inspeccionan en un contenedor, marcando si son internas o externas, para que la certificación y el checkpoint pidan siempre lo correcto.
 - Criterios de aceptación:
   1. El admin crea una sección con nombre y tipo (interna o externa), por ejemplo "Fotografía de evaporadores".
-  2. No se pueden crear dos secciones con el mismo nombre.
+  2. No se pueden crear dos secciones del mismo tipo con el mismo nombre, aunque una esté desactivada. Una interna y una externa sí pueden llamarse igual, por ejemplo «Puertas» interna y «Puertas» externa. (Cambiado el 2026-11-20 en T63, a pedido del usuario; antes el nombre no se repetía nunca.)
   3. El admin edita el nombre y el tipo de una sección.
   4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación. Es un solo orden para internas y externas.
   5. El admin desactiva una sección en vez de borrarla. Una desactivada sale del orden y no aparece en certificaciones nuevas, pero se conserva en las ya hechas. Una nueva o reactivada va al final.
@@ -477,7 +486,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Los despachos a granel tienen su propia lista, en Bodega → Despachos → «A granel», separada de la de despachos de kits. Cada despacho se numera con su propia secuencia, `DG-000001`.
   2. El despacho se registra con el trabajador que recibe, elegido de la lista de trabajadores activos (H25) como en H15. Quién entrega es el usuario que despacha, y queda registrado solo, con la fecha y la semana.
-  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe).
+  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe). El selector lista y busca los contenedores de las certificaciones cuyo kit está **Usado** (se usa al cerrar la certificación, H19), cada uno con el kit que se le asignó al iniciarla (H17), por ejemplo «MSKU1234567 · KIT-000046»; también se busca por funda. Al elegir un contenedor se toma su kit original, y los dispositivos del despacho quedan enlazados a ese kit, para mantener la relación entre el contenedor, el kit y los dispositivos, como en una reinspección. Un kit que no está Usado no se ofrece. (Cambiado el 2026-11-20 en T64, a pedido del cliente y del usuario: un kit Usado siempre tiene contenedor. Antes se ofrecían los kits Despachados cuya certificación no se había cerrado y se buscaban solo por funda.)
   4. Se elige el patio de destino entre las zonas de patio activas de la sede del usuario (H26). Es obligatorio (suposición por confirmar).
   5. Se puede escribir una observación, opcional.
   6. Los dispositivos se agregan de tres formas: escaneando uno por uno, y cada escaneo se agrega solo a la lista; por rango, con la serie inicial y la final; o eligiendo el tipo de dispositivo, la serie inicial y la cantidad, y el sistema calcula hasta dónde llega. La serie inicial puede ser la serie completa (HLS0000009) o solo su prefijo (HLS), y con el prefijo se empieza por el primer disponible de esa serie (pedido por el usuario el 2026-11-17, al probar la construcción). En los campos de rango y de cantidad, Enter muestra la vista previa.
@@ -489,7 +498,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
   13. La pantalla se puede usar bien desde el celular.
 - Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
-- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
+- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). (Reemplazado el 2026-11-20 en T64: por Operación solo se ofrecen kits Usados, es decir, de certificaciones ya cerradas.) Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
 - Depende de: H31, por el cliente de una venta (2026-11-17).
 - Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), el despacho suma un selector de tipo de dispositivo, opcional, para el escaneo y el rango. Si no se elige el tipo y la serie existe en más de un tipo, no se agrega y se avisa «Elige el tipo de dispositivo». Si se elige, solo se buscan series de ese tipo. La forma por tipo y cantidad no cambia, porque ya lleva el tipo. El selector va arriba de las pestañas y sirve para «Escanear» y «Por rango» (al construir, el 2026-11-20; en el diseño estaba dentro de la columna del escaneo).
 - Fuera de esta historia: editar o anular un despacho, su PDF, y cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector), que se define al revisar E6 y lo posterior a H17.
@@ -635,6 +644,22 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
 - Decisiones del usuario del 2026-11-19 (T54): por ahora todos los usuarios con sesión ven todas las certificaciones, por la regla de roles vigente; quién ve todas o solo las suyas se define con H24. El PDF se hace con DomPDF y toma como referencia el informe de inspección actual (parecido o mejorado, no igual: ese formato es de Risk Protection S.A.). El bloque de cintas usa tres dibujos propios del contenedor en SVG (interior con puertas abiertas, exterior del lado de las puertas y exterior del lado de la máquina) y, junto a cada uno, sus cintas con la serie y la sección, armadas desde el reparto de H18. Las marcas numeradas sobre el dibujo, en el lugar de cada sección, pasan al Sprint 4 como mejora. La tabla de daños por área del formato de referencia no va: es del EIR del gate out, una inspección previa a la certificación que se construye en otra etapa; cuando exista, se podrá sumar a este PDF. Tampoco van la lista de procedimientos de seguridad ni la trazabilidad GPS (los puntos del recorrido). El PDF lleva solo la cabecera, los dispositivos asignados y las fotos, con el formato de PDF ya estandarizado en el lienzo, y se descarga solo de una certificación cerrada. Se confirma el resto de lo conversado (filtros, búsqueda y detalle de solo consulta).
+
+**H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
+- Como inspector o supervisor, quiero anular la asignación de un kit a su certificación cuando se cancela el servicio de despacho, para inhabilitar el kit o reutilizarlo según responda la naviera.
+- Criterios de aceptación:
+  1. Desde el listado de Asignaciones (H20), una certificación que no esté cerrada tiene la acción «Anular asignación». Una certificación cerrada no se anula.
+  2. Se pide un motivo obligatorio y la decisión sobre el kit, según la respuesta de la naviera: **Reutilizar el kit** o **Inhabilitar el kit**. Se pide confirmación antes de anular.
+  3. Con «Reutilizar», el kit vuelve a Despachado con sus dispositivos, que dejan de estar repartidos en las secciones de la certificación, y se puede asignar a otra certificación (H17).
+  4. Con «Inhabilitar», el kit queda **Inhabilitado** y todos sus dispositivos pasan a Descartado (T65), con el motivo de la anulación. Un kit Inhabilitado no se asigna, no se despacha ni recibe dispositivos.
+  5. La certificación queda **Anulada**: se conserva, ya no se edita ni se cierra, y no tiene PDF. Queda registrado quién la anuló, cuándo, el motivo y la decisión sobre el kit, y se ve en su detalle (H20).
+  6. El listado de Asignaciones muestra el estado Anulada y lo suma a su filtro de estado.
+  7. Todo se guarda junto o nada.
+  8. Por ahora, cualquier usuario con sesión anula asignaciones. Qué rol puede hacerlo se define en H24.
+  9. La pantalla se usa bien desde el celular.
+- Un kit va en una sola certificación que no esté anulada (H17, criterio 8): al reutilizarlo, la anulada conserva su referencia al kit.
+- Depende de: H18 a H20 (listado de Asignaciones y detalle) y T65 (estado Descartado). Se construye en una rama que parte de la de H20.
+- Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón por fila y un modal con el motivo y la decisión, como «Reaperturar» de H19.
 
 ### E6 · Checkpoint (EN REVISIÓN, sin historias aprobadas)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.

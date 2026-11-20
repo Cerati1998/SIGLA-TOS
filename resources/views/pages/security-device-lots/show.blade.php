@@ -17,6 +17,7 @@
         'used' => 'border border-line bg-badge-neutral text-badge-neutral-ink',
         'damaged' => 'bg-badge-warning text-badge-warning-ink',
         'dispatched' => 'bg-badge-purple text-badge-purple-ink',
+        'discarded' => 'bg-badge-danger text-badge-danger-ink',
     ];
 @endphp
 
@@ -52,7 +53,7 @@
             </div>
         </dl>
 
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
             @foreach (\App\Enums\SecurityDeviceStatus::cases() as $status)
                 <div class="flex flex-col gap-1 rounded-card px-4 py-3.5 {{ $countStyles[$status->value] }}">
                     <strong class="font-heading text-[1.75rem] leading-none font-medium">{{ number_format($deviceCounts[$status->value], 0, ',', ' ') }}</strong>
@@ -83,6 +84,8 @@
 
         <livewire:tables.security-devices-table :lot-id="$lot->id" />
     </x-panel.list-card>
+
+    <livewire:security-devices.discard-modal :lot="$lot" />
 
     @if ($lot->requiresApproval())
         <livewire:security-device-lots.approve-modal :lot="$lot" />

@@ -200,8 +200,11 @@ erDiagram
     bigint security_device_lot_id FK
     bigint serial_number_scope "UK con serial_number"
     string serial_number
-    string status "inactive, available, in_kit, used, damaged"
+    string status "inactive, available, in_kit, used, damaged, dispatched, discarded"
     bigint security_device_lot_approval_id FK "null"
+    datetime discarded_at "null"
+    bigint discarded_by FK "null"
+    string discard_reason "null"
   }
   security_device_lot_approvals {
     bigint id PK
@@ -224,7 +227,7 @@ erDiagram
 
   certification_sections {
     bigint id PK
-    string name UK
+    string name "UK con type"
     string type "internal, external"
     smallint sort_order "null si está desactivada"
     datetime deleted_at
@@ -699,8 +702,11 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `security_device_lot_id` | bigint FK | Lote del que vino. |
 | `serial_number_scope` | bigint sin signo | Por defecto `0`. Dónde es única la serie (T62): `0` si su tipo utiliza serie, que es única en todo SIGLA, o el id de su tipo si no la utiliza, que es única solo dentro de ese tipo. UK compuesta con `serial_number`. Al corregir un lote (H28) y cambiar entre dos tipos sin serie, sus dispositivos pasan al alcance del tipo nuevo. |
 | `serial_number` | varchar(50) | Índice. Única con `serial_number_scope` (antes UK sola; cambiado el 2026-11-20, T62). ER: `serie_number`. Una serie sin serie tampoco puede repetir la de un tipo con serie: lo revisa `ReceiveSecurityDeviceLot::takenSerialNumbers()`. |
-| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16; en un tipo que no requiere aprobación, el inicial es `available`, T62), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado) y `dispatched` (Despachado, al salir en un despacho a granel, H30). Confirmados el 2026-11-09 (T27). |
+| `status` | varchar(20) | Índice. Enum de PHP `SecurityDeviceStatus`: `inactive` (Inactivo, el inicial, hasta que se registra la aprobación de la naviera; H29, 2026-11-16; en un tipo que no requiere aprobación, el inicial es `available`, T62), `available` (Disponible), `in_kit` (En un kit), `used` (Usado), `damaged` (Dañado) y `dispatched` (Despachado, al salir en un despacho a granel, H30) y `discarded` (Descartado, T65, 2026-11-20). Confirmados el 2026-11-09 (T27). |
 | `security_device_lot_approval_id` | bigint FK (null) | Aprobación que lo pasó a Disponible (H29). Null mientras siga Inactivo. Quién y cuándo se leen de la aprobación. |
+| `discarded_at` | timestamp (null) | Cuándo se descartó (T65). Solo se descarta un dispositivo `inactive` o `available` fuera de un kit, y no se deshace. |
+| `discarded_by` | bigint FK → `users` (null) | Quién lo descartó (T65). |
+| `discard_reason` | varchar(255) (null) | Motivo del descarte, obligatorio al descartar (T65). |
 | `timestamps` | | |
 
 El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
@@ -725,7 +731,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `name` | varchar(100) | UK, aunque la sección esté desactivada (H11, criterio 2). |
+| `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
 | `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna) o `external` (Externa). Las puertas no son un tipo (P1). |
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
