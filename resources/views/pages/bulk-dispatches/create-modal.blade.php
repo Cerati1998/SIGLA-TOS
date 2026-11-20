@@ -63,13 +63,13 @@
                             id="bulk-dispatch-kit"
                             wire:model="form.kitId"
                             label="Kit despachado"
-                            placeholder="Busca por funda o contenedor"
+                            placeholder="Busca por contenedor o funda"
                             :async-data="['api' => route('intranet.kits.dispatched-options'), 'method' => 'POST']"
                             option-label="name"
                             option-value="id"
                             option-description="description"
                         />
-                        <span class="text-sm text-ink-muted">Solo kits despachados cuya certificación sigue abierta.</span>
+                        <span class="text-sm text-ink-muted">Elige el contenedor: se toma el kit que se le asignó en su certificación, que sigue abierta.</span>
                     </div>
                     <p x-show="hasNoReason" class="m-0 pt-7 text-sm text-ink-muted">Elige el motivo: con Venta se pide el cliente y con Operación, el kit despachado.</p>
                 </div>

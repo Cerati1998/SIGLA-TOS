@@ -14,9 +14,9 @@ class SearchDispatchedKitOptions
     public const int LIMIT = 20;
 
     /**
-     * Get the kits a bulk dispatch for the operation can go to (H30, criterion 3): the dispatched kits whose certification
-     * has not been closed. Until certifications exist (H17), those are all the kits Despachado. Each one shows its pouch
-     * and the container of its certification, and is searched by either of them (T64).
+     * Get the kits a bulk dispatch for the operation can go to (H30, criterion 3): the dispatched kits assigned to a
+     * certification that has not been closed. Each option is the container of the certification with its original kit,
+     * searched by the container or by the pouch, so choosing a container takes the kit it was assigned (T64).
      *
      * @param  array<int, int|string>  $selected  The ids already chosen, to show their names.
      * @return array<int, array{id: int, name: string, description: string}>
@@ -36,24 +36,25 @@ class SearchDispatchedKitOptions
             ->get()
             ->map(fn (Kit $kit): array => [
                 'id' => $kit->id,
-                'name' => $kit->pouch_code.' · '.($kit->certification === null ? 'sin contenedor' : $kit->certification->container),
+                'name' => $kit->certification?->container.' · '.$kit->pouch_code,
                 'description' => $this->description($kit),
             ])
             ->all();
     }
 
     /**
-     * Get the kits that can receive devices of a bulk dispatch for the operation.
+     * Get the kits that can receive devices of a bulk dispatch for the operation: dispatched and assigned to a
+     * certification (T64).
      *
      * @return Builder<Kit>
      */
     public static function query(): Builder
     {
-        return Kit::query()->where('status', KitStatus::Dispatched);
+        return Kit::query()->where('status', KitStatus::Dispatched)->whereHas('certification');
     }
 
     /**
-     * Describe the kit, as in "Kit de seguridad reefer · MAEU · despachado a Trabajador Uno el 16/11/2026".
+     * Describe the kit of the container, as in "Kit de seguridad reefer · MAEU · despachado a Trabajador Uno el 16/11/2026".
      */
     private function description(Kit $kit): string
     {

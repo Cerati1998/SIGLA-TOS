@@ -262,7 +262,7 @@ class BulkDispatchTest extends TestCase
             ->set('form.kitId', $builtKit->id)
             ->call('confirmDispatch')
             ->assertHasErrors('form.kitId')
-            ->assertSee('Elige un kit despachado cuya certificación siga abierta.')
+            ->assertSee('Elige el contenedor de una certificación abierta.')
             ->set('form.kitId', $dispatchedKit->id)
             ->call('save')
             ->assertHasNoErrors();
@@ -339,7 +339,7 @@ class BulkDispatchTest extends TestCase
         $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'kit-0000'])
             ->assertOk()
             ->assertJsonCount(1)
-            ->assertJsonPath('0.name', 'KIT-000046 · sin contenedor');
+            ->assertJsonPath('0.name', 'MSKU0000046 · KIT-000046');
 
         $this->postJson(route('intranet.clients.options'), ['search' => 'Agroexportadora'])
             ->assertOk()
@@ -347,21 +347,33 @@ class BulkDispatchTest extends TestCase
             ->assertJsonPath('0.name', 'Agroexportadora del Norte S.A.C.');
     }
 
-    public function test_the_kit_options_show_the_container_of_their_certification_and_search_by_it(): void
+    public function test_the_kit_options_are_the_containers_of_the_certifications_with_their_original_kit(): void
     {
-        $certified = $this->dispatchedKit('KIT-000046');
-        Certification::factory()->create(['kit_id' => $certified->id, 'container' => 'MSKU1234567']);
-        $this->dispatchedKit('KIT-000047');
+        $certified = $this->dispatchedKit('KIT-000046', 'MSKU1234567');
+        $this->dispatchedKit('KIT-000047', null);
 
         $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'msku123'])
             ->assertOk()
             ->assertJsonCount(1)
-            ->assertJsonPath('0.name', 'KIT-000046 · MSKU1234567');
+            ->assertJsonPath('0.id', $certified->id)
+            ->assertJsonPath('0.name', 'MSKU1234567 · KIT-000046');
 
         $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-00004'])
             ->assertOk()
-            ->assertJsonCount(2)
-            ->assertJsonPath('0.name', 'KIT-000047 · sin contenedor');
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.name', 'MSKU1234567 · KIT-000046');
+    }
+
+    public function test_a_dispatched_kit_without_certification_cannot_receive_an_operation(): void
+    {
+        $this->lot('SB', 1001, 1001);
+        $uncertified = $this->dispatchedKit('KIT-000047', null);
+
+        $this->filledWindow(BulkDispatchReason::Operation)
+            ->call('scan', 'SB001001')
+            ->set('form.kitId', $uncertified->id)
+            ->call('confirmDispatch')
+            ->assertHasErrors('form.kitId');
     }
 
     /**
@@ -410,10 +422,18 @@ class BulkDispatchTest extends TestCase
         $this->deviceOf($lot, $correlative)->update(['status' => $status]);
     }
 
-    private function dispatchedKit(string $pouchCode): Kit
+    /**
+     * Create a dispatched kit, assigned by default to a certification of a container named after its pouch, as
+     * MSKU0000046 for KIT-000046. With a null container, the kit has no certification.
+     */
+    private function dispatchedKit(string $pouchCode, ?string $container = ''): Kit
     {
         $kit = Kit::factory()->create(['pouch_code' => $pouchCode, 'status' => KitStatus::Dispatched]);
         KitDispatch::factory()->create(['receiver_id' => $this->receiver->id])->kits()->attach($kit->id);
+
+        if ($container !== null) {
+            Certification::factory()->create(['kit_id' => $kit->id, 'container' => $container !== '' ? $container : 'MSKU0'.substr($pouchCode, -6)]);
+        }
 
         return $kit;
     }
