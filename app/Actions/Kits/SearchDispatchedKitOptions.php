@@ -15,7 +15,8 @@ class SearchDispatchedKitOptions
 
     /**
      * Get the kits a bulk dispatch for the operation can go to (H30, criterion 3): the dispatched kits whose certification
-     * has not been closed. Until certifications exist (H17), those are all the kits Despachado.
+     * has not been closed. Until certifications exist (H17), those are all the kits Despachado. Each one shows its pouch
+     * and the container of its certification, and is searched by either of them (T64).
      *
      * @param  array<int, int|string>  $selected  The ids already chosen, to show their names.
      * @return array<int, array{id: int, name: string, description: string}>
@@ -25,15 +26,17 @@ class SearchDispatchedKitOptions
         $search = mb_strtoupper(trim((string) $search));
 
         return self::query()
-            ->with(['kitType', 'shippingLine', 'dispatches.receiver'])
+            ->with(['kitType', 'shippingLine', 'dispatches.receiver', 'certification'])
             ->when($selected !== [], fn (Builder $query) => $query->whereKey(array_map('intval', $selected)))
-            ->when($selected === [] && $search !== '', fn (Builder $query) => $query->where('pouch_code', 'like', '%'.$search.'%'))
+            ->when($selected === [] && $search !== '', fn (Builder $query) => $query->where(fn (Builder $pouchOrContainer) => $pouchOrContainer
+                ->where('pouch_code', 'like', '%'.$search.'%')
+                ->orWhereHas('certification', fn (Builder $certification) => $certification->where('container', 'like', '%'.$search.'%'))))
             ->orderByDesc('id')
             ->limit(self::LIMIT)
             ->get()
             ->map(fn (Kit $kit): array => [
                 'id' => $kit->id,
-                'name' => $kit->pouch_code,
+                'name' => $kit->pouch_code.' · '.($kit->certification === null ? 'sin contenedor' : $kit->certification->container),
                 'description' => $this->description($kit),
             ])
             ->all();

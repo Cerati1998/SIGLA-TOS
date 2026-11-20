@@ -8,6 +8,7 @@ use App\Enums\SecurityDeviceStatus;
 use App\Livewire\BulkDispatches\CreateModal;
 use App\Livewire\Tables\BulkDispatchesTable;
 use App\Models\BulkDispatch;
+use App\Models\Certification;
 use App\Models\Client;
 use App\Models\Kit;
 use App\Models\KitDispatch;
@@ -338,12 +339,29 @@ class BulkDispatchTest extends TestCase
         $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'kit-0000'])
             ->assertOk()
             ->assertJsonCount(1)
-            ->assertJsonPath('0.name', 'KIT-000046');
+            ->assertJsonPath('0.name', 'KIT-000046 · sin contenedor');
 
         $this->postJson(route('intranet.clients.options'), ['search' => 'Agroexportadora'])
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.name', 'Agroexportadora del Norte S.A.C.');
+    }
+
+    public function test_the_kit_options_show_the_container_of_their_certification_and_search_by_it(): void
+    {
+        $certified = $this->dispatchedKit('KIT-000046');
+        Certification::factory()->create(['kit_id' => $certified->id, 'container' => 'MSKU1234567']);
+        $this->dispatchedKit('KIT-000047');
+
+        $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'msku123'])
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.name', 'KIT-000046 · MSKU1234567');
+
+        $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-00004'])
+            ->assertOk()
+            ->assertJsonCount(2)
+            ->assertJsonPath('0.name', 'KIT-000047 · sin contenedor');
     }
 
     /**

@@ -63,7 +63,7 @@
                             id="bulk-dispatch-kit"
                             wire:model="form.kitId"
                             label="Kit despachado"
-                            placeholder="Busca por funda"
+                            placeholder="Busca por funda o contenedor"
                             :async-data="['api' => route('intranet.kits.dispatched-options'), 'method' => 'POST']"
                             option-label="name"
                             option-value="id"
