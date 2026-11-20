@@ -55,10 +55,17 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T46.
 ### Sumadas al sprint el 2026-11-17
 Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el compromiso ya terminado.
 - [x] **T53** · H17 · Iniciar una certificación. Quién: Claude Code. 4 h. Antes falta decidir cómo se reconoce en el catálogo la naviera que trae la API y qué pasa si no existe (propuesta del 2026-11-10 en H17), y si un kit se usa en una sola certificación (criterio 8). (Hecho el 2026-11-18, PR #78, unas 1 h reales contadas desde que empezó el diseño en el lienzo hasta el aviso para probar, el 2026-11-17, porque los commits llegaron al final; el visto bueno llegó al día siguiente. Incluye el diseño de H17, aprobado el 2026-11-17. Las dos decisiones se tomaron ese día: la naviera se enlaza por su nombre, se reactiva si está desactivada y se crea si falta; el kit va en una sola certificación.)
-- [ ] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h.
+- [x] **T54** · Revisar con el usuario lo posterior a la asignación del kit (H18 a H20 y E6), para que E5 y E6 se puedan estimar. Quién: Scrum Master. 1 h. (Cambiado el 2026-11-19 a pedido del usuario: E6, el checkpoint, pasa al Sprint 4; aquí se revisan solo H18 a H20, y la tarea frena a T58 y las siguientes.) (Hecho el 2026-11-20, PR #85, 1 h real. H18, H19 y H20 quedaron aprobadas con sus criterios.)
 
 ### Agregada el 2026-11-18
 - [x] **T57** (Hecho el 2026-11-19, PR #79 a #83) · Despliegue continuo a producción: un workflow de GitHub Actions que, cuando las pruebas pasan en `main`, sube SIGLA por SSH al dominio final del cPanel, con su base final. Mientras dure la prueba con el cliente, esa base solo tiene datos de prueba; al terminar se corre `migrate:fresh` y solo los seeders necesarios. Lo del entorno va en un environment de GitHub: como secreto solo la clave privada SSH; el sitio, el host, el puerto, el usuario y la ruta van como variables. Quién: Claude Code; el Scrum Master genera la clave SSH y prepara el dominio, la base, el `.env` del servidor y el cron. 3 h. Agregada el 2026-11-18 a pedido del usuario, para adelantar la implementación con el cliente. Va en su propia rama, `chore/T57-despliegue`, que parte de `main`.
+
+### Agregadas el 2026-11-19, con urgencia alta
+El usuario las sumó el 2026-11-19 para dejar la certificación completa en este sprint, porque se prueba en campo con el cliente. Se trabajan el 2026-11-20. Las horas son una propuesta de Claude Code, por confirmar.
+- [ ] **T58** · Diseñar y aprobar en el lienzo H18, H19 y H20, a partir de la plantilla "Formulario" y de la página de la certificación iniciada de H17. Quién: Scrum Master con Claude Design. 1.5 h. Después de T54.
+- [ ] **T59** · H18 · Completar las secciones con fotos. Incluye comprimir las fotos en el navegador antes de subirlas (de unos 7 MB a unos 700 KB) y deja `docs/database.md` al día. Quién: Claude Code. 5 h. Empieza cuando T54 y T58 estén cerradas. Va en su propia rama, `feature/H18-secciones-con-fotos`, que parte de `main`.
+- [ ] **T60** · H19 · Cerrar la certificación. Quién: Claude Code. 2 h. Parte de la rama de T59.
+- [ ] **T61** · H20 · Consultar certificaciones, con su PDF. Quién: Claude Code. 3 h. Parte de la rama de T60.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
@@ -68,9 +75,10 @@ Eran adelanto opcional. El usuario las sumó al sprint el 2026-11-17, con el com
 | Agregada el 2026-11-17 | T56 | 2 h |
 | Sumadas el 2026-11-17 (antes adelanto opcional) | T53, T54 | 5 h |
 | Agregada el 2026-11-18 | T57 | 3 h |
-| **Total** | | **31 h** |
+| Agregadas el 2026-11-19, con urgencia alta | T58, T59, T60, T61 | 11.5 h |
+| **Total** | | **42.5 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado. T57 suma 3 h más (31 h en total), por decisión del usuario del 2026-11-18.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado. T57 suma 3 h más (31 h en total), por decisión del usuario del 2026-11-18. T58 a T61 suman 11.5 h más (42.5 h en total), por decisión del usuario del 2026-11-19, para dejar la certificación completa; si el viernes no alcanza, se corta desde abajo: T61 (H20) es la primera en pasar al Sprint 4.
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 
@@ -90,6 +98,10 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 9 | T53 · H17 | `feature/H17-iniciar-certificacion` | `main` | decisiones de la naviera y del kit |
 | 10 | T54 · Revisar lo posterior a la asignación del kit | — | — | nada |
 | 11 | T57 · Despliegue continuo a producción | `chore/T57-despliegue` | `main` | clave SSH, dominio y `.env` del servidor |
+| 12 | T58 · Diseños de H18, H19 y H20 | — | — | T54 |
+| 13 | T59 · H18 | `feature/H18-secciones-con-fotos` | `main` | T54 y T58 |
+| 14 | T60 · H19 | `feature/H19-cerrar-certificacion` | rama de T59 | nada |
+| 15 | T61 · H20 | `feature/H20-consultar-certificaciones` | rama de T60 | nada |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
