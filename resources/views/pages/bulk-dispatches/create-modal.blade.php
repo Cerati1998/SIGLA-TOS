@@ -69,7 +69,7 @@
                             option-value="id"
                             option-description="description"
                         />
-                        <span class="text-sm text-ink-muted">Elige el contenedor: se toma el kit que se le asignó en su certificación, que sigue abierta.</span>
+                        <span class="text-sm text-ink-muted">Elige el contenedor: se toma el kit que se le asignó y que ya se usó en su certificación.</span>
                     </div>
                     <p x-show="hasNoReason" class="m-0 pt-7 text-sm text-ink-muted">Elige el motivo: con Venta se pide el cliente y con Operación, el kit despachado.</p>
                 </div>

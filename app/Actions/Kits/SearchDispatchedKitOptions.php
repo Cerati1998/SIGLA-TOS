@@ -14,9 +14,9 @@ class SearchDispatchedKitOptions
     public const int LIMIT = 20;
 
     /**
-     * Get the kits a bulk dispatch for the operation can go to (H30, criterion 3): the dispatched kits assigned to a
-     * certification that has not been closed. Each option is the container of the certification with its original kit,
-     * searched by the container or by the pouch, so choosing a container takes the kit it was assigned (T64).
+     * Get the kits a bulk dispatch for the operation can go to (H30, criterion 3): the kits Used, which always have the
+     * container of their certification (T64). Each option is that container with its original kit, searched by the
+     * container or by the pouch, so choosing a container takes the kit it was assigned.
      *
      * @param  array<int, int|string>  $selected  The ids already chosen, to show their names.
      * @return array<int, array{id: int, name: string, description: string}>
@@ -43,14 +43,13 @@ class SearchDispatchedKitOptions
     }
 
     /**
-     * Get the kits that can receive devices of a bulk dispatch for the operation: dispatched and assigned to a
-     * certification (T64).
+     * Get the kits that can receive devices of a bulk dispatch for the operation: Used in a certification (T64).
      *
      * @return Builder<Kit>
      */
     public static function query(): Builder
     {
-        return Kit::query()->where('status', KitStatus::Dispatched)->whereHas('certification');
+        return Kit::query()->where('status', KitStatus::Used)->whereHas('certification');
     }
 
     /**

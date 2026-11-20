@@ -262,7 +262,7 @@ class BulkDispatchTest extends TestCase
             ->set('form.kitId', $builtKit->id)
             ->call('confirmDispatch')
             ->assertHasErrors('form.kitId')
-            ->assertSee('Elige el contenedor de una certificación abierta.')
+            ->assertSee('Elige el contenedor de un kit usado en su certificación.')
             ->set('form.kitId', $dispatchedKit->id)
             ->call('save')
             ->assertHasNoErrors();
@@ -364,16 +364,24 @@ class BulkDispatchTest extends TestCase
             ->assertJsonPath('0.name', 'MSKU1234567 · KIT-000046');
     }
 
-    public function test_a_dispatched_kit_without_certification_cannot_receive_an_operation(): void
+    public function test_only_a_kit_used_in_its_certification_can_receive_an_operation(): void
     {
         $this->lot('SB', 1001, 1001);
         $uncertified = $this->dispatchedKit('KIT-000047', null);
+        $inCertification = $this->dispatchedKit('KIT-000048', 'TCLU7654321');
+        $inCertification->update(['status' => KitStatus::Dispatched]);
 
-        $this->filledWindow(BulkDispatchReason::Operation)
-            ->call('scan', 'SB001001')
-            ->set('form.kitId', $uncertified->id)
-            ->call('confirmDispatch')
-            ->assertHasErrors('form.kitId');
+        $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-00004'])
+            ->assertOk()
+            ->assertJsonCount(0);
+
+        foreach ([$uncertified, $inCertification] as $kit) {
+            $this->filledWindow(BulkDispatchReason::Operation)
+                ->call('scan', 'SB001001')
+                ->set('form.kitId', $kit->id)
+                ->call('confirmDispatch')
+                ->assertHasErrors('form.kitId');
+        }
     }
 
     /**
@@ -423,12 +431,12 @@ class BulkDispatchTest extends TestCase
     }
 
     /**
-     * Create a dispatched kit, assigned by default to a certification of a container named after its pouch, as
-     * MSKU0000046 for KIT-000046. With a null container, the kit has no certification.
+     * Create a dispatched kit, Used by default in a certification of a container named after its pouch, as MSKU0000046
+     * for KIT-000046. With a null container, the kit stays Despachado, without certification.
      */
     private function dispatchedKit(string $pouchCode, ?string $container = ''): Kit
     {
-        $kit = Kit::factory()->create(['pouch_code' => $pouchCode, 'status' => KitStatus::Dispatched]);
+        $kit = Kit::factory()->create(['pouch_code' => $pouchCode, 'status' => $container === null ? KitStatus::Dispatched : KitStatus::Used]);
         KitDispatch::factory()->create(['receiver_id' => $this->receiver->id])->kits()->attach($kit->id);
 
         if ($container !== null) {
