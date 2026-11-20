@@ -33,7 +33,7 @@
         <h3 class="col-span-full m-0 border-t border-line pt-5.25 font-heading text-h3 font-normal">Series</h3>
 
         <div
-            x-data="securityDeviceLotPreview({{ \App\Actions\SecurityDevices\ReceiveSecurityDeviceLot::MAX_DEVICES }})"
+            x-data="securityDeviceLotPreview({{ \App\Actions\SecurityDevices\ReceiveSecurityDeviceLot::MAX_DEVICES }}, @js($this->securityDeviceTypeBoxes))"
             class="col-span-full flex flex-col gap-3.5"
         >
             @if ($seriesLocked)
@@ -44,13 +44,13 @@
             @endif
 
             <fieldset wire:loading.attr="disabled" wire:target="save" class="grid grid-cols-2 items-start gap-x-6 gap-y-3.5 md:grid-cols-6">
-                <div class="md:col-span-2">
-                    <flux:input wire:model="form.seriesPrefix" :disabled="$seriesLocked" label="Inicio de serie" type="text" maxlength="20" required autocomplete="off" class:input="uppercase" />
+                <div x-show="usesSeries" class="md:col-span-2">
+                    <flux:input wire:model="form.seriesPrefix" :disabled="$seriesLocked" label="Inicio de serie" type="text" maxlength="20" x-bind:required="usesSeries" autocomplete="off" class:input="uppercase" />
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-2" x-bind:class="{ 'col-span-2': !usesSeries }">
                     <flux:input wire:model="form.minDigits" :disabled="$seriesLocked" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
                 </div>
-                <div class="col-span-2">
+                <div x-show="usesSeries" class="col-span-2">
                     <flux:input
                         wire:model="form.seriesSuffix"
                         :disabled="$seriesLocked"
@@ -62,10 +62,10 @@
                         class:input="uppercase"
                     />
                 </div>
-                <div class="md:col-span-3">
+                <div x-bind:class="correlativeColumns">
                     <flux:input wire:model="form.seriesStart" :disabled="$seriesLocked" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
                 </div>
-                <div class="md:col-span-3">
+                <div x-bind:class="correlativeColumns">
                     <flux:input
                         wire:model="form.seriesEnd"
                         :disabled="$seriesLocked"
@@ -79,6 +79,9 @@
                         x-bind:aria-invalid="preview.error !== null"
                     />
                 </div>
+                <p x-show="!usesSeries" x-cloak class="col-span-full m-0 text-sm text-ink-muted">
+                    Este tipo no utiliza serie: no se piden el inicio ni el final de serie, y cada dispositivo es su correlativo con ceros a la izquierda hasta el mínimo de dígitos.
+                </p>
             </fieldset>
 
             @unless ($seriesLocked)
@@ -95,6 +98,11 @@
                         · primera serie <strong x-text="preview.first"></strong>
                         · última serie <strong x-text="preview.last"></strong>
                     </span>
+                </p>
+
+                <p x-show="!requiresApproval" x-cloak role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
+                    <x-feather name="check" class="mt-0.5 size-4.5 flex-none" />
+                    <span>Este tipo no requiere aprobación en lote: los dispositivos quedarán <strong>Disponibles</strong> al guardar, listos para armar un kit o despacharlos a granel.</span>
                 </p>
             @endunless
         </div>

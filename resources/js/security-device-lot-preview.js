@@ -7,17 +7,34 @@ const isWholeNumber = (value) => /^\d+$/.test(String(value ?? '').trim());
 
 /**
  * The preview of a lot of security devices (H07): how many devices the range brings and its first and last serial numbers, built as prefix + zero-padded correlative + optional suffix.
+ * A type that does not use a series has neither prefix nor suffix, and one that does not require approval has its devices born Available (T62): the form hides the series and warns about it.
  * It reads the fields of the Livewire form in the browser, without asking the server. The server checks the same rules on save.
  */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('securityDeviceLotPreview', (maxDevices) => ({
+    window.Alpine.data('securityDeviceLotPreview', (maxDevices, typeBoxes) => ({
+        get selectedTypeBoxes() {
+            return typeBoxes[this.$wire.form.securityDeviceTypeId] ?? { usesSeries: true, requiresApproval: true };
+        },
+
+        get usesSeries() {
+            return this.selectedTypeBoxes.usesSeries;
+        },
+
+        get requiresApproval() {
+            return this.selectedTypeBoxes.requiresApproval;
+        },
+
+        get correlativeColumns() {
+            return this.usesSeries ? 'md:col-span-3' : 'md:col-span-2';
+        },
+
         get preview() {
             const form = this.$wire.form;
-            const prefix = String(form.seriesPrefix ?? '').trim().toUpperCase();
-            const suffix = String(form.seriesSuffix ?? '').trim().toUpperCase();
+            const prefix = this.usesSeries ? String(form.seriesPrefix ?? '').trim().toUpperCase() : '';
+            const suffix = this.usesSeries ? String(form.seriesSuffix ?? '').trim().toUpperCase() : '';
             const empty = { quantity: null, first: null, last: null, error: null };
 
-            if (prefix === '' || ![form.minDigits, form.seriesStart, form.seriesEnd].every(isWholeNumber)) {
+            if ((this.usesSeries && prefix === '') || ![form.minDigits, form.seriesStart, form.seriesEnd].every(isWholeNumber)) {
                 return empty;
             }
 
