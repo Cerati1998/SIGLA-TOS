@@ -1,7 +1,8 @@
 name: deploy
 
-# Sube SIGLA a producción (dominio final del cPanel) cuando el
-# workflow "tests" pasa en main. También se puede lanzar a mano desde Actions.
+# Sube SIGLA a producción (dominio final del cPanel). Solo se lanza a mano desde
+# Actions → deploy → Run workflow, y solo desde main (decisión del 2026-11-20).
+# No espera a "tests": antes de lanzarlo, revisa que las pruebas pasaron en main.
 #
 # Environment de GitHub: production
 #   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
@@ -20,10 +21,6 @@ name: deploy
 # Volver a la release anterior: ln -sfn releases/<fecha> current
 
 on:
-  workflow_run:
-    workflows: [tests]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -35,7 +32,8 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # Run workflow deja elegir cualquier rama: a producción solo va main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     environment:
@@ -80,7 +78,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       # Misma versión que el servidor (PHP 8.4), para que vendor/ funcione allá.
