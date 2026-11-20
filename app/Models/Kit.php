@@ -121,13 +121,14 @@ class Kit extends Model
     }
 
     /**
-     * Get the certification the kit was assigned to, if any: a kit goes in a single certification (H17, criterion 8).
+     * Get the certification the kit is assigned to, if any: a kit goes in a single certification that is not annulled
+     * (H17, criterion 8; H32).
      *
      * @return HasOne<Certification, $this>
      */
     public function certification(): HasOne
     {
-        return $this->hasOne(Certification::class);
+        return $this->hasOne(Certification::class)->whereNull('annulled_at');
     }
 
     /**

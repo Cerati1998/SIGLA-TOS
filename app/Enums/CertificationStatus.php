@@ -3,8 +3,8 @@
 namespace App\Enums;
 
 /**
- * Where a certification is, worked out from its photos, its closing and its reopenings; it is not stored (H19 and
- * H20). A reopened certification stays Reaperturada until it is closed again.
+ * Where a certification is, worked out from its photos, its closing, its reopenings and its annulment; it is not stored
+ * (H19, H20 and H32). A reopened certification stays Reaperturada until it is closed again.
  */
 enum CertificationStatus: string
 {
@@ -12,6 +12,7 @@ enum CertificationStatus: string
     case ReadyToClose = 'ready_to_close';
     case Closed = 'closed';
     case Reopened = 'reopened';
+    case Annulled = 'annulled';
 
     /**
      * Get the name shown on screen.
@@ -23,6 +24,7 @@ enum CertificationStatus: string
             self::ReadyToClose => 'Lista para cerrar',
             self::Closed => 'Cerrada',
             self::Reopened => 'Reaperturada',
+            self::Annulled => 'Anulada',
         };
     }
 
@@ -36,6 +38,7 @@ enum CertificationStatus: string
             self::ReadyToClose => 'strong-success',
             self::Closed => 'success',
             self::Reopened => 'warning',
+            self::Annulled => 'danger',
         };
     }
 }

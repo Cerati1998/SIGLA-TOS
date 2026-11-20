@@ -31,6 +31,10 @@ class CloseCertification
                 throw ValidationException::withMessages(['certification' => 'Ya estaba cerrada.']);
             }
 
+            if ($locked->isAnnulled()) {
+                throw ValidationException::withMessages(['certification' => 'Se anuló la asignación de su kit: ya no se cierra.']);
+            }
+
             if (! $locked->inspectionsAreComplete()) {
                 throw ValidationException::withMessages(['certification' => 'Falta al menos una foto en una sección: la interna y la externa deben estar completas.']);
             }

@@ -20,7 +20,8 @@
         <i class="fa-solid fa-eye text-sm" aria-hidden="true"></i>
     </x-wire-button>
 
-    @if ($status === \App\Enums\CertificationStatus::Closed)
+    @if ($status === \App\Enums\CertificationStatus::Annulled)
+    @elseif ($status === \App\Enums\CertificationStatus::Closed)
         <x-wire-button negative :href="route('intranet.certifications.pdf', $certification)" target="_blank" title="Descargar PDF" aria-label="Descargar el PDF de {{ $certification->container }}" xs>
             <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
         </x-wire-button>
@@ -55,6 +56,18 @@
             xs
         >
             <i class="fa-solid fa-lock text-sm" aria-hidden="true"></i>
+        </x-wire-button>
+    @endif
+
+    @if ($certification->canBeAnnulled())
+        <x-wire-button
+            negative
+            x-on:click="$dispatch('annul-certification', { certificationId: id })"
+            title="Anular asignación"
+            aria-label="Anular la asignación de {{ $certification->container }}"
+            xs
+        >
+            <i class="fa-solid fa-ban text-sm" aria-hidden="true"></i>
         </x-wire-button>
     @endif
 </div>
