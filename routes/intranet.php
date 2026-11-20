@@ -86,6 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('certifications/{certification}', [CertificationController::class, 'show'])->name('certifications.show');
 
+    Route::get('certifications/{certification}/pdf', [CertificationController::class, 'pdf'])->name('certifications.pdf');
+
     Route::view('certification-sections', 'pages.certification-sections.index')->name('certification-sections.index');
 
     Route::view('carriers', 'pages.carriers.index')->name('carriers.index');
