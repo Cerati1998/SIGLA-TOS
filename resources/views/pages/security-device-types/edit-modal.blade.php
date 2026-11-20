@@ -4,6 +4,7 @@
             <x-wire-input id="security-device-type-edit-name" wire:model="form.name" label="Nombre" type="text" maxlength="100" required autofocus autocomplete="off" />
             <x-wire-input id="security-device-type-edit-kind" label="Tipo" type="text" :value="$form->kindLabel" readonly />
             <x-pages::security-device-types.split-checkbox />
+            <x-pages::security-device-types.lot-checkboxes :locked="$form->hasLots" />
         </form>
 
         <x-slot:footer>
