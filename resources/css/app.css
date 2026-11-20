@@ -242,8 +242,14 @@ select:focus[data-flux-control] {
     @apply overflow-hidden py-0 pr-0;
 }
 
+/* Un textarea crece con sus filas: el alto fijo de los inputs lo dejaba aplastado y su texto de ejemplo se salía. */
+[form-wrapper] label[data-name='form.wrapper.container']:has(> textarea) {
+    @apply h-auto items-stretch px-0 py-0 max-md:h-auto;
+}
+
 [form-wrapper] label[data-name='form.wrapper.container'] input,
-[form-wrapper] label[data-name='form.wrapper.container'] select {
+[form-wrapper] label[data-name='form.wrapper.container'] select,
+[form-wrapper] label[data-name='form.wrapper.container'] textarea {
     @apply text-base text-ink;
 }
 
