@@ -112,18 +112,40 @@ class CertificationSectionsManagementTest extends TestCase
         $this->assertDatabaseCount('certification_sections', 0);
     }
 
-    public function test_a_name_cannot_be_repeated_even_if_the_other_section_is_deactivated(): void
+    public function test_a_name_cannot_be_repeated_in_the_same_type_even_if_the_other_section_is_deactivated(): void
     {
-        CertificationSection::factory()->deactivated()->create(['name' => 'Evaporadores']);
+        CertificationSection::factory()->deactivated()->create(['name' => 'Evaporadores', 'type' => CertificationSectionType::Internal]);
 
         Livewire::test(CreateModal::class)
             ->set('form.name', ' Evaporadores ')
             ->set('form.type', 'internal')
             ->call('save')
             ->assertHasErrors(['form.name' => 'unique'])
-            ->assertSeeText('Ya existe una sección con este nombre, aunque esté desactivada.');
+            ->assertSeeText('Ya existe una sección interna con este nombre, aunque esté desactivada.');
 
         $this->assertDatabaseCount('certification_sections', 1);
+    }
+
+    public function test_an_internal_and_an_external_section_can_be_called_the_same(): void
+    {
+        $this->section('Puertas', 1, CertificationSectionType::Internal);
+
+        Livewire::test(CreateModal::class)
+            ->set('form.name', 'Puertas')
+            ->set('form.type', 'external')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $external = CertificationSection::query()->where('type', CertificationSectionType::External)->sole();
+        $this->assertSame('Puertas', $external->name);
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-certification-section', certificationSectionId: $external->id)
+            ->set('form.type', 'internal')
+            ->call('save')
+            ->assertHasErrors(['form.name' => 'unique']);
+
+        $this->assertSame(CertificationSectionType::External, $external->refresh()->type);
     }
 
     public function test_the_name_and_type_of_a_section_can_be_edited_without_changing_its_place(): void

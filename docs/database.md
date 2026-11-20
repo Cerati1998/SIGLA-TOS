@@ -220,7 +220,7 @@ erDiagram
 
   certification_sections {
     bigint id PK
-    string name UK
+    string name "UK con type"
     string type "internal, external"
     smallint sort_order "null si está desactivada"
     datetime deleted_at
@@ -681,7 +681,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `name` | varchar(100) | UK, aunque la sección esté desactivada (H11, criterio 2). |
+| `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
 | `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna) o `external` (Externa). Las puertas no son un tipo (P1). |
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
