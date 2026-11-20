@@ -105,6 +105,7 @@ class CertificationStartTest extends TestCase
                 $certification->kit_id, $certification->inspection_sheet_code, $certification->yard_zone_id, $certification->certified_by],
         );
         $this->assertTrue($certification->started_at->equalTo(now()));
+        $this->assertSame(['OPERADOR DE EJEMPLO S.A.C.', 'PRODUCTO DE EJEMPLO'], [$certification->client, $certification->product]);
         $this->assertSame(['20000000003', 'TRANSPORTES DE EJEMPLO S.R.L.'], [$carrier->document_number, $carrier->business_name]);
         $this->assertSame(['00000001', 'NOMBRE APELLIDO DE EJEMPLO', 'B00000001'], [$driver->document_number, $driver->full_name, $driver->license]);
         $this->assertSame([$carrier->id, $driver->id], [$certification->carrier_id, $certification->driver_id]);
@@ -256,6 +257,7 @@ class CertificationStartTest extends TestCase
             'gate_out_request_reference' => '10001',
             'booking' => 'BKG000000001',
             'container' => 'ABCU1234567',
+            'client' => 'OPERADOR DE EJEMPLO S.A.C.',
             'inspection_sheet_code' => 'FMT-0001234',
             'yard_zone_id' => $this->yardZone->id,
             'certified_by' => $this->inspector->id,

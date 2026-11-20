@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Certifications;
 
+use App\Enums\CertificationSectionType;
 use App\Models\Certification;
 use App\Services\Sigla1LookupResult;
 use App\Services\Sigla1LookupStatus;
@@ -68,6 +69,11 @@ class Details extends Component
     {
         $this->certification->loadMissing(['shippingLine', 'carrier', 'driver', 'tractor', 'semiTrailer', 'kit.kitType', 'kit.devices', 'yardZone', 'certifier']);
 
-        return view('pages.certifications.details');
+        return view('pages.certifications.details', [
+            'inspections' => array_map(
+                fn (CertificationSectionType $type): array => ['type' => $type, ...$this->certification->inspectionProgress($type)],
+                [CertificationSectionType::Internal, CertificationSectionType::External],
+            ),
+        ]);
     }
 }

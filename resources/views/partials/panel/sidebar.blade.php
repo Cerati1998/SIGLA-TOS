@@ -52,8 +52,14 @@
         [
             'name' => 'Inspección',
             'icon' => 'clipboard',
-            'route' => route('intranet.certifications.create'),
-            'active' => request()->routeIs('intranet.certifications.*'),
+            'active' => request()->routeIs('intranet.certifications.*', 'intranet.inspections.*'),
+            'submenu' => [
+                [
+                    'name' => 'Certificaciones',
+                    'route' => route('intranet.certifications.index'),
+                    'active' => request()->routeIs('intranet.certifications.*', 'intranet.inspections.*'),
+                ],
+            ],
         ],
         [
             'name' => 'Checkpoint',
