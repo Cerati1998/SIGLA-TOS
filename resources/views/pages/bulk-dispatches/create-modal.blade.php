@@ -98,6 +98,11 @@
                     @endforeach
                 </div>
 
+                <div x-show="!isTab('quantity')" class="grid grid-cols-1 gap-1.75 md:max-w-[calc(50%-0.5rem)]">
+                    <x-wire-native-select id="bulk-dispatch-filter-type" label="Tipo de dispositivo (opcional)" x-model="filterType" x-on:change="forgetPreview" :options="['' => 'Todos los tipos'] + $deviceTypes->all()" option-key-value />
+                    <span class="text-sm text-ink-muted">Elígelo cuando la serie se repite en más de un tipo, como en los tipos sin serie.</span>
+                </div>
+
                 <div x-show="isTab('scan')" class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
                     <div class="grid gap-1.75">
                         <label for="bulk-dispatch-serial" class="text-sm font-medium text-ink">Serie del dispositivo</label>
@@ -213,6 +218,7 @@
             rangeFirst: '',
             rangeLast: '',
             quantityType: '',
+            filterType: '',
             quantityFirst: '',
             quantity: '',
 
@@ -266,7 +272,7 @@
                 this.tab = 'scan';
                 this.scans = [];
                 this.preview = null;
-                this.rangeFirst = this.rangeLast = this.quantityType = this.quantityFirst = this.quantity = '';
+                this.rangeFirst = this.rangeLast = this.quantityType = this.quantityFirst = this.quantity = this.filterType = '';
                 this.$nextTick(() => document.getElementById('bulk-dispatch-serial')?.focus());
             },
 
@@ -319,7 +325,7 @@
 
                 try {
                     answer = mode === 'range'
-                        ? await $wire.byRange(this.rangeFirst, this.rangeLast, add)
+                        ? await $wire.byRange(this.rangeFirst, this.rangeLast, add, this.filterType)
                         : await $wire.byQuantity(this.quantityType, this.quantityFirst, this.quantity, add);
                 } catch {
                     answer = { ok: false, message: 'Sin conexión: no se pudo consultar. Vuelve a intentarlo.', count: 0 };
@@ -346,7 +352,7 @@
                     return;
                 }
 
-                const scan = { id: this.nextScanId++, serialNumber, state: 'pending', message: 'Buscando…' };
+                const scan = { id: this.nextScanId++, serialNumber, typeId: this.filterType, state: 'pending', message: 'Buscando…' };
 
                 this.scans = [scan, ...this.scans].slice(0, MAX_SCANS);
                 this.sendScan(scan.id, input);
@@ -373,7 +379,7 @@
                 let result;
 
                 try {
-                    result = await $wire.scan(scan.serialNumber);
+                    result = await $wire.scan(scan.serialNumber, scan.typeId);
                 } catch {
                     result = undefined;
                 }
