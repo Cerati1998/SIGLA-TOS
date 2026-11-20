@@ -74,6 +74,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('certifications/create', 'pages.certifications.create')->name('certifications.create');
 
+    Route::view('certifications/list', 'pages.certifications.list')->name('certifications.list');
+
     Route::get('inspections/{type}', [InspectionController::class, 'index'])->name('inspections.index');
 
     Route::get('inspections/{type}/{certification}', [InspectionController::class, 'show'])->name('inspections.show');

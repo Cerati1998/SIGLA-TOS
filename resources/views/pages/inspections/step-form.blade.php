@@ -6,12 +6,19 @@
     $tone = $type === \App\Enums\CertificationSectionType::Internal ? 'purple' : 'info';
 @endphp
 
-<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container) })"
+<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($certification->isClosed()) })"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
 
-    <p x-show="! canCapture" x-cloak class="m-0 flex items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
+    @if ($certification->isClosed())
+        <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
+            <x-feather name="lock" class="mt-0.5 size-4 shrink-0" />
+            <span>Certificación cerrada: solo lectura. Para corregir sus fotos, reapertúrala desde Asignaciones.</span>
+        </p>
+    @endif
+
+    <p x-show="! canCapture && ! closed" x-cloak class="m-0 flex items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
         <x-feather name="smartphone" class="mt-0.5 size-4 shrink-0" />
         <span>Solo lectura: las fotos se toman desde el teléfono. Aquí puedes revisar el avance de cada sección.</span>
     </p>
@@ -184,11 +191,12 @@
 
 @script
 <script>
-    Alpine.data('inspectionSteps', ({ start, total, container }) => ({
+    Alpine.data('inspectionSteps', ({ start, total, container, closed }) => ({
         current: start,
         total,
         container,
-        canCapture: window.matchMedia('(pointer: coarse)').matches,
+        closed,
+        canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
         target: null,

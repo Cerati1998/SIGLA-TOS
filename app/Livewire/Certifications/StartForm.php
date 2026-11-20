@@ -183,10 +183,10 @@ class StartForm extends Component
         session()->flash('toast', [
             'icon' => 'success',
             'title' => 'Certificación iniciada',
-            'text' => sprintf('Se inició la certificación del contenedor %s.', $certification->container),
+            'text' => sprintf('Se asignó el kit al contenedor %s. Sus dos inspecciones quedan pendientes.', $certification->container),
         ]);
 
-        $this->redirectRoute('intranet.certifications.show', $certification, navigate: true);
+        $this->redirectRoute('intranet.certifications.list', navigate: true);
     }
 
     /**

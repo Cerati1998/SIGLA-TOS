@@ -91,7 +91,7 @@ class CertificationStartTest extends TestCase
             ->set('form.yardZoneId', (string) $this->yardZone->id)
             ->call('start')
             ->assertHasNoErrors()
-            ->assertRedirect(route('intranet.certifications.show', Certification::query()->sole()));
+            ->assertRedirect(route('intranet.certifications.list'));
 
         Http::assertSent(fn (Request $request): bool => $request['container'] === 'ABCU1234567' && $request['booking'] === 'BKG000000001');
 

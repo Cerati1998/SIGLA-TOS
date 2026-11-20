@@ -87,7 +87,7 @@ class CertificationInspectionTest extends TestCase
         );
     }
 
-    public function test_the_menu_opens_the_panel_with_its_three_cards_and_the_pending_units_of_each_inspection(): void
+    public function test_the_menu_opens_the_panel_with_its_cards_and_the_pending_units_of_each_inspection(): void
     {
         $this->certificationWithSteps();
 

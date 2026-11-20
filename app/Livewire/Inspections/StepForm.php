@@ -23,7 +23,7 @@ use Livewire\WithFileUploads;
  * The steps of the internal or the external inspection of a unit, one section at a time, where the inspector takes
  * its photos with the camera of the phone (H18). The photo arrives already compressed in the browser, with its
  * thumbnail; moving between the steps happens in the browser, and the server is called only to save or delete a
- * photo.
+ * photo. A closed certification is only read, until it is reopened (H18, criterion 11).
  *
  * @property-read Collection<int, CertificationStep> $steps
  */
@@ -67,6 +67,10 @@ class StepForm extends Component
      */
     public function savePhoto(int $stepId, ?int $replacedPhotoId, AddCertificationPhoto $addPhoto, ReplaceCertificationPhoto $replacePhoto): bool
     {
+        if ($this->refusedBecauseClosed()) {
+            return false;
+        }
+
         $this->validate([
             'photo' => ['required', 'image', 'mimes:jpg,jpeg', 'max:3072'],
             'thumbnail' => ['required', 'image', 'mimes:jpg,jpeg', 'max:512'],
@@ -100,11 +104,29 @@ class StepForm extends Component
      */
     public function deletePhoto(int $stepId, int $photoId, DeleteCertificationPhoto $deletePhoto): void
     {
+        if ($this->refusedBecauseClosed()) {
+            return;
+        }
+
         $deletePhoto->handle($this->photoOf($this->step($stepId), $photoId));
 
         unset($this->steps);
 
         $this->dispatch('toast', icon: 'success', title: 'Foto borrada');
+    }
+
+    /**
+     * Refuse a change when the certification was closed, even if the screen was opened before (H18, criterion 11).
+     */
+    private function refusedBecauseClosed(): bool
+    {
+        if (! $this->certification->refresh()->isClosed()) {
+            return false;
+        }
+
+        $this->dispatch('toast', icon: 'warning', title: 'Certificación cerrada', text: 'No se puede editar. Para corregir sus fotos, reapertúrala desde Asignaciones.');
+
+        return true;
     }
 
     /**
