@@ -67,6 +67,9 @@ El usuario las sumó el 2026-11-19 para dejar la certificación completa en este
 - [ ] **T60** · H19 · Cerrar la certificación. Quién: Claude Code. 2 h. Parte de la rama de T59.
 - [ ] **T61** · H20 · Consultar certificaciones, con su PDF. Quién: Claude Code. 3 h. Parte de la rama de T60.
 
+### Corrección agregada el 2026-11-20
+- [ ] **T62** · H06, H07, H08, H28, H29 y H30 · Corrección: tipos de dispositivo sin serie y sin aprobación. El tipo de dispositivo suma dos casillas: «No utiliza serie», desmarcada por defecto, y «Requiere aprobación en lote», marcada por defecto. Al ingresar un lote de un tipo sin serie se ocultan el inicio y el final de serie, y se piden el mínimo de dígitos de siempre y el correlativo inicial y el final: la serie es solo el correlativo con ceros. En esos tipos la serie es única dentro del tipo, no en todo SIGLA, así que la búsqueda de dispositivos muestra todas las coincidencias y el despacho a granel suma un selector de tipo opcional. Los lotes de un tipo que no requiere aprobación nacen con sus dispositivos Disponibles, listos para armar un kit o despacharlos a granel. Incluye ajustar y aprobar en el lienzo el formulario del lote y el despacho a granel, y dejar `docs/database.md` al día. Quién: Claude Code. 4 h (propuesta de Claude Code, por confirmar; subió de 3 h al sumar H08 y H30). Agregada el 2026-11-20 a pedido del usuario. Sus "por confirmar" se cerraron con el usuario el 2026-11-20 y quedaron en H06, H07, H08, H28, H29 y H30 del backlog; antes de construir falta aprobar en el lienzo el formulario del lote y el despacho a granel. Va en su propia rama, `fix/T62-tipos-sin-serie-y-sin-aprobacion`, que parte de `main`.
+
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
@@ -76,9 +79,10 @@ El usuario las sumó el 2026-11-19 para dejar la certificación completa en este
 | Sumadas el 2026-11-17 (antes adelanto opcional) | T53, T54 | 5 h |
 | Agregada el 2026-11-18 | T57 | 3 h |
 | Agregadas el 2026-11-19, con urgencia alta | T58, T59, T60, T61 | 11.5 h |
-| **Total** | | **42.5 h** |
+| Corrección agregada el 2026-11-20 | T62 | 4 h |
+| **Total** | | **46.5 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado. T57 suma 3 h más (31 h en total), por decisión del usuario del 2026-11-18. T58 a T61 suman 11.5 h más (42.5 h en total), por decisión del usuario del 2026-11-19, para dejar la certificación completa; si el viernes no alcanza, se corta desde abajo: T61 (H20) es la primera en pasar al Sprint 4.
+Capacidad para tareas: unas 18 h. El compromiso la pasa en 1 h (cambiado el 2026-11-13: T47 sumó los diseños de H14 y H15; antes eran 18 h, sin margen). Si el tiempo no alcanza, se corta desde abajo: T52 (H30) es la primera en pasar al Sprint 4. T55 suma 2 h más (21 h en total), por decisión del usuario del 2026-11-16; va antes que T48 y en su propia rama, `fix/T55-cinta-de-inspeccion`, que parte de `main`. T56 suma otras 2 h (23 h en total), por decisión del usuario del 2026-11-17: H30 la necesita. T53 y T54 suman 5 h más (28 h en total), por decisión del usuario del 2026-11-17, con el compromiso ya terminado. T57 suma 3 h más (31 h en total), por decisión del usuario del 2026-11-18. T58 a T61 suman 11.5 h más (42.5 h en total), por decisión del usuario del 2026-11-19, para dejar la certificación completa; si el viernes no alcanza, se corta desde abajo: T61 (H20) es la primera en pasar al Sprint 4. T62 suma 4 h más (46.5 h en total), por decisión del usuario del 2026-11-20, el último día del sprint; si no alcanza, pasa al Sprint 4 (lo decide el usuario).
 
 Referencia: el Sprint 2 terminó 42.5 h estimadas contra esa misma capacidad, pero sin horas reales no se sabe cuánto rinde de verdad. Este plan se queda en la capacidad declarada hasta compararla con las horas reales al cierre (acuerdo 4).
 
@@ -102,6 +106,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 13 | T59 · H18 | `feature/H18-secciones-con-fotos` | `main` | T54 y T58 |
 | 14 | T60 · H19 | `feature/H19-cerrar-certificacion` | rama de T59 | nada |
 | 15 | T61 · H20 | `feature/H20-consultar-certificaciones` | rama de T60 | nada |
+| 16 | T62 · Tipos sin serie y sin aprobación | `fix/T62-tipos-sin-serie-y-sin-aprobacion` | `main` | diseños del lote y del despacho a granel aprobados |
 
 - **Scrum Master, el lunes:** T46 en la mañana y T47 justo después, para que T48 no se frene.
 - **Ramas encadenadas.** Cada historia de E4 parte de la anterior porque usa lo que esta deja: la marca de H29, la tabla de kits de H14 y el despacho de H15. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
