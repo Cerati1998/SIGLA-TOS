@@ -327,7 +327,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como admin, quiero crear, editar, ordenar y desactivar las secciones que se inspeccionan en un contenedor, marcando si son internas o externas, para que la certificación y el checkpoint pidan siempre lo correcto.
 - Criterios de aceptación:
   1. El admin crea una sección con nombre y tipo (interna o externa), por ejemplo "Fotografía de evaporadores".
-  2. No se pueden crear dos secciones con el mismo nombre.
+  2. No se pueden crear dos secciones del mismo tipo con el mismo nombre, aunque una esté desactivada. Una interna y una externa sí pueden llamarse igual, por ejemplo «Puertas» interna y «Puertas» externa. (Cambiado el 2026-11-20 en T63, a pedido del usuario; antes el nombre no se repetía nunca.)
   3. El admin edita el nombre y el tipo de una sección.
   4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación. Es un solo orden para internas y externas.
   5. El admin desactiva una sección en vez de borrarla. Una desactivada sale del orden y no aparece en certificaciones nuevas, pero se conserva en las ya hechas. Una nueva o reactivada va al final.
@@ -477,7 +477,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Criterios de aceptación:
   1. Los despachos a granel tienen su propia lista, en Bodega → Despachos → «A granel», separada de la de despachos de kits. Cada despacho se numera con su propia secuencia, `DG-000001`.
   2. El despacho se registra con el trabajador que recibe, elegido de la lista de trabajadores activos (H25) como en H15. Quién entrega es el usuario que despacha, y queda registrado solo, con la fecha y la semana.
-  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe).
+  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe). Cada opción muestra la funda y el contenedor de su certificación, y se busca por funda o por contenedor; un kit que aún no está en una certificación dice «sin contenedor». (Contenedor sumado el 2026-11-20 en T64, a pedido del usuario.)
   4. Se elige el patio de destino entre las zonas de patio activas de la sede del usuario (H26). Es obligatorio (suposición por confirmar).
   5. Se puede escribir una observación, opcional.
   6. Los dispositivos se agregan de tres formas: escaneando uno por uno, y cada escaneo se agrega solo a la lista; por rango, con la serie inicial y la final; o eligiendo el tipo de dispositivo, la serie inicial y la cantidad, y el sistema calcula hasta dónde llega. La serie inicial puede ser la serie completa (HLS0000009) o solo su prefijo (HLS), y con el prefijo se empieza por el primer disponible de esa serie (pedido por el usuario el 2026-11-17, al probar la construcción). En los campos de rango y de cantidad, Enter muestra la vista previa.
