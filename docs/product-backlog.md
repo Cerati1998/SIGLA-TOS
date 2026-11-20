@@ -39,7 +39,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Lo que pide cada sección (tipo de dispositivo y cantidad) no existe en BUMMOCK; el técnico lo tiene interiorizado. Es una oportunidad de mejora de SIGLA 2.0.
 - Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un trabajador (H25), (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
 - Una certificación usa un solo kit. "El ticket" que se asigna al iniciar es la solicitud de retiro.
-- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel.
+- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel. (Corrección del 2026-11-20, T62: no aplica a los tipos de dispositivo que no requieren aprobación en lote, H06.)
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
 - Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario. El trabajador que recibe solo queda registrado en el despacho: no limita qué kits ve el inspector, que puede escanear cualquier kit Despachado (cambiado por el usuario el 2026-11-17, en H15; antes el inspector se reconocía comparando el tipo y número de documento de su usuario con los del trabajador, decisión del 2026-11-04).
@@ -238,6 +238,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
 - Corrección del 2026-11-16 (T55), pedida por el usuario: la cinta interna y la externa son un solo tipo, la **cinta de inspección**. El seeder carga solo esta. Al crear y editar un tipo hay una casilla, «Se reparte entre asignación interna y externa», que hace que el tipo de kit pida su cantidad repartida (H13). El seeder la marca solo en la cinta de inspección. Se puede cambiar al editar.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: al crear y editar un tipo hay dos casillas más, que se validan al ingresar un lote (H07):
+  - «No utiliza serie», desmarcada por defecto. Si se marca, el lote de ese tipo no pide como obligatorios el inicio ni el final de serie: pide el correlativo inicial y el final (ver H07).
+  - «Requiere aprobación en lote», marcada por defecto. Si se desmarca, los dispositivos de los lotes de ese tipo no necesitan la aprobación de la naviera (H29) para armar un kit (H14) ni para despacharlos a granel (H30).
+  - Las dos se ven en la lista de tipos y se pueden cambiar al editar. Los tipos que ya existen quedan con los valores por defecto (usan serie y requieren aprobación), así que nada cambia hasta que alguien los marque. Suposición por confirmar: cambiar una casilla solo afecta a los lotes que se ingresen después; los lotes y dispositivos ya ingresados quedan como están.
 
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
@@ -257,6 +261,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, aprobado por el usuario el 2026-11-10).
 - En el menú va en el grupo "Bodega", como "Lotes de dispositivos" (decisión del usuario del 2026-11-10).
 - Una carga desde Excel con series sueltas sería otra historia (no pedida por ahora).
+- Corrección del 2026-11-20 (T62), pedida por el usuario, según las dos casillas nuevas del tipo de dispositivo (H06):
+  - **Tipo que no utiliza serie.** El inicio de serie deja de ser obligatorio (el final ya era opcional); son obligatorios el correlativo inicial y el final. La cantidad, la vista previa, el máximo de 10 000 y el choque con series que ya existen siguen igual (criterios 3, 4, 6 y 10). Por confirmar: (a) si el inicio y el final de serie siguen en el formulario como opcionales o se ocultan; (b) si se sigue pidiendo el mínimo de dígitos, y entonces la serie de cada dispositivo es el correlativo con ceros a la izquierda (por ejemplo, mínimo 6 y correlativo 25 da 000025), o es el correlativo tal cual; (c) qué pasa cuando dos tipos sin serie traen los mismos correlativos: hoy cada serie es única en todo el sistema (criterio 6), así que el segundo lote chocaría.
+  - **Tipo que no requiere aprobación en lote.** Sus dispositivos nacen **Disponibles**, no Inactivos (excepción al criterio 8), y se pueden usar de inmediato para armar un kit o despacharlos a granel.
+  - El formulario cambia en cuanto se elige el tipo: con un tipo sin serie, los campos de serie dejan de marcarse como obligatorios, y con un tipo sin aprobación se avisa que los dispositivos quedarán Disponibles. Diseño: se ajusta en la página "E2 · Dispositivos de seguridad" del lienzo y se aprueba antes de construir.
 
 **H08 · Consultar lotes y dispositivos**
 - Como usuario de bodega, supervisor o admin, quiero ver los lotes ingresados y buscar un dispositivo por su serie, para saber qué tengo, en qué estado está y de qué lote viene.
@@ -285,6 +293,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. La pantalla se puede usar bien desde el celular.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
+- Corrección del 2026-11-20 (T62): al corregir un lote se aplican las mismas reglas de H07 según las casillas de su tipo (H06). En un lote cuyo tipo no requiere aprobación, el criterio 3 se cumple si todos sus dispositivos siguen Disponibles (ninguno en un kit ni despachado). Por confirmar: qué pasa si al corregir se cambia el tipo por otro con otras casillas (por ejemplo, de uno que requiere aprobación a uno que no). Suposición por confirmar: cambiar el tipo no cambia el estado de los dispositivos ya ingresados.
 
 **H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero registrar la aprobación de la naviera por tramos de un lote, para que solo se armen kits y se despachen dispositivos que la naviera ya aprobó.
@@ -307,6 +316,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Cambios del 2026-11-16, pedidos por el usuario antes de construir: la activación deja de ser una marca aparte y pasa a ser el estado Inactivo, con el que nacen los dispositivos; se quitan la aprobación del lote entero de una vez y la aprobación por serie inicial y final desde la lista de lotes (y con ellas la regla de huecos y la de varios lotes); se suma la bitácora de aprobaciones con su panel lateral en el detalle del lote. Si el tramo trae dispositivos ya aprobados, se aprueban solo los Inactivos y se cuentan los demás. Esto también cambia H07 (los dispositivos nacen Inactivos), H08 (el conteo y la columna) y H28 (un lote se corrige solo si todos sus dispositivos siguen Inactivos).
 - Diseño: aprobado el 2026-11-13 en la página "E2 · Dispositivos de seguridad" del lienzo (T47). Se actualiza con los cambios del 2026-11-16 y espera una nueva aprobación.
 - Los dispositivos ingresados antes de H29 pasan a Inactivos: bodega registra su aprobación por tramos antes de armar kits con ellos.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: la aprobación solo aplica a los lotes cuyo tipo de dispositivo tiene marcada «Requiere aprobación en lote» (H06), que es lo normal. Si el tipo no la requiere, sus dispositivos nacen Disponibles (H07), el detalle del lote no ofrece registrar aprobaciones y el criterio 13 se cumple sin aprobación. Por confirmar: qué muestran en esos lotes la columna «Aprobados» y su filtro de la lista de lotes (por ejemplo, «No requiere»), y si el «Historial de aprobaciones» se oculta.
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
