@@ -1,0 +1,90 @@
+# Sprint 4 · SIGLA 2.0 (TOS)
+
+**Estado:** aprobado por el Scrum Master el 2026-11-23.
+**Fechas:** lunes 23 al viernes 27 de noviembre de 2026 (1 semana).
+**Capacidad:** 20 horas en total (10 del Scrum Master y 10 del asistente desarrollador), como en el Sprint 3 (confirmado por el usuario el 2026-11-23). Unas 2 horas se reservan para los eventos del sprint; quedan unas 18 para tareas.
+**Unidad de estimación:** horas.
+**Repositorio:** https://github.com/Cerati1998/SIGLA-TOS.git
+**Lienzo de Claude Design:** https://claude.ai/artifact/3zgDe8hgTDesp32V3Shhca
+**Sprint anterior:** `docs/sprint-3.md` y su reporte `docs/sprint-3-report.md`.
+
+## Dónde quedamos
+Al cierre del Sprint 3 están en `main` 31 historias: E1 (menos H24), E2, E3, E4, E5, E7, E8 y E9 completas. Falta E6 (checkpoint), que pasó del Sprint 3, y H24 (roles y permisos), que se construye al culminar E6.
+
+El 2026-11-23 el usuario armó con Claude Code las historias de E6 a partir del video del checkpoint actual (`documentation/checkpoint.mp4`): H33 a H36, en `docs/product-backlog.md`. Sus suposiciones se cerraron y el usuario las aprobó ese mismo día (T67). H24 pasa al Sprint 5, con E6 ya probado (decisión del usuario del 2026-11-23).
+
+## Sprint Goal
+Dejar construido el checkpoint: las secciones de checkpoint en el catálogo, el paso a paso que verifica las cintas y sellos de una unidad certificada, la reinspección cuando algo falla y la consulta de los checkpoints. Con esto se cierra E6.
+
+## Historias del sprint
+- **H33** · Secciones de checkpoint (T69).
+- **H34** · Hacer el checkpoint de una unidad (T70).
+- **H35** · Reinspección desde el checkpoint (T71).
+- **H36** · Consultar checkpoints (T72).
+- **Adelanto opcional:** mejora de H20, las marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación (T73).
+
+Sigue el orden de épicas aprobado: E6 es la última. H24 queda para el Sprint 5.
+
+## Acuerdos de la retrospectiva del Sprint 3
+Propuestos en `docs/sprint-3-report.md` (sección 9.2) y confirmados por el usuario el 2026-11-23.
+1. **Capacidad.** Con unas 15.75 h reales en 46.5 h estimadas, se planifica con estimaciones más bajas para el trabajo de Claude Code y se sigue midiendo.
+2. **Horas reales desde el inicio.** El primer commit se hace apenas se crea la rama, para contar las horas desde ahí.
+3. **Pedidos del último día.** Lo que llegue el último día del sprint pasa al siguiente, salvo que el Scrum Master lo marque como urgente.
+4. **Número de PR.** El número del PR se anota en el sprint después de abrirlo, no antes.
+5. **Revisión en el navegador.** Antes de pedir el visto bueno de una pantalla con cambios de estilo, se revisa en el navegador, en escritorio y a 390 px.
+
+## Tareas
+Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T67.
+
+### Compromiso
+- [ ] **T67** · Aprobar H33 a H36: cerrar sus suposiciones por confirmar (el orden de las secciones de checkpoint, el enlace a una sección desactivada, los seeders de secciones, un solo checkpoint por certificación, qué pasa con el dispositivo reemplazado y con las fotos anteriores, y si el checkpoint verifica de nuevo solo las series reemplazadas). Quién: Scrum Master. 1 h. Frena a T68 y las siguientes.
+- [ ] **T68** · Diseñar y aprobar en el lienzo las secciones de checkpoint (H33), el paso a paso del checkpoint con su verificación ✓/✗ (H34), la reinspección (H35), y el listado y el detalle de los checkpoints (H36). Quién: Scrum Master con Claude Design. 2.5 h (subió de 2 h: el usuario pidió el 2026-11-23 que H36 tenga diseño propio). Después de T67.
+- [ ] **T69** · H33 · Secciones de checkpoint. Incluye el tipo nuevo en el catálogo, el enlace a secciones internas o externas, los seeders de secciones (17 internas y 16 externas del documento «Proceso de certificación de contenedores» y 12 de checkpoint del video, con sus enlaces) y deja `docs/database.md` al día. Quién: Claude Code. 2 h (subió de 1.5 h al sumar los seeders, decididos en T67). Empieza cuando T67 y T68 estén cerradas.
+- [ ] **T70** · H34 · Hacer el checkpoint de una unidad. Reusa la toma y subida de fotos de H18. Quién: Claude Code. 3 h. Parte de la rama de T69.
+- [ ] **T71** · H35 · Reinspección desde el checkpoint. Quién: Claude Code. 3 h. Parte de la rama de T70.
+- [ ] **T72** · H36 · Consultar checkpoints. Quién: Claude Code. 1.5 h. Parte de la rama de T71.
+
+### Adelanto opcional
+- [ ] **T73** · H20 · Mejora: marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación, en el lugar de cada sección. Pasó del Sprint 3. Quién: Claude Code. 2 h. Solo si sobra capacidad. Antes falta su diseño en el lienzo.
+
+## Total estimado
+| Bloque | Tareas | Horas |
+| --- | --- | --- |
+| Compromiso | T67, T68, T69, T70, T71, T72 | 13 h |
+| Adelanto opcional | T73 | 2 h |
+| **Total** | | **15 h** |
+
+Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5.
+
+## Orden de trabajo
+Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión pendiente (T67), un diseño sin aprobar (T68) o el visto bueno de la prueba de una historia.
+
+| Orden | Tarea | Rama | Parte de | Espera |
+| --- | --- | --- | --- | --- |
+| 1 | T67 · Aprobar H33 a H36 | — | — | nada |
+| 2 | T68 · Diseños de H33, H34, H35 y H36 | — | — | T67 |
+| 3 | T69 · H33 | `feature/H33-secciones-checkpoint` | `main` | T67 y T68 |
+| 4 | T70 · H34 | `feature/H34-hacer-checkpoint` | rama de T69 | nada |
+| 5 | T71 · H35 | `feature/H35-reinspeccion` | rama de T70 | nada |
+| 6 | T72 · H36 | `feature/H36-consultar-checkpoints` | rama de T71 | nada |
+| 7 | T73 · Marcas numeradas en el PDF | `feature/H20-marcas-numeradas` | `main` | diseño aprobado |
+
+- **Ramas encadenadas.** Cada historia de E6 parte de la anterior porque usa lo que esta deja: las secciones de checkpoint de H33, el checkpoint de H34 y la reinspección de H35. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
+- **Orden de merge:** T69, T70, T71 y T72, en ese orden.
+- **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a las ramas encadenadas antes de pedir su visto bueno.
+- **Viernes:** Sprint Review y Retrospectiva; reporte en `docs/sprint-4-report.md`, con las horas estimadas y las reales de cada tarea.
+
+## Impedimentos y dependencias
+- **H35 toca la certificación ya construida:** reabre solo algunas secciones, reemplaza dispositivos y suma el estado En reinspección al listado de Asignaciones (H20). Es la tarea con más riesgo del sprint.
+- **H30 sin cambios:** la reinspección usa el despacho a granel con motivo Operación tal como está. Si al construir hace falta cambiarlo, se avisa al usuario.
+- **Datos de prueba:** para probar el checkpoint hace falta al menos una certificación cerrada con sus dispositivos repartidos.
+
+## Incertidumbres
+- Licencia de la plantilla de ThemeForest: revisar qué permite antes de usarla como referencia en producción. Arrastrada del Sprint 1.
+- Al terminar la prueba con el cliente: correr `migrate:fresh` en producción y solo los seeders necesarios (T57).
+- El documento «Proceso de certificación de contenedores» (`documentation/`, entregado el 2026-11-23): sus secciones entran por seeder en T69 (decisión del usuario en T67), sin sus dispositivos, que el admin configura en pantalla (H12). Falta decidir si cambia algo más de E5 y en qué sprint: la cantidad de fotos por ítem (hoy, de 1 a n), las fotos extra al final de cada inspección, las cintas numeradas y los tipos de dispositivo que nombra y aún no existen (bolsa de seguridad, precinto GPS, precintos de vacío).
+
+## Temas a resolver durante el sprint
+- Aprobar H33 a H36 en el backlog (T67). (Resuelto el 2026-11-23: el usuario las aprobó.)
+- Confirmar los acuerdos de la retrospectiva del Sprint 3 y la capacidad. (Resuelto el 2026-11-23: el usuario confirmó los cinco acuerdos y las 20 h.)
+- Registrar las horas reales de cada tarea (acuerdo 1).
