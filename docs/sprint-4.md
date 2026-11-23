@@ -22,6 +22,7 @@ Dejar construido el checkpoint: las secciones de checkpoint en el catálogo, el 
 - **H35** · Reinspección desde el checkpoint (T71).
 - **H36** · Consultar checkpoints (T72).
 - **Adelanto opcional:** mejora de H20, las marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación (T73).
+- **Corrección del Sprint 3** (agregada el 2026-11-23 a pedido del usuario): la naviera de SIGLA 1.0 en la asignación (H17, T74), la cantidad al ingresar un lote (H07 y H28, T75), la funda como dispositivo del kit (H06, H13 y H14, T76) y la foto al descartar un dispositivo (H08, T77).
 
 Sigue el orden de épicas aprobado: E6 es la última. H24 queda para el Sprint 5.
 
@@ -47,14 +48,22 @@ Marca de avance: `[ ]` pendiente, `[x]` terminada. Las tareas siguen desde T67.
 ### Adelanto opcional
 - [ ] **T73** · H20 · Mejora: marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación, en el lugar de cada sección. Pasó del Sprint 3. Quién: Claude Code. 2 h. Solo si sobra capacidad. Antes falta su diseño en el lienzo.
 
+### Corrección del Sprint 3 (agregada el 2026-11-23)
+Pedidas por el usuario el 2026-11-23, al revisar lo construido en el Sprint 3. Cada una corrige primero su diseño en el lienzo, o lo crea si la vista no tiene uno, y se aprueba antes de construir (rule «Diseño en el lienzo»). Las horas son una propuesta de Claude Code, aprobada por el usuario el 2026-11-23.
+- [ ] **T74** · H17 · Naviera de SIGLA 1.0 en la asignación. Al buscar la solicitud, la naviera que trae SIGLA 1.0 (por ejemplo `CHIQUITA`) se busca en la tabla maestra por pasos: el nombre de SIGLA 1.0 ya recordado, el nombre o el código exactos, el nombre que empieza con ese texto y el que lo contiene; se toma solo si hay una única coincidencia. Si no hay ninguna, o hay varias, el inspector elige la naviera en la asignación, y su elección queda recordada en la línea (`sigla1_name`) para la próxima vez. Ya no se crean navieras desde la asignación. El kit se valida contra esa naviera desde que se busca, y la asignación guarda su FK. Incluye corregir el diseño de la página E5 del lienzo (el aviso y el selector) y proponer el cambio de H17 en el backlog. Quién: Claude Code. 2 h.
+- [ ] **T75** · H07 y H28 · Cantidad al ingresar un lote. El formulario del lote suma el campo Cantidad: al llenarlo, el correlativo final se calcula desde el inicial. Incluye corregir el diseño del formulario en la página E2 del lienzo. Quién: Claude Code. 1 h.
+- [ ] **T76** · H06, H13 y H14 · La funda como dispositivo del kit. Hay una categoría nueva de tipo de dispositivo, Funda. Un tipo de kit lleva como máximo un tipo de dispositivo Funda. Al crear un kit, la funda que se escanea en la cabecera debe ser un dispositivo de un lote de tipo Funda y estar Disponible, y entra sola en el contenido del kit, en el tipo de dispositivo Funda. Incluye corregir los diseños de la página E4 del lienzo. Antes de construir hay que decidir qué pasa con los kits que ya existen, confirmar que «lote de tipo bolsa» es un lote de categoría Funda y que la funda no se reparte entre las secciones al asignar (H17, criterio 16). Quién: Claude Code. 3 h.
+- [ ] **T77** · H08 · Foto al descartar un dispositivo. Además del motivo, el descarte permite tomar una foto con la cámara, comprimida en el navegador como en H18, con un visor para verla en grande, quitarla o tomarla de nuevo antes de confirmar. Incluye crear en la página E2 del lienzo el diseño del modal de descarte con la foto, que hoy no tiene. Falta decidir si la foto es obligatoria y si también se pide al descartar por anulación (H32). Quién: Claude Code. 1.5 h.
+
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
 | Compromiso | T67, T68, T69, T70, T71, T72 | 13 h |
+| Corrección del Sprint 3 (agregada el 2026-11-23) | T74, T75, T76, T77 | 7.5 h |
 | Adelanto opcional | T73 | 2 h |
-| **Total** | | **15 h** |
+| **Total** | | **22.5 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5.
+Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5. T74 a T77 suman 7.5 h (20.5 h sin el adelanto opcional, 22.5 h con él), por decisión del usuario del 2026-11-23: el compromiso con las correcciones pasa la capacidad en unas 2.5 h. Si el tiempo no alcanza, el usuario decide qué se corta.
 
 ## Orden de trabajo
 Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión pendiente (T67), un diseño sin aprobar (T68) o el visto bueno de la prueba de una historia.
@@ -68,15 +77,21 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | 5 | T71 · H35 | `feature/H35-reinspeccion` | rama de T70 | nada |
 | 6 | T72 · H36 | `feature/H36-consultar-checkpoints` | rama de T71 | nada |
 | 7 | T73 · Marcas numeradas en el PDF | `feature/H20-marcas-numeradas` | `main` | diseño aprobado |
+| — | T74 · H17 · Naviera de SIGLA 1.0 | `fix/T74-H17-naviera-sigla1` | `main` | diseño aprobado |
+| — | T75 · H07 y H28 · Cantidad del lote | `fix/T75-H07-cantidad-lote` | `main` | diseño aprobado |
+| — | T76 · H06, H13 y H14 · Funda en el kit | `fix/T76-funda-en-kit` | `main` | decisiones de T76 y diseño aprobado |
+| — | T77 · H08 · Foto al descartar | `fix/T77-H08-foto-descarte` | `main` | decisiones de T77 y diseño aprobado |
 
 - **Ramas encadenadas.** Cada historia de E6 parte de la anterior porque usa lo que esta deja: las secciones de checkpoint de H33, el checkpoint de H34 y la reinspección de H35. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
 - **Orden de merge:** T69, T70, T71 y T72, en ese orden.
 - **Si la tarea base cambia** por la revisión, Claude Code lleva el cambio a las ramas encadenadas antes de pedir su visto bueno.
+- **Correcciones en paralelo.** T74 a T77 se trabajan en paralelo con E6, cada una en su rama desde `main` y en este orden: T74, T75, T76 y T77. No esperan a las ramas de E6 ni estas a ellas. Antes de pedir el visto bueno, cada rama trae lo último de `main`.
 - **Viernes:** Sprint Review y Retrospectiva; reporte en `docs/sprint-4-report.md`, con las horas estimadas y las reales de cada tarea.
 
 ## Impedimentos y dependencias
 - **H35 toca la certificación ya construida:** reabre solo algunas secciones, reemplaza dispositivos y suma el estado En reinspección al listado de Asignaciones (H20). Es la tarea con más riesgo del sprint.
 - **H30 sin cambios:** la reinspección usa el despacho a granel con motivo Operación tal como está. Si al construir hace falta cambiarlo, se avisa al usuario.
+- **T76 toca lo que usa E6:** el kit, su contenido y el reparto de sus dispositivos entre las secciones al asignar (H17, criterio 16), que H34 y H35 también usan. Si cambia el reparto, se avisa a quien construye E6 para que traiga `main` a su rama.
 - **Datos de prueba:** para probar el checkpoint hace falta al menos una certificación cerrada con sus dispositivos repartidos.
 
 ## Incertidumbres
@@ -88,3 +103,4 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 - Aprobar H33 a H36 en el backlog (T67). (Resuelto el 2026-11-23: el usuario las aprobó.)
 - Confirmar los acuerdos de la retrospectiva del Sprint 3 y la capacidad. (Resuelto el 2026-11-23: el usuario confirmó los cinco acuerdos y las 20 h.)
 - Registrar las horas reales de cada tarea (acuerdo 1).
+- Notas del usuario del 2026-11-23 que no entran como corrección: el ingreso de lotes como 1 anuncio → n lotes → n dispositivos, que cambia H07, H08, H28 y H29 y pide una historia nueva en el backlog con su diseño; y el reemplazo de un dispositivo del kit por uno de un despacho a granel, con su registro en la asignación, que es una propuesta por revisar con el equipo y se cruza con la reinspección (H35).
