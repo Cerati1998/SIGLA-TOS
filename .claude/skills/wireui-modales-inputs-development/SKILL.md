@@ -108,3 +108,4 @@ encabezado y el menú lateral.
 - [ ] El texto, el título y los errores están en español.
 - [ ] Revisado en el navegador a 390 px, con controles de 44 px.
 - [ ] Sin errores en la consola, también al llegar con `wire:navigate`.
+- [ ] Cada `wire:model.live`, `wire:click` y `$wire` lee o guarda en la base, o valida algo del servidor; lo demás está en Alpine.

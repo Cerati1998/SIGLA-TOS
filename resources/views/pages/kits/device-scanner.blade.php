@@ -38,8 +38,26 @@
         <x-panel.form-step
             number="2"
             title="Dispositivos del kit"
-            text="Un campo por cada tipo que lleva el kit. Escanea o escribe la serie en el campo de su tipo y pulsa Enter: se agrega sola, sin botón de guardar. Al completar un tipo, el cursor pasa solo al siguiente."
+            :text="$canChange
+                ? 'Un campo por cada tipo que lleva el kit. Escanea o escribe la serie en el campo de su tipo y pulsa Enter: se agrega sola, sin botón de guardar. Al completar un tipo, el cursor pasa solo al siguiente.'
+                : 'Las series que lleva el kit. Ya no se agregan ni se quitan.'"
         />
+
+        @if ($kitDispatch !== null)
+            <div role="status" class="flex flex-wrap items-center justify-between gap-3 rounded-control bg-badge-info p-3.5 text-sm leading-normal text-badge-info-ink">
+                <span class="flex gap-2.5">
+                    <x-feather name="send" class="mt-0.5 size-4.5" />
+                    <span>
+                        <strong>Despachado en {{ $kitDispatch->number() }}</strong>
+                        a {{ $kitDispatch->receiver->full_name }} el {{ ($kitDispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i') }}. Lo despachó {{ $kitDispatch->creator->name }}. Su contenido ya no cambia.
+                    </span>
+                </span>
+                <flux:button size="sm" variant="danger" :href="route('intranet.kits.pdf', $kit)" target="_blank" class="max-md:h-11 max-md:w-full">
+                    <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
+                    PDF
+                </flux:button>
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
             <div class="flex flex-col gap-3 lg:col-start-2 lg:row-start-1">
@@ -51,7 +69,9 @@
                     @include('pages.kits.partials.progress', ['label' => 'Avance del kit', 'added' => $totalAdded, 'quantity' => $totalQuantity])
                 </div>
 
-                @if ($isComplete)
+                @if (! $canChange)
+                    {{-- A dispatched kit tells it above, with its PDF. --}}
+                @elseif ($isComplete)
                     <p role="status" class="m-0 flex gap-2.5 rounded-control bg-badge-success p-3.5 text-sm leading-normal text-badge-success-ink">
                         <x-feather name="check-circle" class="mt-0.5 size-4.5" />
                         <span><strong>Kit completo.</strong> {{ $kit->pouch_code }} quedó Armado y listo para despachar.</span>
@@ -66,11 +86,11 @@
 
             <div class="flex flex-col gap-3 lg:col-start-1 lg:row-span-2 lg:row-start-1">
                 @foreach ($kitSlots as $kitSlot)
-                    @include('pages.kits.partials.slot', ['devices' => $devicesBySlot->get($kitSlot['key'], collect())])
+                    @include('pages.kits.partials.slot', ['devices' => $devicesBySlot->get($kitSlot['key'], collect()), 'canChange' => $canChange])
                 @endforeach
             </div>
 
-            <div wire:ignore class="overflow-hidden rounded-card border border-line bg-white lg:col-start-2 lg:row-start-2">
+            <div wire:ignore @class(['overflow-hidden rounded-card border border-line bg-white lg:col-start-2 lg:row-start-2', 'hidden' => ! $canChange])>
                 <h3 class="m-0 bg-table-head px-3.5 py-2.5 font-sans text-xs font-medium tracking-wider text-ink-muted uppercase">Últimos escaneos</h3>
                 <p x-show="scans.length === 0" class="m-0 px-3.5 py-3 text-sm text-ink-muted">Aquí verás cada serie que escanees: en verde lo agregado y en rojo lo que no entró, con el motivo.</p>
                 <ul role="log" aria-live="polite" class="m-0 list-none p-0">
@@ -92,7 +112,7 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3.5">
-            <span class="text-sm text-ink-muted">Al quitar una serie, vuelve a quedar Disponible.</span>
+            <span class="text-sm text-ink-muted">{{ $canChange ? 'Al quitar una serie, vuelve a quedar Disponible.' : 'Un kit despachado no cambia su contenido.' }}</span>
             <flux:button :href="route('intranet.kits.index')" wire:navigate class="max-md:h-11 max-md:w-full">Volver a Kits</flux:button>
         </div>
     </flux:card>

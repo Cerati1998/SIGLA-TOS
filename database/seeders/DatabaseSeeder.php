@@ -20,12 +20,34 @@ class DatabaseSeeder extends Seeder
 
         $this->call([IdentitySeeder::class, CompanySeeder::class, BranchSeeder::class, VehicleBodySeeder::class, ShippingLineSeeder::class, SecurityDeviceTypeSeeder::class, ContainerTypeSeeder::class, YardZoneSeeder::class]);
 
-        User::factory()->create([
-            'name' => 'Eddy Barranzuela',
-            'email' => 'eddy.barranzuela@grupomacromar.com',
-            'identity_id' => '1',
-            'document_number' => '00000000',
-            'branch_id' => Branch::query()->where('code', BranchSeeder::MAIN_BRANCH_CODE)->value('id'),
-        ]);
+        User::firstOrCreate(
+            [
+                'email' => 'eddy.barranzuela@grupomacromar.com',
+            ],
+            [
+                'name' => 'Eddy Barranzuela',
+                'identity_id' => '1',
+                'document_number' => '00000000',
+                'branch_id' => Branch::query()
+                    ->where('code', BranchSeeder::MAIN_BRANCH_CODE)
+                    ->value('id'),
+                'password' => bcrypt('12345678'),
+            ]
+        );
+
+        User::firstOrCreate(
+            [
+                'email' => 'richard.sanchez@grupomacromar.com',
+            ],
+            [
+                'name' => 'Richard Sanchez',
+                'identity_id' => '2',
+                'document_number' => '00000000',
+                'branch_id' => Branch::query()
+                    ->where('code', BranchSeeder::MAIN_BRANCH_CODE)
+                    ->value('id'),
+                'password' => bcrypt('12345678'),
+            ]
+        );
     }
 }

@@ -85,11 +85,27 @@ class SecurityDeviceLot extends Model
 
     /**
      * Check that the series of the lot can still be corrected: none of its devices changed status, so all of them are
-     * still inactive (H28, criterion 3; inactive since H29).
+     * still as they were born, Inactive or, when its type does not require approval, Available (H28, criterion 3; T62).
      */
     public function seriesCanBeCorrected(): bool
     {
-        return ! $this->devices()->where('status', '!=', SecurityDeviceStatus::Inactive)->exists();
+        return ! $this->devices()->where('status', '!=', $this->initialDeviceStatus())->exists();
+    }
+
+    /**
+     * Get the status the devices of the lot were born with, by its type (T62).
+     */
+    public function initialDeviceStatus(): SecurityDeviceStatus
+    {
+        return $this->announcement->securityDeviceType->initialDeviceStatus();
+    }
+
+    /**
+     * Check whether the devices of the lot need the approval of their shipping line (H29), by its type (T62).
+     */
+    public function requiresApproval(): bool
+    {
+        return $this->announcement->securityDeviceType->requires_lot_approval;
     }
 
     /**

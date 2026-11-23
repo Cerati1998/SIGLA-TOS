@@ -146,3 +146,4 @@ Cubre el camino normal, la policy y el estado que no procede (`assertDispatched(
 - [ ] El método recibe `int $id` y resuelve con `$this->builder()`.
 - [ ] Autoriza en el método, no solo con `@can`.
 - [ ] Sin errores de Alpine en la consola, porque las pruebas de PHP no los detectan.
+- [ ] Cada `wire:model.live`, `wire:click` y `$wire` lee o guarda en la base, o valida algo del servidor; lo demás está en Alpine.

@@ -8,6 +8,7 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Precinto | `container_seal` | Sello que se usa en contenedores. En H06 es un tipo aparte de `seal`, por decisión del usuario. |
 | Cinta | `tape` | Tipo de dispositivo de seguridad (H06). |
 | Funda | `pouch` | Bolsa del kit, con código de barras (H14). |
+| Formato (de inspección) | `inspection_sheet` | Formato de inspección que trae el kit, con su código de barras. Se guarda como `inspection_sheet_code` en la certificación (H17, aprobado por el usuario el 2026-11-17). |
 | Gate out | `gate_out` | Salida de la unidad del depósito. En SIGLA 1.0 está la solicitud de retiro. |
 | Remolcador | `tractor` | Unidad que jala el semirremolque (H23). |
 | Semirremolque | `semi_trailer` | Unidad que lleva la carga (H23). |
@@ -28,3 +29,8 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Activado para despacho | `activated_at`, `activated_by` | Marca de un dispositivo de seguridad, aparte de su estado, que se pone cuando la naviera confirma su activación: cuándo y quién lo activó (H29). |
 | A granel | `bulk` | Despacho de dispositivos sueltos, sin kit (H30). |
 | Asignación interna o externa | `assignment` (`internal`, `external`) | Lado al que va un dispositivo de un tipo que se reparte, como la cinta de inspección (T55). En un kit, lo da el campo donde se escanea (H14). |
+| Asignación | `certification` | Vincular una solicitud de retiro con su kit crea la certificación; no hay tabla aparte (H17, aprobado por el usuario el 2026-11-20). |
+| Inspección interna o externa | `inspection` (`internal`, `external`) | Las secciones de un tipo de una certificación, que se fotografían en cualquier orden o en paralelo. Usa el tipo de la sección, `CertificationSectionType` (H18, aprobado por el usuario el 2026-11-20). |
+| Sección de una certificación | `certification_step` | Copia fija de una sección del catálogo en la certificación, con los dispositivos del kit colocados en ella (H18, aprobado por el usuario el 2026-11-20). |
+| Foto (de una sección) | `certification_photo` | Foto de un paso, con su miniatura (H18, aprobado por el usuario el 2026-11-20). |
+| Reapertura | `certification_reopening` | Volver a abrir una certificación cerrada, con su motivo (H19, aprobado por el usuario el 2026-11-20). |

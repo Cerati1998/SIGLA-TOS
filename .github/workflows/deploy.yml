@@ -1,0 +1,265 @@
+name: deploy
+
+# Sube SIGLA a producción (dominio final del cPanel). Solo se lanza a mano desde
+# Actions → deploy → Run workflow, y solo desde main (decisión del 2026-11-20).
+# No espera a "tests": antes de lanzarlo, revisa que las pruebas pasaron en main.
+#
+# Environment de GitHub: production
+#   Secreto:   SSH_PRIVATE_KEY (clave privada ed25519, sin frase)
+#   Variables: APP_URL, SSH_HOST, SSH_PORT, SSH_USER, DEPLOY_PATH
+#   Opcionales: PHP_BIN (por defecto "php"), SSH_KNOWN_HOSTS (si falta, la huella
+#   se acepta en la primera conexión de cada despliegue) y VITE_REVERB_* (para el
+#   build de Echo)
+#
+# Estructura en el servidor (DEPLOY_PATH):
+#   .upload/           copia de trabajo de rsync; solo viajan los cambios
+#   releases/<fecha>/  cada despliegue, armado desde .upload con enlaces duros
+#   current            enlace a la release activa; el dominio apunta a current/public
+#   shared/            lo que sobrevive a las releases: .env, storage/,
+#                      public/.user.ini, public/.well-known/ y los bloques de
+#                      cPanel de public/.htaccess (cpanel-htaccess.txt)
+# Volver a la release anterior: ln -sfn releases/<fecha> current
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Run workflow deja elegir cualquier rama: a producción solo va main.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      PHP_BIN: ${{ vars.PHP_BIN || 'php' }}
+      KEEP_RELEASES: 5
+
+    steps:
+      - name: Check configuration
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          HAS_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        run: |
+          missing=0
+          for name in APP_URL SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Falta la variable $name en el environment production."
+              missing=1
+            fi
+          done
+          if [ "$HAS_PRIVATE_KEY" != "true" ]; then
+            echo "::error::Falta el secreto SSH_PRIVATE_KEY en el environment production."
+            missing=1
+          fi
+          # El despliegue borra releases viejas dentro de DEPLOY_PATH: exige una ruta
+          # absoluta de al menos tres niveles (por ejemplo /home/usuario/sigla) para no
+          # tocar por error la carpeta personal ni la raíz.
+          depth=$(echo "$DEPLOY_PATH" | tr -s '/' '\n' | grep -c . || true)
+          if [ "${DEPLOY_PATH:0:1}" != "/" ] || [ "$depth" -lt 3 ]; then
+            echo "::error::DEPLOY_PATH debe ser una ruta absoluta de al menos tres niveles, por ejemplo /home/usuario/sigla."
+            missing=1
+          fi
+          exit $missing
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      # Misma versión que el servidor (PHP 8.4), para que vendor/ funcione allá.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      # Tailwind escanea vistas de vendor/, por eso el build va después de composer.
+      - name: Build assets
+        env:
+          VITE_REVERB_APP_KEY: ${{ vars.VITE_REVERB_APP_KEY }}
+          VITE_REVERB_HOST: ${{ vars.VITE_REVERB_HOST }}
+          VITE_REVERB_PORT: ${{ vars.VITE_REVERB_PORT }}
+          VITE_REVERB_SCHEME: ${{ vars.VITE_REVERB_SCHEME }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        id: ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Sin SSH_KNOWN_HOSTS, la huella se acepta en la primera conexión (accept-new).
+          # No se usa ssh-keyscan: abre una conexión por tipo de clave sin iniciar
+          # sesión, y el firewall del cPanel las cuenta como intentos fallidos y
+          # bloquea la IP del runner a mitad del despliegue.
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            host_key_checking=yes
+          else
+            : > ~/.ssh/known_hosts
+            host_key_checking=accept-new
+          fi
+          chmod 644 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName $SSH_HOST
+            Port $SSH_PORT
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking $host_key_checking
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ControlMaster auto
+            ControlPath ~/.ssh/cm-%C
+            ControlPersist 20m
+          EOF
+          chmod 600 ~/.ssh/config
+          # Una sola conexión para todo el despliegue: los ssh y el rsync de los pasos
+          # siguientes viajan por ella, así el firewall no ve muchas conexiones seguidas.
+          if ! ssh -fN server < /dev/null > /dev/null 2> ~/.ssh/connect.log; then
+            cat ~/.ssh/connect.log
+            echo "::error::No se pudo conectar a $SSH_HOST en el puerto $SSH_PORT. Revisa SSH_HOST, SSH_PORT, la clave y que el firewall no tenga bloqueada la IP de GitHub Actions."
+            exit 1
+          fi
+
+      # Prepara shared/ y guarda lo que cPanel escribió en la release activa (MultiPHP
+      # y el editor de php.ini): los bloques del .htaccess y el .user.ini, para
+      # pasarlos a la nueva.
+      - name: Prepare server
+        run: |
+          ssh server bash -s -- "'$DEPLOY_PATH'" <<'REMOTE'
+          set -euo pipefail
+          base="$1"
+          mkdir -p "$base/.upload" "$base/releases" \
+            "$base/shared/storage/app/public" "$base/shared/storage/app/private" \
+            "$base/shared/storage/framework/cache/data" "$base/shared/storage/framework/sessions" \
+            "$base/shared/storage/framework/views" "$base/shared/storage/logs" \
+            "$base/shared/public/.well-known"
+          if [ ! -f "$base/shared/.env" ]; then
+            echo "Falta $base/shared/.env. Créalo en el servidor antes de desplegar."
+            exit 1
+          fi
+          htaccess="$base/current/public/.htaccess"
+          if [ -f "$htaccess" ] && grep -q 'BEGIN cPanel-generated' "$htaccess"; then
+            sed -n '/BEGIN cPanel-generated/,/END cPanel-generated/p' "$htaccess" > "$base/shared/cpanel-htaccess.txt"
+          fi
+          if [ -f "$base/current/public/.user.ini" ]; then
+            cp "$base/current/public/.user.ini" "$base/shared/public/.user.ini"
+          fi
+          REMOTE
+
+      # Lo excluido no viaja: .env, storage, cachés de bootstrap, el enlace
+      # public/storage y lo que crea cPanel, que vive en shared/.
+      - name: Upload files
+        run: |
+          rsync -az --delete \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/.ai/' \
+            --exclude='/.claude/' \
+            --exclude='/docs/' \
+            --exclude='/tests/' \
+            --exclude='/node_modules/' \
+            --exclude='/.phpunit.cache/' \
+            --exclude='/.env' \
+            --exclude='/.env.*' \
+            --exclude='/storage/' \
+            --exclude='/bootstrap/cache/*.php' \
+            --exclude='/public/storage' \
+            --exclude='/public/hot' \
+            --exclude='/public/.well-known/' \
+            --exclude='/cgi-bin/' \
+            --exclude='.user.ini' \
+            --exclude='php.ini' \
+            --exclude='error_log' \
+            ./ "server:$DEPLOY_PATH/.upload/"
+
+      - name: Activate release
+        id: release
+        run: |
+          release=$(date -u +%Y%m%d-%H%M%S)
+          echo "name=$release" >> "$GITHUB_OUTPUT"
+          ssh server bash -s -- "'$DEPLOY_PATH'" "'$PHP_BIN'" "'$release'" "'$KEEP_RELEASES'" <<'REMOTE'
+          set -euo pipefail
+          base="$1"; php_bin="$2"; release="$3"; keep="$4"
+          dir="$base/releases/$release"
+
+          # Enlaces duros desde .upload: la release casi no ocupa disco y no cambia
+          # aunque el próximo rsync actualice .upload.
+          cp -al "$base/.upload" "$dir"
+          ln -sfn "$base/shared/.env" "$dir/.env"
+          rm -rf "$dir/storage"
+          ln -sfn "$base/shared/storage" "$dir/storage"
+          ln -sfn "$base/shared/public/.well-known" "$dir/public/.well-known"
+          if [ -f "$base/shared/public/.user.ini" ]; then
+            cp "$base/shared/public/.user.ini" "$dir/public/.user.ini"
+          fi
+          # Archivo nuevo (no se edita el original) para no tocar el enlace duro
+          # que comparte con .upload y las releases anteriores.
+          if [ -s "$base/shared/cpanel-htaccess.txt" ]; then
+            { cat "$dir/public/.htaccess"; printf '\n'; cat "$base/shared/cpanel-htaccess.txt"; } > "$dir/public/.htaccess.new"
+            mv -f "$dir/public/.htaccess.new" "$dir/public/.htaccess"
+          fi
+          mkdir -p "$dir/bootstrap/cache"
+
+          cd "$dir"
+          $php_bin artisan package:discover --ansi
+          $php_bin artisan storage:link
+          $php_bin artisan view:clear
+          $php_bin artisan optimize
+
+          # El modo mantenimiento vive en storage/ (compartido): cubre las migraciones
+          # y el cambio de release, y se quita desde la release nueva.
+          $php_bin artisan down --retry=10 || true
+          $php_bin artisan migrate --force
+          ln -sfn "$dir" "$base/current.new"
+          mv -Tf "$base/current.new" "$base/current"
+          $php_bin artisan queue:restart
+          $php_bin artisan up
+
+          # Deja solo las últimas releases; nunca borra la activa.
+          active=$(readlink -f "$base/current")
+          ls -1d "$base"/releases/*/ | sed 's:/$::' | sort | head -n -"$keep" | while read -r old; do
+            if [ "$(readlink -f "$old")" != "$active" ]; then
+              rm -rf "$old"
+            fi
+          done
+          echo "Release activa: $release"
+          REMOTE
+
+      # Si algo falló después de entrar en mantenimiento, el sitio vuelve a la
+      # release anterior, que sigue activa porque current no cambió.
+      - name: Leave maintenance mode on failure
+        if: failure() && steps.ssh.outcome == 'success'
+        run: ssh server "if [ -f '$DEPLOY_PATH/current/artisan' ]; then cd '$DEPLOY_PATH/current' && $PHP_BIN artisan up || true; fi"

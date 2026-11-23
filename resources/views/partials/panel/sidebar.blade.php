@@ -25,12 +25,46 @@
             'route' => route('intranet.kits.index'),
             'active' => request()->routeIs('intranet.kits.*'),
         ],
+        [
+            'name' => 'Despachos',
+            'icon' => 'send',
+            'active' => request()->routeIs('intranet.kit-dispatches.*', 'intranet.bulk-dispatches.*'),
+            'submenu' => [
+                [
+                    'name' => 'Kits',
+                    'route' => route('intranet.kit-dispatches.index'),
+                    'active' => request()->routeIs('intranet.kit-dispatches.*'),
+                ],
+                [
+                    'name' => 'A granel',
+                    'route' => route('intranet.bulk-dispatches.index'),
+                    'active' => request()->routeIs('intranet.bulk-dispatches.*'),
+                ],
+            ],
+        ],
         ['header' => 'Certificación'],
         [
             'name' => 'Solicitudes de retiro',
             'icon' => 'file-text',
             'route' => route('intranet.gate-out-requests.index'),
             'active' => request()->routeIs('intranet.gate-out-requests.*'),
+        ],
+        [
+            'name' => 'Inspección',
+            'icon' => 'clipboard',
+            'active' => request()->routeIs('intranet.certifications.*', 'intranet.inspections.*'),
+            'submenu' => [
+                [
+                    'name' => 'Certificaciones',
+                    'route' => route('intranet.certifications.index'),
+                    'active' => request()->routeIs('intranet.certifications.*', 'intranet.inspections.*'),
+                ],
+            ],
+        ],
+        [
+            'name' => 'Checkpoint',
+            'icon' => 'check-square',
+            'disabled' => true,
         ],
         ['header' => 'Administración'],
         [
@@ -53,10 +87,21 @@
             'active' => request()->routeIs('intranet.shipping-lines.*'),
         ],
         [
-            'name' => 'Proveedores',
-            'icon' => 'truck',
-            'route' => route('intranet.providers.index'),
-            'active' => request()->routeIs('intranet.providers.*'),
+            'name' => 'Terceros',
+            'icon' => 'book',
+            'active' => request()->routeIs('intranet.providers.*', 'intranet.clients.*'),
+            'submenu' => [
+                [
+                    'name' => 'Proveedores',
+                    'route' => route('intranet.providers.index'),
+                    'active' => request()->routeIs('intranet.providers.*'),
+                ],
+                [
+                    'name' => 'Clientes',
+                    'route' => route('intranet.clients.index'),
+                    'active' => request()->routeIs('intranet.clients.*'),
+                ],
+            ],
         ],
         [
             'name' => 'Trabajadores',

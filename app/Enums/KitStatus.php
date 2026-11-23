@@ -8,6 +8,7 @@ enum KitStatus: string
     case Built = 'built';
     case Dispatched = 'dispatched';
     case Used = 'used';
+    case Disabled = 'disabled';
 
     /**
      * Get the name shown on screen.
@@ -19,6 +20,7 @@ enum KitStatus: string
             self::Built => 'Armado',
             self::Dispatched => 'Despachado',
             self::Used => 'Usado',
+            self::Disabled => 'Inhabilitado',
         };
     }
 
@@ -32,6 +34,7 @@ enum KitStatus: string
             self::Built => 'success',
             self::Dispatched => 'info',
             self::Used => 'neutral',
+            self::Disabled => 'danger',
         };
     }
 
@@ -42,5 +45,14 @@ enum KitStatus: string
     public function contentsCanChange(): bool
     {
         return $this === self::Building || $this === self::Built;
+    }
+
+    /**
+     * Whether a kit with this status has the PDF of its contents: once it is complete, from Armado on (H15,
+     * criterion 14).
+     */
+    public function hasContentsPdf(): bool
+    {
+        return $this !== self::Building && $this !== self::Disabled;
     }
 }

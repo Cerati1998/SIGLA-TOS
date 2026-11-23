@@ -3,12 +3,16 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
+// Sin clave de Reverb en el build no se crea Echo: Pusher lanzaría un error al
+// cargar y detendría el resto de app.js. Hoy ninguna pantalla usa broadcasting.
+if (import.meta.env.VITE_REVERB_APP_KEY) {
+    window.Echo = new Echo({
+        broadcaster: 'reverb',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        wsHost: import.meta.env.VITE_REVERB_HOST,
+        wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+        wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+        enabledTransports: ['ws', 'wss'],
+    });
+}

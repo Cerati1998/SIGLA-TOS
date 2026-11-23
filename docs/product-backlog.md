@@ -1,10 +1,14 @@
 # Product Backlog · SIGLA 2.0 (TOS)
 
-**Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17).
+**Estado:** en construcción. Épicas aprobadas el 2026-10-26. Historias aprobadas el 2026-10-27: E1 (H01 a H04), E7 (H05), E8 (H09, H10), E2 (H06 a H08), E3 (H11, H12), E4 (H13 a H16), E9 (H21 a H23) y E5 (solo H17). El 2026-11-20 se aprobaron H18, H19 y H20 (E5).
 
 **Propuestas del 2026-11-13, pedidas por el usuario:** H29 (activar dispositivos para despacho, E2) y H30 (despachar dispositivos a granel, E4). Sus "por confirmar" se cerraron en T46 y el usuario las aprobó el 2026-11-13.
 
+**Pedida por el usuario el 2026-11-17:** H31 (gestionar clientes, E8). La necesita H30: un despacho a granel por venta se hace a una empresa cliente.
+
 **En revisión desde el 2026-10-28:** el proceso posterior a la asignación del kit a la certificación (H18, H19 y H20 de E5, y toda E6). El límite acordado es H17: se queda lo que llega hasta iniciar la certificación y asignarle el kit. Lo posterior se vuelve a revisar con el usuario antes de darlo por aprobado. Lo conversado queda marcado y no se borra.
+
+**Revisadas el 2026-11-19 en T54:** H18, H19 y H20 quedaron aprobadas el 2026-11-20, para construirse en el Sprint 3 (T59 a T61). E6 sigue en revisión y pasa al Sprint 4.
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -35,11 +39,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Lo que pide cada sección (tipo de dispositivo y cantidad) no existe en BUMMOCK; el técnico lo tiene interiorizado. Es una oportunidad de mejora de SIGLA 2.0.
 - Recorrido del kit: (1) bodega crea el kit y le escanea dispositivos, (2) bodega lo despacha a un trabajador (H25), (3) el inspector busca la funda en su app e inicia la certificación asignándole ese kit. **Lo que ocurre después de este paso (cómo se colocan los dispositivos, fotos, cierre) está EN REVISIÓN.**
 - Una certificación usa un solo kit. "El ticket" que se asigna al iniciar es la solicitud de retiro.
-- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel.
+- Activación para despacho (decisión del usuario del 2026-11-13, H29): bodega envía por correo, fuera de SIGLA, las series a la naviera para que las active. Cuando la naviera responde que sí, en SIGLA se activan por rango. Es una marca aparte del estado del dispositivo, y es obligatoria para armar un kit y para todo despacho, de un kit o a granel. (Corrección del 2026-11-20, T62: no aplica a los tipos de dispositivo que no requieren aprobación en lote, H06.)
 - Datos personales (DNI y brevete): solo los ven los roles que los necesitan. No es asesoría legal.
 - El modelo de datos se documenta en `docs/database.md`, que parte del ER del usuario y es la fuente de verdad. Claude Code lo mantiene durante la Construcción (cambiado el 2026-11-04).
-- Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario: el inspector que inició sesión se reconoce comparando el tipo y número de documento de su usuario con los del trabajador (decisión del usuario del 2026-11-04).
+- Los kits se despachan a trabajadores (H25), propios o de un proveedor. Un trabajador no se enlaza directamente a un usuario. El trabajador que recibe solo queda registrado en el despacho: no limita qué kits ve el inspector, que puede escanear cualquier kit Despachado (cambiado por el usuario el 2026-11-17, en H15; antes el inspector se reconocía comparando el tipo y número de documento de su usuario con los del trabajador, decisión del 2026-11-04).
 - Por ahora hay una sola empresa (`companies`), cargada por seeder y modificable en su pantalla (H27), y cada sucursal pertenece a ella. Las sucursales también se gestionan en pantalla (H27). Si el sistema escala a multitenancy, se pasa a varias empresas (decisión del usuario del 2026-11-04).
+- Hosting y despliegue (decisión del usuario del 2026-11-18, T57): SIGLA 2.0 se aloja en un cPanel (con SSH, PHP 8.4 (la versión más alta que ofrece; confirmado por el usuario el 2026-11-18) y MySQL 8.0 (verificado en el servidor el 2026-11-19); Supervisor lo instaló el proveedor el 2026-11-19: la cola corre con un worker `queue:work` bajo Supervisor, y las tareas programadas, por cron). Se despliega con CI/CD en GitHub Actions: las pruebas corren en cada PR y en cada push a `main`, y el código se sube al servidor por SSH solo cuando el usuario lanza el despliegue a mano desde Actions (decisión del usuario del 2026-11-20; antes se desplegaba solo al pasar las pruebas en `main`). El despliegue manual solo acepta `main` y no espera a las pruebas: antes de lanzarlo hay que revisar que pasaron. Cada entorno es un environment de GitHub. Como secreto solo va la clave privada SSH (`SSH_PRIVATE_KEY`). Como variables van el sitio (`APP_URL`), `SSH_HOST`, `SSH_PORT`, `SSH_USER` y `DEPLOY_PATH`; la huella del servidor (`SSH_KNOWN_HOSTS`) es opcional y, si falta, el despliegue la toma en cada ejecución. El `.env` vive solo en el servidor y no pasa por GitHub. La URL final es `https://sigla-tos.macromarlogistics.com` (confirmada por el usuario el 2026-11-18). Sin acceso root, los dominios solo pueden apuntar dentro de `public_html`: el código va fuera de `public_html` (`DEPLOY_PATH`) y la carpeta del subdominio dentro de `public_html` es un enlace simbólico a `current/public`. Se despliega con el patrón de releases (decisión del usuario del 2026-11-18): cada despliegue va a su propia carpeta en `releases/`, `current` apunta a la activa y `shared/` guarda lo que sobrevive entre releases (`.env`, `storage/` y los ajustes de PHP de cPanel). Se guardan las últimas 5 releases, y para volver a una anterior basta con cambiar el enlace `current`.
+- Prueba con el cliente en producción (decisión del usuario del 2026-11-18, T57): no hay un entorno de prueba aparte. Mientras se construye, el cliente prueba lo último que se desplegó desde `main` en el dominio final y con la base final, cargada solo con datos de prueba (sin DNI ni brevetes reales). Al terminar las pruebas se corre a mano `migrate:fresh` y solo los seeders necesarios, y desde ahí la base guarda datos reales. El despliegue nunca corre `migrate:fresh` ni seeders.
 - EN REVISIÓN (conversado, no aprobado): todas las secciones obligatorias para cerrar una certificación, con al menos una foto cada una y varias fotos permitidas por sección.
 
 ## Notas para la Construcción (desde el ER del usuario)
@@ -112,6 +118,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. Cada pantalla y cada acción validan el rol en el servidor.
   4. Las pantallas de empresa y sucursales (H27) se protegen con un permiso de acceso (indicado por el usuario el 2026-11-04).
   5. Las pantallas de líneas navieras y proveedores (H09, H10) quedan solo para el admin. La de tipos de dispositivo (H06) queda para el admin y el usuario de bodega, y solo el admin desactiva (T21, 2026-11-04).
+  6. Por definir: qué rol puede anular la asignación de un kit (H32) y qué rol puede descartar dispositivos de un lote (T65). Pedido por el usuario el 2026-11-20.
 - Usa `laravel-permission`, que se instala recién en esta historia (indicado por el usuario el 2026-11-03).
 - Supuesto: un rol por usuario.
 
@@ -156,8 +163,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - La consulta es en vivo. Al iniciar una certificación (H17) esos datos se guardan; la consulta de H05 en sí no guarda nada.
 - La autenticación del puente es una decisión técnica para la Construcción.
 
-### E8 · Maestros: líneas navieras y proveedores
-- Que el admin gestione los catálogos de líneas navieras y proveedores, para usarlos al ingresar lotes (E2), armar kits (E4) y en lo que venga después (estimaciones, extranet, depósito temporal).
+### E8 · Maestros: líneas navieras, proveedores y clientes
+- Que el admin gestione los catálogos de líneas navieras, proveedores y clientes, para usarlos al ingresar lotes (E2), armar kits y despachar a granel (E4) y en lo que venga después (estimaciones, extranet, depósito temporal). Los clientes se sumaron el 2026-11-17 (H31).
 - Depende de: E1. La necesitan E2 y E4.
 
 **H09 · Gestionar líneas navieras**
@@ -187,12 +194,29 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Si el servicio no responde o no encuentra el documento, el usuario puede llenar a mano y guardar igual.
   9. Si el documento tiene un formato incorrecto, se avisa antes de consultar.
 - Quién la usa: por ahora, cualquier usuario con sesión. "Solo el admin" pasa a H24 (confirmado el 2026-11-04).
-- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09).
+- En el menú va en el grupo "Maestros", debajo de Líneas navieras (confirmado por el usuario el 2026-11-09). Desde H31 va dentro del desplegable «Terceros», junto a Clientes (cambiado por el usuario el 2026-11-17).
 - Diseño: aprobado por el usuario el 2026-11-04 en la página "E8 · Maestros" del lienzo, con un botón naranja de lupa siempre pegado al número de documento.
 - Reglas de la consulta, aprobadas con el diseño: el formato incorrecto se avisa al salir del campo; mientras consulta, Guardar y Razón social quedan desactivados; con DNI, los nombres y apellidos van en Razón social; el documento duplicado se avisa al pulsar Guardar; al editar solo se vuelve a consultar si cambia el número; los tipos de documento son solo RUC y DNI.
 - Servicio de consulta de RUC y DNI: Decolecta, elegido por el usuario, mediante `SunatService` (T22). También lo usarán H21 y H22.
 - El DNI viaja en la URL de Decolecta, por HTTPS, porque ese servicio solo lo recibe así, y nunca va en nuestros logs. Es una excepción a la regla de datos personales, aceptada por el usuario el 2026-11-04.
 - El ER guarda además cuenta corriente, detalle del servicio y sucursal; se dejaron fuera por no necesitarse en este módulo.
+
+**H31 · Gestionar clientes** (pedida por el usuario el 2026-11-17, en T52)
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar clientes, para elegirlos al despachar dispositivos a granel por venta (H30).
+- Criterios de aceptación:
+  1. Se crea un cliente con tipo y número de documento, razón social, dirección, correo, teléfono y condición de pago. Son obligatorios el tipo y el número de documento, la razón social y la condición; dirección, correo y teléfono son opcionales, como en H10.
+  2. La condición de pago es Contado o Crédito. Al crear un cliente viene marcada Contado. Al elegir Crédito aparece el campo «Días de crédito», obligatorio, un número entero de 1 a 365; con Contado el campo se oculta y los días no se guardan (pedido por el usuario el 2026-11-17, al revisar la construcción).
+  3. No se pueden crear dos clientes con el mismo tipo y número de documento, aunque uno esté desactivado.
+  4. Se editan los datos de un cliente, también su condición.
+  5. Un cliente se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. Uno desactivado no aparece al despachar, pero se conserva en lo que ya existe.
+  6. Hay una lista, ordenada por razón social, que se puede buscar por razón social o número de documento y filtrar por estado. La lista muestra también la condición, y con Crédito sus días (por ejemplo «Crédito · 30 días»).
+  7. La consulta del RUC o el DNI funciona como en H10 (criterios 7 a 9): completa los datos que encuentre, se puede llenar a mano si el servicio falla y el formato incorrecto se avisa antes de consultar.
+  8. La pantalla se puede usar bien desde el celular.
+- Decisión del usuario del 2026-11-17: es una copia del modelo de proveedores (H10) con un solo atributo más, la condición de pago (Contado o Crédito, por defecto Contado), y los días cuando es a crédito. Reusa `SunatService` y las mismas reglas de la consulta.
+- Quién la usa: por ahora, cualquier usuario con sesión. Los roles pasan a H24.
+- En el menú va en el grupo "Maestros", dentro de un desplegable nuevo, «Terceros», que reúne Proveedores y Clientes, en ese orden (decisión del usuario del 2026-11-17). El desplegable queda donde estaba Proveedores, debajo de Líneas navieras.
+- Diseño: el de H10, con el campo Condición. Se agrega al lienzo para aprobarlo antes de construir.
+- Fuera de esta historia: pasar los clientes de SIGLA 1.0 y usarlos en la certificación (H17), donde el cliente de la solicitud sigue siendo un dato copiado de la API.
 
 ### E2 · Dispositivos de seguridad
 - Que bodega registre dispositivos por lote, consulte su estado y los active para despacho cuando la naviera lo confirma (H29, agregado el 2026-11-13).
@@ -215,6 +239,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo (decisión del usuario del 2026-11-04).
 - Riesgos: duplicados con nombres parecidos; renombrar un tipo con lotes y kits afecta lo ya registrado (considerar registrar quién cambió qué).
 - Corrección del 2026-11-16 (T55), pedida por el usuario: la cinta interna y la externa son un solo tipo, la **cinta de inspección**. El seeder carga solo esta. Al crear y editar un tipo hay una casilla, «Se reparte entre asignación interna y externa», que hace que el tipo de kit pida su cantidad repartida (H13). El seeder la marca solo en la cinta de inspección. Se puede cambiar al editar.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: al crear y editar un tipo hay dos casillas más, que se validan al ingresar un lote (H07):
+  - «No utiliza serie», desmarcada por defecto. Si se marca, el lote de ese tipo no pide el inicio ni el final de serie: pide el mínimo de dígitos y el correlativo inicial y el final, y la serie es solo el correlativo con ceros (ver H07).
+  - «Requiere aprobación en lote», marcada por defecto. Si se desmarca, los dispositivos de los lotes de ese tipo no necesitan la aprobación de la naviera (H29) para armar un kit (H14) ni para despacharlos a granel (H30).
+  - Las dos se ven en la lista de tipos. Los tipos que ya existen quedan con los valores por defecto (usan serie y requieren aprobación), así que nada cambia hasta que alguien los marque. Las casillas se pueden cambiar al editar solo mientras el tipo no tenga lotes. Cuando ya tiene uno, quedan bloqueadas con un aviso, como el tipo (criterio 3), y si el tipo se creó mal se crea otro (confirmado por el usuario el 2026-11-20).
 
 **H07 · Ingresar un lote de dispositivos**
 - Como usuario de bodega, quiero ingresar un lote escribiendo su origen y su rango de correlativos, para que el sistema genere todas las series y los dispositivos queden registrados.
@@ -234,6 +262,10 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T30, aprobado por el usuario el 2026-11-10).
 - En el menú va en el grupo "Bodega", como "Lotes de dispositivos" (decisión del usuario del 2026-11-10).
 - Una carga desde Excel con series sueltas sería otra historia (no pedida por ahora).
+- Corrección del 2026-11-20 (T62), pedida por el usuario, según las dos casillas nuevas del tipo de dispositivo (H06):
+  - **Tipo que no utiliza serie.** El formulario oculta el inicio y el final de serie y pide el mínimo de dígitos como ahora, más el correlativo inicial y el final, que son obligatorios. La serie de cada dispositivo es solo el correlativo con ceros a la izquierda hasta ese mínimo, sin letras: mínimo 6, del 25 al 30 da 000025 a 000030 (confirmado por el usuario el 2026-11-20). La cantidad, la vista previa y el máximo de 10 000 siguen igual (criterios 3, 4 y 10). Una serie es única dentro de su tipo de dispositivo: dos lotes del mismo tipo no pueden traer la misma serie, y si un lote trae una que ya existe en su tipo, no se guarda nada y se muestra cuáles chocan (criterio 6). Dos tipos distintos sí pueden tener la misma serie: por ejemplo, un candado y un sello pueden ser 000050. Esta regla vale solo para los tipos que no utilizan serie. Los tipos con serie siguen como hoy: su serie es única en todo SIGLA, así que un GSW0000200 no puede existir en dos tipos. Cuando una serie existe en dos tipos sin serie, la búsqueda de dispositivos (H08) muestra todas las coincidencias, y el despacho a granel (H30) usa un selector de tipo opcional (ver H08 y H30). Todo esto lo confirmó el usuario el 2026-11-20.
+  - **Tipo que no requiere aprobación en lote.** Sus dispositivos nacen **Disponibles**, no Inactivos (excepción al criterio 8), y se pueden usar de inmediato para armar un kit o despacharlos a granel.
+  - El formulario cambia en cuanto se elige el tipo: con un tipo sin serie se ocultan el inicio y el final de serie, y con un tipo sin aprobación se avisa que los dispositivos quedarán Disponibles. Diseño: se ajusta en la página "E2 · Dispositivos de seguridad" del lienzo y se aprueba antes de construir.
 
 **H08 · Consultar lotes y dispositivos**
 - Como usuario de bodega, supervisor o admin, quiero ver los lotes ingresados y buscar un dispositivo por su serie, para saber qué tengo, en qué estado está y de qué lote viene.
@@ -249,6 +281,15 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Estados de un dispositivo: Disponible, En un kit, Usado y Dañado. Por ahora ninguna historia marca un dispositivo como Dañado; el estado queda definido para cuando una lo use (confirmado el 2026-11-09, T27). Desde el 2026-11-13 (T46) hay un quinto estado, Despachado, para los dispositivos despachados a granel (H30). Desde el 2026-11-16 (H29) hay un estado Inactivo, con el que nace cada dispositivo hasta que se registra la aprobación de la naviera; reemplaza a la marca aparte de activación que se había acordado el 2026-11-13.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Lista con tabla" (T30, aprobado por el usuario el 2026-11-10).
 - Vive en la misma entrada del menú que H07: grupo "Bodega", "Lotes de dispositivos".
+- Corrección del 2026-11-20 (T65), pedida por el usuario:
+  - La columna «Kit» de los dispositivos del lote muestra la funda del kit en que está el dispositivo, en cualquier estado. Hasta ahora quedaba siempre en «—».
+  - Cada dispositivo del lote se puede **descartar**, por ejemplo por llegar en mal estado o romperse después: de un lote de 100 se pueden descartar 5. Hay un estado nuevo, **Descartado**.
+  - Solo se descarta un dispositivo Inactivo o Disponible que no esté en un kit ni despachado. Se pide un motivo obligatorio y queda registrado quién lo descartó y cuándo. El descarte no se deshace.
+  - Un dispositivo Descartado no se agrega a un kit (H14) ni se despacha a granel (H30). El detalle del lote lo cuenta aparte.
+  - Descartar cambia el estado del dispositivo, así que la serie del lote ya no se puede corregir (H28, criterio 3).
+  - Hay un segundo camino de descarte, desde un kit cuya asignación se anuló (H32).
+  - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón rojo por fila y un modal con el motivo, como «Reaperturar» de H19.
+- Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al buscar una serie se muestran todas las coincidencias, cada una con su tipo y su lote.
 
 **H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
 - Como usuario de bodega, quiero corregir los datos de un lote ya ingresado, para arreglar un error de digitación sin borrar el lote y volver a ingresarlo.
@@ -262,6 +303,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. La pantalla se puede usar bien desde el celular.
 - Quién corrige lotes: por ahora, cualquier usuario con sesión, como en H07. Los roles pasan a H24.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
+- Corrección del 2026-11-20 (T62): al corregir un lote se aplican las mismas reglas de H07 según las casillas de su tipo (H06). En un lote cuyo tipo no requiere aprobación, el criterio 3 se cumple si todos sus dispositivos siguen Disponibles (ninguno en un kit ni despachado). El tipo de dispositivo solo se puede cambiar por otro con las mismas dos casillas («No utiliza serie» y «Requiere aprobación en lote»). Si las casillas son distintas, el cambio se bloquea con un aviso que explica por qué. Así, cambiar el tipo nunca toca el estado ni las series de los dispositivos ya ingresados (confirmado por el usuario el 2026-11-20).
 
 **H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero registrar la aprobación de la naviera por tramos de un lote, para que solo se armen kits y se despachen dispositivos que la naviera ya aprobó.
@@ -284,6 +326,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Cambios del 2026-11-16, pedidos por el usuario antes de construir: la activación deja de ser una marca aparte y pasa a ser el estado Inactivo, con el que nacen los dispositivos; se quitan la aprobación del lote entero de una vez y la aprobación por serie inicial y final desde la lista de lotes (y con ellas la regla de huecos y la de varios lotes); se suma la bitácora de aprobaciones con su panel lateral en el detalle del lote. Si el tramo trae dispositivos ya aprobados, se aprueban solo los Inactivos y se cuentan los demás. Esto también cambia H07 (los dispositivos nacen Inactivos), H08 (el conteo y la columna) y H28 (un lote se corrige solo si todos sus dispositivos siguen Inactivos).
 - Diseño: aprobado el 2026-11-13 en la página "E2 · Dispositivos de seguridad" del lienzo (T47). Se actualiza con los cambios del 2026-11-16 y espera una nueva aprobación.
 - Los dispositivos ingresados antes de H29 pasan a Inactivos: bodega registra su aprobación por tramos antes de armar kits con ellos.
+- Corrección del 2026-11-20 (T62), pedida por el usuario: la aprobación solo aplica a los lotes cuyo tipo de dispositivo tiene marcada «Requiere aprobación en lote» (H06), que es lo normal. Si el tipo no la requiere, sus dispositivos nacen Disponibles (H07), el detalle del lote no ofrece registrar aprobaciones y el criterio 13 se cumple sin aprobación. En la lista de lotes, su columna «Aprobados» dice «No requiere» en vez de «120 de 200», y el filtro de aprobación suma esa opción: sin aprobar, a medias, todo aprobado y no requiere. En el detalle del lote se ocultan «Registrar aprobación» e «Historial de aprobaciones» (confirmado por el usuario el 2026-11-20).
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.
@@ -293,7 +336,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como admin, quiero crear, editar, ordenar y desactivar las secciones que se inspeccionan en un contenedor, marcando si son internas o externas, para que la certificación y el checkpoint pidan siempre lo correcto.
 - Criterios de aceptación:
   1. El admin crea una sección con nombre y tipo (interna o externa), por ejemplo "Fotografía de evaporadores".
-  2. No se pueden crear dos secciones con el mismo nombre.
+  2. No se pueden crear dos secciones del mismo tipo con el mismo nombre, aunque una esté desactivada. Una interna y una externa sí pueden llamarse igual, por ejemplo «Puertas» interna y «Puertas» externa. (Cambiado el 2026-11-20 en T63, a pedido del usuario; antes el nombre no se repetía nunca.)
   3. El admin edita el nombre y el tipo de una sección.
   4. El admin define el orden en que aparecen las secciones; es el orden de los pasos del multi-step form de la certificación. Es un solo orden para internas y externas.
   5. El admin desactiva una sección en vez de borrarla. Una desactivada sale del orden y no aparece en certificaciones nuevas, pero se conserva en las ya hechas. Una nueva o reactivada va al final.
@@ -354,7 +397,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   3. El admin edita los datos de un trabajador.
   4. El admin desactiva un trabajador en vez de borrarlo, y lo reactiva desde la lista. Uno desactivado no aparece al despachar kits, pero se conserva en los despachos ya hechos.
   5. Hay una lista que se puede buscar por nombre o número de documento.
-  6. Un trabajador no se enlaza directamente a un usuario. Para que un inspector vea los kits que le despacharon, su usuario y su trabajador deben tener el mismo tipo y número de documento.
+  6. Un trabajador no se enlaza directamente a un usuario. (Cambiado por el usuario el 2026-11-17, en H15: ya no se compara su documento con el del usuario, porque el inspector puede usar cualquier kit Despachado.)
   7. El número de documento solo lo ven los roles que lo necesitan. Cuáles son se resuelve en H24; hasta entonces lo ve cualquier usuario con sesión, como en H22 (decisión del usuario del 2026-11-13). No es asesoría legal.
   8. Solo el admin usa esta pantalla: pasa a H24. Hasta culminar E6, cualquier usuario con sesión la usa, como en H22 (decisión del usuario del 2026-11-13).
   9. La pantalla se puede usar bien desde el celular.
@@ -397,14 +440,15 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   14. El kit está Armando mientras le falten dispositivos y pasa solo a Armado al completarse. Si se le quita un dispositivo, vuelve a Armando (T46, 2026-11-13).
 - Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47), y cambiado a su pedido el 2026-11-16, tomando como referencia la pantalla de BUMMOCK: el paso 2 tiene un campo de escaneo por cada tipo de dispositivo que lleva el kit; la serie se escanea o se escribe en el campo de su tipo y se agrega con Enter, y si es de otro tipo se rechaza con el motivo. Al completarse un tipo, su campo se bloquea y el cursor pasa solo al siguiente. Al costado, el avance total, lo que falta y los últimos escaneos.
 - Cinta de inspección (cambio del usuario del 2026-11-16, por T55): tiene dos campos, primero **Externa** y después **Interna**, con las cantidades del tipo de kit, y cada cinta guarda a qué lado va. Suposición por confirmar: SIGLA no revisa que los correlativos de las externas sean menores que los de las internas.
+- Corrección del 2026-11-20 (T62), al construir: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al escanear en un campo se busca primero el dispositivo del tipo de ese campo. Si la serie solo existe en otro tipo, se rechaza como hasta ahora.
 - Lista de kits (decisión del usuario del 2026-11-16): H14 deja una lista base en Bodega → Kits (funda, tipo de kit, naviera, semana, avance y estado, con «Nuevo» y abrir el kit), para retomar un kit Armando. H16 le suma filtros, búsqueda y el detalle del despacho.
 - La semana no se escribe: es la semana ISO de la fecha de creación del kit, en hora de Lima, y se usa para listar y filtrar en H16. La zona de patio no va en el kit: la elige el inspector al iniciar la certificación, H17 (decisión del 2026-11-04).
 
 **H15 · Despachar kits**
 - Como usuario de bodega, quiero despachar uno o más kits a un trabajador, para dejarlos disponibles para certificar.
 - Criterios de aceptación:
-  1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo.
-  2. Los kits se agregan escaneando la funda de cada uno. Cada escaneo llena el campo y se agrega solo a la lista, sin botón de guardar.
+  1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo; se muestra en el despacho en solo lectura (decisión del usuario del 2026-11-17).
+  2. Los kits se agregan escaneando la funda de cada uno: cada escaneo llena el campo y marca el kit solo, sin botón de guardar. También se marcan con su casilla en una tabla de kits Armados y sin despachar, que se filtra por tipo de kit, naviera y funda (cambio del usuario del 2026-11-17, tomado del despacho de BUMMOCK). Un despacho puede llevar kits de distintos tipos.
   3. Solo se pueden despachar kits que no estén ya despachados; si ya lo está, se muestra en qué despacho.
   4. Solo se despacha un kit Armado, es decir, completo. Un kit vacío o incompleto (Armando) no se despacha, y se muestra qué le falta (T46, 2026-11-13).
   5. Cada kit queda en un solo despacho.
@@ -413,11 +457,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   8. Hay una lista de despachos con kits, receptor y fecha, que se puede filtrar.
   9. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
   10. La pantalla se puede usar bien desde el celular.
-  11. El inspector ve en su app los kits despachados al trabajador que tiene su mismo tipo y número de documento. Un kit despachado a otro trabajador no le aparece. Si ningún trabajador coincide, no ve kits (decisión del 2026-11-04).
+  11. El trabajador que recibe queda registrado en el despacho, pero no limita qué kits ve el inspector: en H17 puede usar cualquier kit Despachado (cambiado por el usuario el 2026-11-17; antes solo veía los despachados al trabajador con su mismo documento).
   12. Solo se despacha un kit si todos sus dispositivos están activados para despacho (H29). Como H14 solo acepta dispositivos activados y una activación no se deshace, la regla se cumple sola; se deja escrita porque la marca es obligatoria para todo despacho (pedido por el usuario el 2026-11-13).
   13. Al despacharse, el kit pasa a Despachado. Sus dispositivos siguen En un kit (T46, 2026-11-13).
-- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
-- Fuera de esta historia: la asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
+  14. Cada kit completo (Armado, Despachado o Usado) tiene un PDF solo con su contenido (sus dispositivos, con serie, tipo y asignación), sin los datos del despacho. Cada despacho tiene su propio PDF: cuándo se despachó, quién lo entregó y a quién, los kits entregados y el contenido de cada kit por su funda (pedido por el usuario el 2026-11-17; separados a su pedido el mismo día).
+- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47) y cambiado a su pedido el 2026-11-17, tomando como referencia el despacho de BUMMOCK: el despacho es un solo modal, «Despacho masivo de kits», que se abre desde la lista de despachos (Bodega → Despachos). Arriba, el trabajador que recibe y quién entrega; abajo, el escaneo de la funda y la tabla de kits Armados con casillas, «Solo marcados», contadores y resumen por tipo. No hay un paso «Asignar» aparte. La lista de despachos muestra número (D-000013), fecha, semana, trabajador que recibe, kits con su resumen por tipo y quién despachó, con filtros de semana, trabajador y tipo de kit. Aprobado el 2026-11-17.
+- Supuestos aprobados con el diseño: el número del despacho es «D-» y su id con seis dígitos, sin columna propia; la semana del despacho es la semana ISO de su fecha, en hora de Lima; lo marcado vive en el modal hasta pulsar «Despachar» y se conserva al cambiar de página o de filtro. Al despachar, la pantalla del kit ya no ofrece escanear ni quitar.
+- Fuera de esta historia: editar un despacho y el QR del despacho. La asignación del kit a un contenedor concreto y la búsqueda de la funda por el inspector ocurren al certificar (E5).
 
 **H16 · Consultar kits y despachos**
 - Como usuario de bodega, supervisor o admin, quiero ver los kits y sus despachos, y buscar un kit por el código de su funda, para saber qué contiene, en qué estado está y quién lo tiene.
@@ -430,28 +476,33 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. Para un kit ya usado en una certificación, se ve a qué certificación pertenece (depende de E5; por confirmar).
   7. Pantalla de solo consulta.
   8. La pantalla se puede usar bien desde el celular.
-  9. La lista de despachos muestra también los despachos a granel (H30), marcados «A granel», con sus dispositivos (T46, 2026-11-13).
+  9. Los despachos a granel (H30) no van en esta lista: tienen la suya propia, en Bodega → Despachos → «A granel» (cambiado por el usuario el 2026-11-17; antes iban aquí marcados «A granel», T46).
 - Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio (decisión del usuario del 2026-11-13, T46).
 - Estados de un kit (T46, 2026-11-13): Armando (incompleto), Armado (completo, listo para despachar), Despachado (en un despacho, H15) y Usado (en una certificación, H17).
 - Falta una historia de E4, que se escribe al llegar a E6: reasignar dispositivos a una unidad en reinspección (en revisión junto con E6).
 
-**H30 · Despachar dispositivos a granel** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
-- Como usuario de bodega, quiero despachar dispositivos sueltos a un trabajador, sin armar un kit, para reponer dispositivos y para la reinspección.
+**H30 · Despachar dispositivos a granel** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día; rediseñada el 2026-11-17 siguiendo el despacho a granel de BUMMOCK)
+- Como usuario de bodega, quiero despachar dispositivos sueltos a un trabajador, sin armar un kit, para venderlos a un cliente o para reponer los de un kit en operación.
 - Criterios de aceptación:
-  1. Se elige el trabajador que recibe los dispositivos, de la lista de trabajadores activos (H25), como en H15. Quién entrega es el usuario que despacha, y queda registrado solo.
-  2. Los dispositivos se agregan de dos formas: escaneando uno por uno, y cada escaneo llena el campo y se agrega solo a la lista, sin botón de guardar; o por rango, con la serie inicial y la final.
-  3. El rango sigue las reglas de H29: las dos series deben existir, los huecos se ignoran, el máximo es de 10 000 dispositivos y se muestra una vista previa antes de agregar.
-  4. Solo se despachan dispositivos Disponibles y activados para despacho (H29). Un dispositivo en un kit no se despacha a granel. Por escaneo, el que no cumple se rechaza con un mensaje claro; por rango, si alguno no cumple, no se agrega ninguno y se muestra cuáles.
-  5. Al despacharse, los dispositivos pasan al estado nuevo Despachado.
-  6. Cada dispositivo queda en un solo despacho.
-  7. Queda registrado quién hizo el despacho y cuándo.
-  8. Se ve qué escaneos se guardaron y cuáles fallaron, para reintentar.
-  9. Los despachos a granel se ven en la lista de despachos de H16, marcados «A granel».
-  10. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
-  11. La pantalla se puede usar bien desde el celular.
-- Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; la selección es por escaneo y por rango; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
-- Fuera de esta historia: cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector) se define al revisar E6 y lo posterior a H17.
-- Diseño: aprobado por el usuario el 2026-11-13 en la página "E4 · Kits" del lienzo (T47).
+  1. Los despachos a granel tienen su propia lista, en Bodega → Despachos → «A granel», separada de la de despachos de kits. Cada despacho se numera con su propia secuencia, `DG-000001`.
+  2. El despacho se registra con el trabajador que recibe, elegido de la lista de trabajadores activos (H25) como en H15. Quién entrega es el usuario que despacha, y queda registrado solo, con la fecha y la semana.
+  3. El motivo de salida es obligatorio: Venta u Operación. Con Venta se elige un cliente activo (H31). Con Operación se elige el kit despachado al que se asignan los dispositivos: se ofrecen los kits despachados cuya certificación no se ha cerrado (hoy, todos los Despachados, porque H17 aún no existe). El selector lista y busca los contenedores de las certificaciones cuyo kit está **Usado** (se usa al cerrar la certificación, H19), cada uno con el kit que se le asignó al iniciarla (H17), por ejemplo «MSKU1234567 · KIT-000046»; también se busca por funda. Al elegir un contenedor se toma su kit original, y los dispositivos del despacho quedan enlazados a ese kit, para mantener la relación entre el contenedor, el kit y los dispositivos, como en una reinspección. Un kit que no está Usado no se ofrece. (Cambiado el 2026-11-20 en T64, a pedido del cliente y del usuario: un kit Usado siempre tiene contenedor. Antes se ofrecían los kits Despachados cuya certificación no se había cerrado y se buscaban solo por funda.)
+  4. Se elige el patio de destino entre las zonas de patio activas de la sede del usuario (H26). Es obligatorio (suposición por confirmar).
+  5. Se puede escribir una observación, opcional.
+  6. Los dispositivos se agregan de tres formas: escaneando uno por uno, y cada escaneo se agrega solo a la lista; por rango, con la serie inicial y la final; o eligiendo el tipo de dispositivo, la serie inicial y la cantidad, y el sistema calcula hasta dónde llega. La serie inicial puede ser la serie completa (HLS0000009) o solo su prefijo (HLS), y con el prefijo se empieza por el primer disponible de esa serie (pedido por el usuario el 2026-11-17, al probar la construcción). En los campos de rango y de cantidad, Enter muestra la vista previa.
+  7. El rango y el cálculo por cantidad siguen las reglas de H29: las series deben existir, los huecos se ignoran, el máximo es de 10 000 dispositivos y se muestra una vista previa antes de agregar.
+  8. Solo se despachan dispositivos Disponibles, es decir, aprobados por la naviera (H29). Un dispositivo en un kit no se despacha a granel. Por escaneo, el que no cumple se rechaza con un mensaje claro; por rango o por cantidad, si alguno no cumple, no se agrega ninguno y se muestra cuáles.
+  9. Se ve qué escaneos se agregaron y cuáles fallaron, con su motivo, para reintentar.
+  10. Al despacharse, los dispositivos pasan al estado Despachado. Cada dispositivo queda en un solo despacho, y el despacho se guarda todo o nada.
+  11. Cada despacho tiene una página de detalle con sus datos y, por cada tipo de dispositivo, su rango, su cantidad y sus series. No tiene PDF.
+  12. Por ahora, cualquier usuario con sesión despacha. Los roles pasan a H24.
+  13. La pantalla se puede usar bien desde el celular.
+- Decisiones del usuario del 2026-11-13 (T46): el receptor es un trabajador; el estado nuevo es Despachado; sirve para reponer dispositivos (por ejemplo, uno que se rompe al colocarlo) y para la reinspección de E6.
+- Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). (Reemplazado el 2026-11-20 en T64: por Operación solo se ofrecen kits Usados, es decir, de certificaciones ya cerradas.) Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
+- Depende de: H31, por el cliente de una venta (2026-11-17).
+- Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), el despacho suma un selector de tipo de dispositivo, opcional, para el escaneo y el rango. Si no se elige el tipo y la serie existe en más de un tipo, no se agrega y se avisa «Elige el tipo de dispositivo». Si se elige, solo se buscan series de ese tipo. La forma por tipo y cantidad no cambia, porque ya lleva el tipo. El selector va arriba de las pestañas y sirve para «Escanear» y «Por rango» (al construir, el 2026-11-20; en el diseño estaba dentro de la columna del escaneo).
+- Fuera de esta historia: editar o anular un despacho, su PDF, y cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector), que se define al revisar E6 y lo posterior a H17.
+- Diseño: el del 2026-11-13 (página "E4 · Kits", T47) se rehace con estas decisiones y se vuelve a aprobar en el lienzo antes de construir.
 
 ### E9 · Transportistas, conductores y vehículos
 - Los catálogos de transportistas (empresas), conductores y vehículos (remolcador y semirremolque), con sus pantallas de gestión. También se crean solos al iniciar una certificación, cuando vienen de SIGLA 1.0 y no existen todavía.
@@ -516,7 +567,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 ### E5 · Certificación del contenedor
-- Que el inspector certificado certifique el contenedor con su kit. Aprobado hasta aquí: iniciar la certificación con la solicitud de retiro y la funda del kit (H17). Lo posterior (colocar los dispositivos, fotos por sección, cerrar, consultar, PDF y reinspección) está EN REVISIÓN.
+- Que el inspector certificado certifique el contenedor con su kit. Aprobado: iniciar la certificación (H17), completar las secciones con fotos (H18), cerrarla (H19) y consultarla con su PDF (H20); H18 a H20 se aprobaron el 2026-11-20. La reinspección sigue EN REVISIÓN con E6.
 - La certificación es opcional (ver decisiones). El inspector decide a qué unidades aplicarla.
 - Fuera: EIR del gate out y fin de lavado (proceso de gate out de SIGLA, aún no se construye).
 - Depende de: E1, E2, E3, E4, E7, E9. La necesita E6.
@@ -524,33 +575,91 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H17 · Iniciar una certificación** (aprobada)
 - Como inspector certificado, quiero iniciar una certificación eligiendo la solicitud de retiro y el kit que me despacharon, para empezar a certificar esa unidad.
 - Criterios de aceptación:
-  1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige.
-  2. Al elegirla, el sistema consulta SIGLA 1.0 una sola vez y guarda en la certificación los datos de la solicitud: cliente, producto, booking, naviera y contenedor, además de la referencia al despacho.
+  1. El inspector busca la solicitud con el número de contenedor y el booking (la consulta de H05) y la elige. En pantalla el contenedor se escribe en dos partes, 4 letras y 7 números, pero se guarda y se consulta junto (ABCU1234567). Si SIGLA 1.0 trae más de una solicitud, se toma la de despacho más reciente (decisiones del usuario del 2026-11-17).
+  2. La certificación guarda el id de la solicitud, su booking, su contenedor, su cliente y su producto, además de los enlaces a la naviera y a los catálogos del criterio 3. El DNI y el brevete del conductor están en el catálogo de conductores (E9) y no se copian en la certificación (cambiado por el usuario el 2026-11-20 en T58: el cliente y el producto se guardan como texto al asignar, para que el detalle y el PDF no dependan de SIGLA 1.0; antes, desde el 2026-11-17, se consultaban cada vez).
   3. El transportista, el conductor, el remolcador y el semirremolque se enlazan con sus catálogos (E9). Si ya existen, se enlazan; si no, se crean solos. Se reconocen por RUC, DNI y placa. Desde el 2026-11-11 (T45), el conductor también se enlaza con el transportista de esa misma solicitud, si todavía no lo está.
   4. Si falla algo al guardar, no queda una certificación a medias. Se guarda todo o nada.
   5. Si SIGLA 1.0 no responde, se muestra un mensaje claro y el inspector puede reintentar.
   6. Una solicitud de retiro tiene una sola certificación. Si ya existe, se muestra esa en vez de crear otra. La reinspección reabre esa misma certificación (decisión del 2026-11-04).
-  7. El inspector busca su kit escaneando o escribiendo el código de la funda. Solo encuentra kits despachados al trabajador que tiene su mismo tipo y número de documento, y ve su contenido como información.
-  8. Un kit solo se usa en una certificación (por confirmar).
+  7. El inspector busca su kit escaneando con la cámara del teléfono o escribiendo el código de la funda. Encuentra cualquier kit Despachado, sin importar a qué trabajador se despachó, y ve su contenido como información (cambiado por el usuario el 2026-11-17, en H15). El kit debe ser de la misma naviera de la solicitud; si no, se rechaza (decisión del usuario del 2026-11-17). Al iniciar, el kit sigue Despachado.
+  8. Un kit solo se usa en una certificación (confirmado por el usuario el 2026-11-17).
   9. Queda registrado quién certifica, la fecha y la hora de inicio.
-  10. Al iniciar, el inspector pasa al formulario por pasos de las secciones (depende de H18, que está en revisión).
-  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal.
+  10. Al asignar, el inspector vuelve al listado de Asignaciones (H20), donde la unidad queda con sus dos inspecciones pendientes (cambiado el 2026-11-20 en T58; antes pasaba al formulario de las secciones).
+  11. Los datos personales del conductor (DNI y brevete) solo los ven los roles que los necesitan. No es asesoría legal. Salen del catálogo de conductores (E9), que se llena desde SIGLA 1.0 al asignar, sin copiarse en la certificación (corregido el 2026-11-20 en T58); los roles llegan con H24.
   12. La pantalla se puede usar bien desde el celular.
-  13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04).
-- La naviera que trae la API se copia como texto y código, sin enlazarla al catálogo de E8, así que no hace falta que exista en él (decisión del 2026-11-04). Cliente y producto no tienen catálogo.
-- **Propuesta de cambio (2026-11-10, por aprobar en el PR de H05):** la naviera ya no se copia: se enlaza a `shipping_lines`, y el código es el de SIGLA 2.0 (la API solo trae el nombre, por ejemplo `SEATRADE`). Antes de construir H17 falta decidir cómo se reconoce la naviera de la API en el catálogo y qué pasa si no existe. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta` (falta la lista completa de valores).
+  13. Al iniciar, el inspector elige la zona de patio, del catálogo de H26 (agregado el 2026-11-04), entre las activas de su sede (2026-11-17).
+  14. El inspector puede escanear o escribir el código de barras del formato de inspección, que es opcional y no se repite en otra certificación (agregado por el usuario el 2026-11-17).
+  15. En el menú, Certificación lleva Solicitudes de retiro, Inspección y Checkpoint, que se ve desactivada y sin enlace hasta que exista E6 (decisión del usuario del 2026-11-17). Desde el 2026-11-20 (T58), Inspección es un desplegable con Certificaciones, que abre un panel con tarjetas con icono: Asignación (esta historia), Inspección interna e Inspección externa (H18), y Asignaciones (H20), agregada por el usuario el 2026-11-20.
+  16. Al asignar, el kit se valida contra las secciones activas (H11 y H12): si sus dispositivos no alcanzan o sobran, no se asigna y se dice qué falta o qué sobra (agregado por el usuario el 2026-11-20 en T58; antes se validaba al entrar a las secciones, en H18).
+- La naviera que trae la API (solo su nombre, por ejemplo `SEATRADE`) se enlaza a `shipping_lines`: se busca por nombre sin distinguir mayúsculas; si está desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre, sin espacios ni signos (SEATRADE queda SEAT), y si ese código ya existe se le suma un número (MAER1, MAER2). Reemplaza la decisión del 2026-11-04 de copiarla como texto (decisión del usuario del 2026-11-17, que cierra la propuesta del 2026-11-10). Cliente y producto no tienen catálogo. El cliente es el operador de la solicitud, y el tipo de vehículo sale de `carroceria_tracto` y `carroceria_carreta`.
+- Diseño aprobado en el lienzo el 2026-11-17 (página E5): en el teléfono, un paso por pantalla (solicitud, kit y zona) con una barra fija de Atrás y Siguiente; en escritorio, los tres pasos juntos. La cámara usa el paquete `barcode-detector`, aprobado por el usuario el 2026-11-17.
 
-**H18 · Completar las secciones con fotos (EN REVISIÓN, no aprobada)**
+**H18 · Hacer la inspección interna y la externa con fotos** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: dos inspecciones independientes)
+- Como inspector certificado, quiero hacer la inspección interna o la externa de una unidad ya asignada, tomando las fotos de sus secciones, para dejar la evidencia de cada parte del contenedor y de los dispositivos que lleva.
+- Criterios de aceptación:
+  1. Cada unidad asignada (H17) tiene dos inspecciones: la interna, con las secciones internas activas del catálogo (H11), y la externa, con las externas. Se hacen en cualquier orden o al mismo tiempo, por el mismo inspector o por dos distintos.
+  2. Las tarjetas Inspección interna e Inspección externa del panel de Certificaciones abren la lista de unidades asignadas que tienen esa inspección pendiente o a medias, con su contenedor y su avance. Arriba hay un buscador por contenedor y un botón para escanear la funda. Al tocar una unidad empieza su paso a paso.
+  3. El sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12). Las cintas de inspección se reparten entre internas y externas como indica el tipo de kit (T55). El inspector no elige los dispositivos. El kit ya se validó al asignar (H17, criterio 16).
+  4. El inspector recorre las secciones de esa inspección una por una, en el orden de H11, en un formulario por pasos con barra de progreso. En cada paso ve el nombre de la sección y los dispositivos que lleva, con su serie. Puede ir a cualquier sección y pasar a la siguiente sin foto: la sección queda pendiente.
+  5. Cada sección lleva de 1 a n fotos, sin máximo. Cada foto se toma con la cámara del teléfono, una por vez, nunca desde la galería. En escritorio, las inspecciones se ven en solo lectura, con el aviso de que las fotos se toman desde el teléfono.
+  6. Cada foto se comprime en el navegador antes de subirse, sin paquete nuevo: de unos 7 MB a unos 700 KB. Al comprimirla se le imprimen encima la fecha, la hora y el contenedor.
+  7. La subida empieza apenas se toma la foto: su miniatura aparece al instante con su avance, y el inspector puede seguir tomando otras. Si una subida falla, se reintenta tocando la foto. Lo ya subido se muestra en miniatura liviana.
+  8. De cada foto queda quién la subió y la fecha y hora de la subida. De cada inspección se muestra su inspector y su inicio y fin, tomados de su primera y su última foto.
+  9. El avance se guarda en cada foto. El inspector puede volver atrás, ver una foto en grande, borrarla (con confirmación) o reemplazarla, y dejar la inspección a medias. Cualquier inspector la puede seguir.
+  10. Una inspección está completa cuando cada una de sus secciones tiene al menos una foto.
+  11. Una certificación cerrada (H19) no se puede editar hasta que se reapertura.
+  12. La pantalla se usa bien desde el celular.
+- Fuera: marcar daños por sección (son del EIR del gate out) y la reinspección (E6).
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.
 - Dudas abiertas: cómo se colocan los dispositivos en cada sección (el sistema podría asignarlos por defecto desde el kit y el inspector solo etiquetaría), cuántas fotos por sección y cómo se reducen desde celular (unas 30 por unidad).
+- Decisiones del usuario del 2026-11-19 (T54): el sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12), y el inspector solo toma las fotos. Las fotos se comprimen en el navegador con lo que este ya trae, sin paquete nuevo, de unos 7 MB a unos 700 KB. Cada foto se toma siempre con la cámara, nunca desde la galería. La subida empieza apenas se toma la foto y lo ya subido carga liviano en pantalla. El botón de tomar foto abre la cámara del teléfono, una foto por vez, y no la galería. Cada sección lleva de 1 a n fotos, sin máximo, guardadas en una tabla propia de fotos (una fila por foto). De cada foto queda quién la subió y la fecha y hora de la subida, y al comprimirla se le imprimen encima la fecha, la hora y el contenedor, como marca de agua. Si los dispositivos del kit no alcanzan o sobran para lo que piden las secciones activas, no se puede avanzar: se avisa al entrar a las secciones y el inspector pide otro kit. Se confirma la versión conversada (recorrido por pasos, avance guardado en cada paso, volver atrás, borrar o reemplazar fotos y dejarla a medias), con un multi-step form que muestra una barra de progreso.
 
-**H19 · Cerrar la certificación (EN REVISIÓN, no aprobada)**
+**H19 · Cerrar y reaperturar la certificación** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: se cierra desde el listado de Asignaciones y se puede reaperturar)
+- Como inspector certificado, quiero cerrar la certificación cuando sus dos inspecciones están completas, y reaperturarla si hace falta corregirla, para dejarla terminada con sus dispositivos como usados.
+- Criterios de aceptación:
+  1. El cierre es manual, desde el listado de Asignaciones (H20). El botón «Cerrar» se activa solo cuando la inspección interna y la externa están completas; mientras tanto la fila muestra el avance de cada una, y con las dos completas, «Lista para cerrar».
+  2. No hay excepciones: si una sección no tiene foto, no se cierra.
+  3. Se pide confirmación antes de cerrar.
+  4. Cualquier inspector puede cerrarla. Queda registrado quién la cerró, con la fecha y la hora.
+  5. Al cerrar, el kit pasa a Usado y sus dispositivos también. Todo se guarda junto o nada.
+  6. Una certificación cerrada no se edita.
+  7. Desde el mismo listado, una certificación cerrada se puede reaperturar con un motivo obligatorio. Queda registrado quién la reaperturó, cuándo y por qué, y se ve en el detalle. Al reaperturar, el kit y sus dispositivos siguen en Usado: solo se pueden corregir o sumar fotos, y después se vuelve a cerrar.
+  8. La pantalla se usa bien desde el celular.
+- Fuera: la reinspección del checkpoint (E6, Sprint 4).
 - Versión conversada, a revisar: resumen de secciones con y sin foto; todas las secciones obligatorias para cerrar; confirmación antes de cerrar; una certificación cerrada no se edita; el kit y sus dispositivos quedan usados; solo cierra quien la inició (por confirmar).
 - Riesgo: si una sección no se puede fotografiar por una avería, el inspector queda trabado.
+- Decisiones del usuario del 2026-11-19 (T54): cualquier inspector puede seguir y cerrar una certificación, aunque no la haya iniciado, y queda registrado quién la cerró, con la fecha y la hora (reemplaza «solo cierra quien la inició»). No hay excepción para una sección sin foto: sin al menos una foto en cada sección no se cierra, y la certificación queda a medias hasta resolverlo (el riesgo se acepta). Se confirma el resto de lo conversado: resumen de secciones con y sin foto, confirmación antes de cerrar, una cerrada no se edita, y al cerrar el kit y sus dispositivos pasan a Usado. La reapertura para la reinspección queda fuera: se define con E6 en el Sprint 4.
 
-**H20 · Consultar certificaciones (EN REVISIÓN, no aprobada)**
+**H20 · Listado de asignaciones y consulta de certificaciones** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: la consulta es el mismo listado de Asignaciones)
+- Como usuario de la intranet, quiero un listado de las unidades asignadas, para seguir su avance, cerrarlas o reaperturarlas, consultarlas y descargar el PDF de las cerradas.
+- Criterios de aceptación:
+  1. La tarjeta Asignaciones del panel de Certificaciones abre el listado de Asignaciones, con el botón «Nueva asignación» (H17); la tarjeta Asignación abre la nueva asignación (cambiado por el usuario el 2026-11-20, al construir H19: el listado tiene su propia tarjeta, con cuántas unidades están listas para cerrar). Se filtra por fecha, naviera, inspector y estado (a medias, lista para cerrar, cerrada o reaperturada), y se busca por contenedor, booking o placa.
+  2. Cada fila muestra el avance de las dos inspecciones (por ejemplo, Interna 8/13 y Externa 7/7) y las acciones que correspondan: ver, cerrar y reaperturar (H19), y PDF.
+  3. Por ahora todos los usuarios con sesión ven todas las certificaciones; la restricción por rol llega con H24.
+  4. El detalle es de solo consulta: datos de la solicitud, transportista, conductor, vehículos, kit, cada inspección con su inspector, inicio y fin, y cada sección con sus dispositivos y sus fotos. Si se reaperturó, muestra quién, cuándo y el motivo.
+  5. El PDF se descarga solo de una certificación cerrada. Lleva la cabecera (con el nombre y el DNI del conductor, del catálogo de conductores), los dispositivos asignados y las fotos por sección, con el formato de PDF del lienzo.
+  6. En el PDF, los dispositivos asignados van con tres dibujos propios del contenedor: el interior con las puertas abiertas, con su lista de dispositivos de las secciones internas, y los dos exteriores (lado de las puertas y lado de la máquina) juntos, con una sola lista de las secciones externas. Cada dispositivo lleva su serie y su sección.
+  7. El listado y el detalle se usan bien desde el celular.
+- Fuera: marcas numeradas sobre los dibujos (Sprint 4), tabla de daños por área (EIR del gate out), lista de procedimientos de seguridad y trazabilidad GPS.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
+- Decisiones del usuario del 2026-11-19 (T54): por ahora todos los usuarios con sesión ven todas las certificaciones, por la regla de roles vigente; quién ve todas o solo las suyas se define con H24. El PDF se hace con DomPDF y toma como referencia el informe de inspección actual (parecido o mejorado, no igual: ese formato es de Risk Protection S.A.). El bloque de cintas usa tres dibujos propios del contenedor en SVG (interior con puertas abiertas, exterior del lado de las puertas y exterior del lado de la máquina) y, junto a cada uno, sus cintas con la serie y la sección, armadas desde el reparto de H18. Las marcas numeradas sobre el dibujo, en el lugar de cada sección, pasan al Sprint 4 como mejora. La tabla de daños por área del formato de referencia no va: es del EIR del gate out, una inspección previa a la certificación que se construye en otra etapa; cuando exista, se podrá sumar a este PDF. Tampoco van la lista de procedimientos de seguridad ni la trazabilidad GPS (los puntos del recorrido). El PDF lleva solo la cabecera, los dispositivos asignados y las fotos, con el formato de PDF ya estandarizado en el lienzo, y se descarga solo de una certificación cerrada. Se confirma el resto de lo conversado (filtros, búsqueda y detalle de solo consulta).
+
+**H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
+- Como inspector o supervisor, quiero anular la asignación de un kit a su certificación cuando se cancela el servicio de despacho, para inhabilitar el kit o reutilizarlo según responda la naviera.
+- Criterios de aceptación:
+  1. Desde el listado de Asignaciones (H20), una certificación que nunca se cerró tiene la acción «Anular asignación». Una certificación cerrada, o reaperturada después de cerrarse, no se anula, porque al cerrarla su kit y sus dispositivos pasaron a Usado (H19). (Precisado al construir, el 2026-11-20.)
+  2. Se pide un motivo obligatorio y la decisión sobre el kit, según la respuesta de la naviera: **Reutilizar el kit** o **Inhabilitar el kit**. Se pide confirmación antes de anular.
+  3. Con «Reutilizar», el kit vuelve a Despachado con sus dispositivos, que dejan de estar repartidos en las secciones de la certificación, y se puede asignar a otra certificación (H17).
+  4. Con «Inhabilitar», el kit queda **Inhabilitado** y todos sus dispositivos pasan a Descartado (T65), con el motivo de la anulación. Un kit Inhabilitado no se asigna, no se despacha ni recibe dispositivos.
+  5. La certificación queda **Anulada**: se conserva, ya no se edita ni se cierra, y no tiene PDF. Queda registrado quién la anuló, cuándo, el motivo y la decisión sobre el kit, y se ve en su detalle (H20).
+  6. El listado de Asignaciones muestra el estado Anulada y lo suma a su filtro de estado.
+  7. Todo se guarda junto o nada.
+  8. Por ahora, cualquier usuario con sesión anula asignaciones. Qué rol puede hacerlo se define en H24.
+  9. La pantalla se usa bien desde el celular.
+- Un kit va en una sola certificación que no esté anulada (H17, criterio 8): al reutilizarlo, la anulada conserva su referencia al kit.
+- Depende de: H18 a H20 (listado de Asignaciones y detalle) y T65 (estado Descartado). Se construye en una rama que parte de la de H20.
+- Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón por fila y un modal con el motivo y la decisión, como «Reaperturar» de H19.
 
 ### E6 · Checkpoint (EN REVISIÓN, sin historias aprobadas)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.
