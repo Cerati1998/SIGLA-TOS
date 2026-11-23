@@ -98,3 +98,6 @@ Aplica solo a las vistas de pantalla del sitio enlazadas directamente con un com
 
 ## Archivos de JavaScript
 Solo se crea un archivo en `resources/js` para lógica de Alpine que se reutiliza en todo el proyecto, como una directiva (`x-digits-only`) o un helper global. Lo que usa una sola pantalla, modal o partial va en un bloque `@script` al pie de ese mismo archivo Blade, con `Alpine.data()`, y no inline en el marcado. Los campos que solo admiten números llevan `x-digits-only`, y el servidor los vuelve a validar al guardar. Razón: no llenar `resources/js` de archivos de una sola pantalla y tener la lógica junto a la vista que la usa.
+
+## Diseño en el lienzo
+Toda vista nueva tiene su diseño en el lienzo, aprobado por el usuario antes de construirla, aunque parta de una plantilla base. Una corrección a una vista que ya existe actualiza en el lienzo el diseño que esa vista ya tiene; si no tiene, la tarea de la corrección lo crea, con la vista actual y su cambio, y se aprueba antes de construir. Razón: que cada pantalla se vea y se apruebe antes de escribir código.
