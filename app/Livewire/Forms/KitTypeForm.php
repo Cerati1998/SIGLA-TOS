@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\SecurityDeviceKind;
 use App\Models\ContainerType;
 use App\Models\KitType;
 use App\Models\SecurityDeviceType;
@@ -115,8 +116,9 @@ class KitTypeForm extends Form
 
     /**
      * Get the validation rules of the form. The name is unique even among the deactivated kit types, it carries at
-     * least one security device type, and every quantity is a whole number greater than zero. A type split between
-     * internal and external takes two whole numbers from zero that add up to at least one.
+     * least one security device type and exactly one pouch (T76), and every quantity is a whole number greater than
+     * zero. A type split between internal and external takes two whole numbers from zero that add up to at least one.
+     * The pouch has no quantity: a kit carries one.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -127,12 +129,17 @@ class KitTypeForm extends Form
             'containerTypeId' => ['required', 'integer', Rule::exists(ContainerType::class, 'id')->where(
                 fn (Builder $query): Builder => $query->whereNull('deleted_at')->orWhere('id', $this->savedContainerTypeId),
             )],
-            'devices' => ['array', $this->carriesAtLeastOneDevice(...), $this->onlyChoosableDevices(...)],
+            'devices' => ['array', $this->carriesAtLeastOneDevice(...), $this->onlyChoosableDevices(...), $this->carriesOnePouch(...)],
         ];
 
         $splitIds = $this->splitDeviceTypeIds();
+        $pouchIds = $this->pouchDeviceTypeIds();
 
         foreach (array_keys($this->selectedDevices()) as $deviceTypeId) {
+            if (in_array($deviceTypeId, $pouchIds, true)) {
+                continue;
+            }
+
             if (in_array($deviceTypeId, $splitIds, true)) {
                 $rules["devices.{$deviceTypeId}.internal"] = ['required', 'integer', 'min:0', 'max:'.self::MAX_QUANTITY];
                 $rules["devices.{$deviceTypeId}.external"] = ['required', 'integer', 'min:0', 'max:'.self::MAX_QUANTITY];
@@ -261,6 +268,25 @@ class KitTypeForm extends Form
     }
 
     /**
+     * Fail when the kit type carries no pouch, or more than one: every kit is kept in a single pouch (T76). It is told
+     * only once the kit type carries something, so an empty kit type gets a single message.
+     */
+    private function carriesOnePouch(string $attribute, mixed $value, Closure $fail): void
+    {
+        if ($this->selectedDevices() === []) {
+            return;
+        }
+
+        $pouches = count(array_intersect(array_keys($this->selectedDevices()), $this->pouchDeviceTypeIds()));
+
+        if ($pouches === 0) {
+            $fail('Todo tipo de kit lleva una funda: enciende una.');
+        } elseif ($pouches > 1) {
+            $fail('Un tipo de kit lleva una sola funda: deja encendida solo una.');
+        }
+    }
+
+    /**
      * Fail when a chosen security device type is not active and the kit type did not carry it already.
      */
     private function onlyChoosableDevices(string $attribute, mixed $value, Closure $fail): void
@@ -295,6 +321,18 @@ class KitTypeForm extends Form
     {
         return $this->deviceTypes()
             ->filter(fn (SecurityDeviceType $deviceType): bool => $deviceType->splits_internal_external)
+            ->modelKeys();
+    }
+
+    /**
+     * Get the ids of the choosable security device types of kind Funda (T76).
+     *
+     * @return array<int, int>
+     */
+    private function pouchDeviceTypeIds(): array
+    {
+        return $this->deviceTypes()
+            ->filter(fn (SecurityDeviceType $deviceType): bool => $deviceType->kind === SecurityDeviceKind::Pouch)
             ->modelKeys();
     }
 
@@ -347,16 +385,24 @@ class KitTypeForm extends Form
 
     /**
      * Get the rows of the pivot table: each security device type the kit type carries, with its quantity. A split type
-     * also keeps how many go to the internal and to the external assignment, and its quantity is their sum.
+     * also keeps how many go to the internal and to the external assignment, and its quantity is their sum. The pouch
+     * always goes once (T76).
      *
      * @return array<int, array{quantity: int, internal_quantity: int|null, external_quantity: int|null}>
      */
     private function pivotRows(): array
     {
         $splitIds = $this->splitDeviceTypeIds();
+        $pouchIds = $this->pouchDeviceTypeIds();
         $rows = [];
 
         foreach ($this->selectedDevices() as $deviceTypeId => $device) {
+            if (in_array($deviceTypeId, $pouchIds, true)) {
+                $rows[$deviceTypeId] = ['quantity' => 1, 'internal_quantity' => null, 'external_quantity' => null];
+
+                continue;
+            }
+
             $rows[$deviceTypeId] = in_array($deviceTypeId, $splitIds, true)
                 ? [
                     'quantity' => $this->splitTotal($device),

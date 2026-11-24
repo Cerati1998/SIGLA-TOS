@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class SecurityDeviceTypeFactory extends Factory
 {
     /**
-     * Define the model's default state.
+     * Define the model's default state. The kind is never Funda by chance, because a pouch changes how a kit type and
+     * a kit work (T76): use the pouch state for it.
      *
      * @return array<string, mixed>
      */
@@ -20,11 +21,19 @@ class SecurityDeviceTypeFactory extends Factory
     {
         return [
             'name' => fake()->unique()->bothify('Tipo ???###'),
-            'kind' => fake()->randomElement(SecurityDeviceKind::cases()),
+            'kind' => fake()->randomElement(array_filter(SecurityDeviceKind::cases(), fn (SecurityDeviceKind $kind): bool => $kind !== SecurityDeviceKind::Pouch)),
             'splits_internal_external' => false,
             'uses_series' => true,
             'requires_lot_approval' => true,
         ];
+    }
+
+    /**
+     * A type of kind Funda: the pouch that holds a kit (T76).
+     */
+    public function pouch(): static
+    {
+        return $this->state(fn (array $attributes): array => ['kind' => SecurityDeviceKind::Pouch]);
     }
 
     /**

@@ -154,7 +154,7 @@ erDiagram
   security_device_types {
     bigint id PK
     string name UK
-    string kind "seal, container_seal, tape, other"
+    string kind "seal, container_seal, tape, pouch, other"
     boolean splits_internal_external
     boolean uses_series
     boolean requires_lot_approval
@@ -661,13 +661,13 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
-| `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
+| `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `pouch` (funda, T76) y `other` (otro). ER: `type`. No se edita después de crear. Todo tipo de kit lleva exactamente un tipo `pouch`, con cantidad 1, y la funda de cada kit es un dispositivo de ese tipo (T76). |
 | `splits_internal_external` | boolean | Por defecto `false`. Si está marcado, en el tipo de kit su cantidad se reparte entre la asignación interna y la externa (casilla en crear y editar; corrección del 2026-11-16, T55). Se puede cambiar al editar: los tipos de kit ya guardados conservan sus cantidades hasta que se editen. |
 | `uses_series` | boolean | Por defecto `true`. La casilla «No utiliza serie» lo deja en `false`: sus lotes no piden inicio ni final de serie y cada serie es solo el correlativo con ceros, única dentro del tipo (corrección del 2026-11-20, T62). |
 | `requires_lot_approval` | boolean | Por defecto `true`. Si está en `false` («Requiere aprobación en lote» desmarcada), los dispositivos de sus lotes nacen `available` y no pasan por la aprobación de H29 (T62). `uses_series` y `requires_lot_approval` solo cambian mientras el tipo no tenga lotes. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
-`SecurityDeviceTypeSeeder` carga los 8 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
+`SecurityDeviceTypeSeeder` carga los 9 tipos iniciales: los 8 de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`); y la funda (`pouch`), sumada el 2026-11-24 en T76. Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
 
 ### 5.9 `security_device_announcements` · `en código`
 

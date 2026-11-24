@@ -11,6 +11,10 @@ use App\Models\Certification;
 use App\Models\Driver;
 use App\Models\Kit;
 use App\Models\KitDispatch;
+use App\Models\SecurityDevice;
+use App\Models\SecurityDeviceAnnouncement;
+use App\Models\SecurityDeviceLot;
+use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -285,6 +289,24 @@ class CertificationStartTest extends TestCase
 
         $this->assertSame(['BANF', 'GREX', 'APLU', 'NDE'], $form->instance()->shippingLineOptions->pluck('code')->all());
         $this->assertEqualsCanonicalizing([$banana->id, $greatWhite->id], $form->get('shippingLineCandidateIds'));
+    }
+
+    public function test_the_pouch_of_the_kit_is_shown_apart_because_it_does_not_go_in_the_sections(): void
+    {
+        $this->fakeSigla1([$this->gateOutRequest()]);
+        $pouchType = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
+        $kit = $this->dispatchedKit('FMK0000012');
+        $kit->securityDeviceTypes()->attach($pouchType->id, ['quantity' => 1]);
+        $lot = SecurityDeviceLot::factory()->create([
+            'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create(['security_device_type_id' => $pouchType->id])->id,
+        ]);
+        $kit->devices()->attach(SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => 'FMK0000012'])->id);
+
+        $this->lookedUp()
+            ->set('form.pouchCode', $kit->pouch_code)
+            ->call('findKit')
+            ->assertHasNoErrors()
+            ->assertSeeText('Funda FMK0000012 · es el depósito del kit: no se reparte en las secciones ni se usa en la inspección.');
     }
 
     public function test_when_saving_fails_nothing_is_saved_and_the_inspector_is_told(): void

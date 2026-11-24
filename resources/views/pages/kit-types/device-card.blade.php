@@ -43,6 +43,11 @@
             @error("form.devices.{$deviceType->id}")
                 <p class="text-sm text-danger">{{ $message }}</p>
             @enderror
+        @elseif ($deviceType->kind === \App\Enums\SecurityDeviceKind::Pouch)
+            <p class="m-0 flex items-center justify-between gap-2">
+                <span class="text-sm font-medium text-badge-info-ink">Cantidad</span>
+                <x-status-badge variant="info">1 por kit</x-status-badge>
+            </p>
         @else
             <x-pages::kit-types.quantity-stepper :device-type="$deviceType" field="quantity" label="Cantidad" min="1" />
         @endif

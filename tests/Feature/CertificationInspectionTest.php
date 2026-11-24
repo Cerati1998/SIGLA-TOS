@@ -58,8 +58,11 @@ class CertificationInspectionTest extends TestCase
 
     public function test_assigning_copies_the_active_sections_and_places_the_devices_of_the_kit_in_each_one(): void
     {
-        $kit = $this->kitWith(['CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
+        $pouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
+        $kit = $this->kitWith(['KIT-000046' => [$pouch, null], 'CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
             'CTA0000003' => [$this->tape, KitAssignment::External], 'SLL0000001' => [$this->seal, null]]);
+
+        $this->assertNull(app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine));
 
         $certification = app(StartCertification::class)->handle($this->gateOutRequest(), $this->shippingLine, $kit, null, YardZone::factory()->create(), $this->inspector);
 
