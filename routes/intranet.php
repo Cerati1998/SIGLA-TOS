@@ -3,6 +3,8 @@
 use App\Http\Controllers\BulkDispatchController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\CertificationPhotoController;
+use App\Http\Controllers\CheckpointController;
+use App\Http\Controllers\CheckpointPhotoController;
 use App\Http\Controllers\ClientOptionsController;
 use App\Http\Controllers\DispatchedKitOptionsController;
 use App\Http\Controllers\InspectionController;
@@ -88,6 +90,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('certification-photos/{certificationPhoto}', [CertificationPhotoController::class, 'show'])->name('certification-photos.show');
 
     Route::get('certification-photos/{certificationPhoto}/thumbnail', [CertificationPhotoController::class, 'thumbnail'])->name('certification-photos.thumbnail');
+
+    Route::view('checkpoints/pending', 'pages.checkpoints.pending')->name('checkpoints.pending');
+
+    Route::get('checkpoints/{checkpoint}', [CheckpointController::class, 'show'])->whereNumber('checkpoint')->name('checkpoints.show');
+
+    Route::get('checkpoints/{checkpoint}/container-photo', [CheckpointPhotoController::class, 'container'])->name('checkpoints.container-photo');
+
+    Route::get('checkpoints/{checkpoint}/container-photo/thumbnail', [CheckpointPhotoController::class, 'containerThumbnail'])->name('checkpoints.container-photo.thumbnail');
+
+    Route::get('checkpoint-photos/{checkpointPhoto}', [CheckpointPhotoController::class, 'show'])->name('checkpoint-photos.show');
+
+    Route::get('checkpoint-photos/{checkpointPhoto}/thumbnail', [CheckpointPhotoController::class, 'thumbnail'])->name('checkpoint-photos.thumbnail');
 
     Route::get('certifications/{certification}', [CertificationController::class, 'show'])->name('certifications.show');
 
