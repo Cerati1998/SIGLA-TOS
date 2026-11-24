@@ -49,5 +49,9 @@ class DatabaseSeeder extends Seeder
                 'password' => bcrypt('12345678'),
             ]
         );
+
+        if (app()->isLocal()) {
+            $this->call(LocalTestingSeeder::class);
+        }
     }
 }
