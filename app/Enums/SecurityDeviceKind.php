@@ -7,6 +7,7 @@ enum SecurityDeviceKind: string
     case Seal = 'seal';
     case ContainerSeal = 'container_seal';
     case Tape = 'tape';
+    case Pouch = 'pouch';
     case Other = 'other';
 
     /**
@@ -18,6 +19,7 @@ enum SecurityDeviceKind: string
             self::Seal => 'Sello',
             self::ContainerSeal => 'Precinto',
             self::Tape => 'Cinta',
+            self::Pouch => 'Funda',
             self::Other => 'Otro',
         };
     }

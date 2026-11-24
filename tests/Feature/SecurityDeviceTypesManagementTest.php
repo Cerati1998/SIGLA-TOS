@@ -31,13 +31,14 @@ class SecurityDeviceTypesManagementTest extends TestCase
         $this->seed(SecurityDeviceTypeSeeder::class);
         $this->seed(SecurityDeviceTypeSeeder::class);
 
-        $this->assertDatabaseCount('security_device_types', 8);
+        $this->assertDatabaseCount('security_device_types', 9);
         $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta de inspección', 'kind' => SecurityDeviceKind::Tape->value, 'splits_internal_external' => true]);
         $this->assertDatabaseHas('security_device_types', ['name' => 'Cinta puerta empty', 'kind' => SecurityDeviceKind::Tape->value, 'splits_internal_external' => false]);
         $this->assertDatabaseMissing('security_device_types', ['name' => 'Cinta externa']);
         $this->assertDatabaseMissing('security_device_types', ['name' => 'Cinta interna']);
         $this->assertDatabaseHas('security_device_types', ['name' => 'Precinto de naviera', 'kind' => SecurityDeviceKind::ContainerSeal->value]);
         $this->assertSoftDeleted('security_device_types', ['name' => 'Sello cable']);
+        $this->assertDatabaseHas('security_device_types', ['name' => 'Funda', 'kind' => SecurityDeviceKind::Pouch->value]);
     }
 
     public function test_guests_cannot_open_the_screen(): void
