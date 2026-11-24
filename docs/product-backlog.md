@@ -724,8 +724,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   11. Un checkpoint cerrado no se edita.
   12. Por ahora, cualquier usuario con sesión hace el checkpoint; los roles llegan con H24.
   13. La pantalla se usa bien desde el celular.
+- Decisiones del usuario del 2026-11-24, antes de construir:
+  - Mientras no exista H35, con una serie en ✗ «Finalizar» queda inactivo, con el aviso de que el checkpoint pasa a reinspección. El checkpoint queda a medias, con su ✗ guardada; H35 suma el motivo y la reinspección.
+  - La foto del contenedor es una sola por checkpoint: tomar otra reemplaza la anterior, y queda quién la tomó y cuándo. Es opcional: no hace falta para cerrar.
+  - El checkpoint nace la primera vez que alguien abre la unidad: ahí copia las secciones activas de tipo Checkpoint, en su orden, como la certificación copia las suyas al asignar el kit (H18). Desde entonces, los cambios del catálogo no lo alteran, esté a medias o cerrado. Una unidad que nadie abrió sale «Sin empezar», con sus pasos contados sobre el catálogo de ese momento.
 
-- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y el menú el 2026-11-24): elegir la unidad, el paso de verificación con los botones «Correcta» e «Incorrecta», y el último paso con observaciones, fotos extra, resumen y «Finalizar». El paso de fotos es el de H18. Con todas las series correctas, el botón dice «Finalizar y cerrar».
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y el menú el 2026-11-24): elegir la unidad, el paso de verificación con los botones «Correcta» e «Incorrecta», y el último paso con observaciones, fotos extra, resumen y «Finalizar». El paso de fotos es el de H18. Con todas las series correctas, el botón dice «Finalizar y cerrar». El botón opcional «Tomar foto del contenedor», con su miniatura y «Quitar», se aprobó el 2026-11-24.
 
 **H35 · Reinspección desde el checkpoint** (aprobada el 2026-11-23 en T67)
 - Como inspector checkpoint, quiero iniciar la reinspección cuando una cinta o un sello no está bien, para que el inspector certificado cambie solo lo que falló y yo vuelva a verificarlo antes de cerrar.
