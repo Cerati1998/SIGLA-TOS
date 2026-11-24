@@ -9,6 +9,7 @@ use App\Actions\Kits\CreateKit;
 use App\Actions\SecurityDevices\ApproveSecurityDeviceLotRange;
 use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
 use App\Enums\CertificationSectionType;
+use App\Enums\SecurityDeviceKind;
 use App\Enums\SecurityDeviceStatus;
 use App\Enums\VehicleKind;
 use App\Models\Carrier;
@@ -45,8 +46,6 @@ class LocalTestingSeeder extends Seeder
 
     private User $user;
 
-    private int $nextPouch = 1;
-
     /**
      * Load the sample data.
      */
@@ -75,8 +74,13 @@ class LocalTestingSeeder extends Seeder
         $containerSeal = SecurityDeviceType::query()->where('name', 'Precinto de naviera')->firstOrFail();
         $bottleSeal = SecurityDeviceType::query()->where('name', 'Sello botella')->firstOrFail();
         $inspectionTape = SecurityDeviceType::query()->where('name', 'Cinta de inspección')->firstOrFail();
+        $pouch = SecurityDeviceType::query()->where('name', 'Funda')->firstOrFail();
         $this->certificationSections($containerSeal, $bottleSeal, $inspectionTape);
 
+        $this->lot($maersk, $providers[0], $pouch, 'FMK', 1, 30);
+        $this->lot($hapagLloyd, $providers[0], $pouch, 'FHL', 1, 30);
+        $this->lot($chiquita, $providers[0], $pouch, 'FCQ', 1, 30);
+        $this->lot($seatrade, $providers[0], $pouch, 'FST', 1, 30);
         $this->lot($maersk, $providers[0], $containerSeal, 'MSK', 1, 60);
         $this->lot($maersk, $providers[0], $bottleSeal, 'SB', 1001, 1120);
         $this->lot($maersk, $providers[1], $inspectionTape, 'CIN', 1, 120);
@@ -90,11 +94,13 @@ class LocalTestingSeeder extends Seeder
 
         $containerType = ContainerType::query()->orderBy('id')->firstOrFail();
         $reeferKit = KitType::factory()
+            ->carrying($pouch, 1)
             ->carrying($containerSeal, 1)
             ->carrying($bottleSeal, 2)
             ->hasAttached($inspectionTape, ['quantity' => 3, 'internal_quantity' => 1, 'external_quantity' => 2], 'securityDeviceTypes')
             ->create(['name' => 'Kit de seguridad reefer', 'container_type_id' => $containerType->id]);
         $sealsKit = KitType::factory()
+            ->carrying($pouch, 1)
             ->carrying($bottleSeal, 2)
             ->create(['name' => 'Kit de cambio de sellos', 'container_type_id' => $containerType->id]);
 
@@ -230,19 +236,32 @@ class LocalTestingSeeder extends Seeder
     }
 
     /**
-     * Create a kit and scan its devices, leaving the given number of them missing.
+     * Create a kit with the next available pouch of its shipping line, and scan its devices, leaving the given number
+     * of them missing.
      */
     private function kit(KitType $kitType, ShippingLine $shippingLine, int $leaveMissing = 0): Kit
     {
+        $pouchCode = SecurityDevice::query()
+            ->where('status', SecurityDeviceStatus::Available)
+            ->whereHas('lot.announcement', fn ($query) => $query
+                ->where('shipping_line_id', $shippingLine->id)
+                ->whereHas('securityDeviceType', fn ($type) => $type->where('kind', SecurityDeviceKind::Pouch)))
+            ->orderBy('serial_number')
+            ->value('serial_number');
+
         $kit = app(CreateKit::class)->handle([
-            'pouchCode' => sprintf('KIT-%06d', $this->nextPouch++),
+            'pouchCode' => (string) $pouchCode,
             'kitTypeId' => $kitType->id,
             'shippingLineId' => $shippingLine->id,
         ], $this->user);
 
+        if (is_string($kit)) {
+            throw new RuntimeException("No se pudo crear el kit de {$shippingLine->code}: {$kit}");
+        }
+
         $addDevice = app(AddSecurityDeviceToKit::class);
-        $slots = $kit->slots();
-        $toAdd = array_sum(array_column($slots, 'quantity')) - $leaveMissing;
+        $slots = array_values(array_filter($kit->slots(), fn (array $slot): bool => $slot['added'] < $slot['quantity']));
+        $toAdd = array_sum(array_map(fn (array $slot): int => $slot['quantity'] - $slot['added'], $slots)) - $leaveMissing;
 
         foreach ($slots as $slot) {
             for ($added = 0; $added < $slot['quantity'] && $toAdd > 0; $added++, $toAdd--) {
