@@ -1,8 +1,10 @@
 @php
     $steps = $this->steps;
+    $extras = $this->extras;
+    $current = fn ($step) => $step->photos->whereNull('superseded_by_replacement_id');
     $total = $steps->count();
-    $done = $steps->filter(fn ($step) => $step->photos->isNotEmpty())->count();
-    $firstPending = $steps->search(fn ($step) => $step->photos->isEmpty());
+    $done = $steps->filter(fn ($step) => $current($step)->isNotEmpty())->count();
+    $firstPending = $steps->search(fn ($step) => $current($step)->isEmpty());
     $tone = $type === \App\Enums\CertificationSectionType::Internal ? 'purple' : 'info';
 @endphp
 
@@ -49,33 +51,72 @@
                     class="flex min-h-11 items-center gap-2.5 border-l-4 px-3 py-1.5 text-left text-sm">
                     <span class="w-5 flex-none text-ink-muted">{{ $index + 1 }}</span>
                     <span class="min-w-0 flex-1">{{ $step->section->name }}</span>
-                    <span @class(['size-2.5 flex-none rounded-full', 'bg-status-green' => $step->photos->isNotEmpty(), 'border-2 border-highlight' => $step->photos->isEmpty()])
-                        aria-label="{{ $step->photos->isNotEmpty() ? 'Con foto' : 'Sin foto' }}"></span>
+                    <span @class(['size-2.5 flex-none rounded-full', 'bg-status-green' => $current($step)->isNotEmpty(), 'border-2 border-highlight' => $current($step)->isEmpty()])
+                        aria-label="{{ $current($step)->isNotEmpty() ? 'Con foto' : 'Sin foto' }}"></span>
                 </button>
             @endforeach
         </nav>
 
         <div class="flex min-w-0 flex-col gap-4">
             @foreach ($steps as $index => $step)
+                @php
+                    $currentPhotos = $current($step);
+                    $oldPhotos = $step->photos->whereNotNull('superseded_by_replacement_id');
+                    $replacedBy = $step->replacements->keyBy('installed_device_id');
+                @endphp
                 <section wire:key="step-{{ $step->id }}" x-show="current === {{ $index }}" @if ($index !== ($firstPending === false ? 0 : $firstPending)) x-cloak @endif class="flex flex-col gap-4">
                     <div class="flex flex-col gap-2">
                         <h3 class="m-0 font-heading text-h3 font-medium text-brand">{{ $step->section->name }}</h3>
                         <div class="flex flex-wrap gap-2">
                             <x-status-badge :variant="$tone">{{ $type->label() }}</x-status-badge>
-                            @if ($step->photos->isNotEmpty())
+                            @if ($currentPhotos->isNotEmpty())
                                 <x-status-badge variant="success">Con foto</x-status-badge>
+                            @elseif ($oldPhotos->isNotEmpty())
+                                <x-status-badge variant="warning">Falta foto nueva</x-status-badge>
                             @else
                                 <x-status-badge variant="warning">Sin foto todavía</x-status-badge>
                             @endif
                         </div>
                     </div>
 
+                    @if ($extras['total'] > 0)
+                        <button type="button" x-on:click="$dispatch('open-extra-devices')"
+                            class="flex min-h-15 w-full items-center gap-3 rounded-card border-2 border-brand bg-badge-info px-3.5 py-2.5 text-left text-brand">
+                            <x-feather name="package" class="size-6" />
+                            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                                <strong class="text-base font-semibold">Dispositivos extra</strong>
+                                <small class="text-sm text-badge-info-ink">Despachados a granel para esta unidad · {{ $extras['unusedCount'] }} sin usar</small>
+                            </span>
+                            @if ($extras['unusedCount'] > 0)
+                                <span class="inline-flex size-7 flex-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-white" aria-hidden="true">{{ $extras['unusedCount'] }}</span>
+                            @endif
+                            <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
+                        </button>
+                    @endif
+
                     <div class="flex flex-col rounded-card bg-white px-4 py-3.5 shadow-card">
                         <strong class="pb-1.5 font-heading text-base font-medium">Dispositivos de esta sección</strong>
                         @forelse ($step->devices as $device)
-                            <div wire:key="device-{{ $device->id }}" class="flex items-center justify-between gap-2.5 border-t border-line py-2.5 text-sm first-of-type:border-t-0">
-                                <span>{{ $device->lot->securityDeviceType->name }}</span>
-                                <span class="inline-flex h-7 items-center rounded-full border border-line bg-surface px-2.5 font-medium">{{ $device->serial_number }}</span>
+                            @php $replacement = $replacedBy->get($device->id); @endphp
+                            <div wire:key="device-{{ $device->id }}" class="flex items-center gap-2.5 border-t border-line py-2.5 text-sm first-of-type:border-t-0">
+                                <span class="flex min-w-0 flex-1 flex-col items-start gap-1">
+                                    <span>{{ $device->lot->securityDeviceType->name }}</span>
+                                    <span @class([
+                                        'inline-flex h-7 items-center rounded-full border px-2.5 font-medium',
+                                        'border-status-green bg-badge-success text-badge-success-ink' => $replacement !== null,
+                                        'border-line bg-surface' => $replacement === null,
+                                    ])>{{ $device->serial_number }}</span>
+                                    @if ($replacement !== null)
+                                        <span class="text-xs text-ink-muted">Reemplazó a <s>{{ $replacement->removedDevice->serial_number }}</s> · {{ $replacement->created_at?->timezone('America/Lima')->format('d/m/Y H:i') }}</span>
+                                    @endif
+                                </span>
+                                @if (in_array($device->lot->security_device_type_id, $extras['unusedTypeIds'], true))
+                                    <button type="button" x-show="canCapture" x-on:click="$dispatch('replace-security-device', { deviceId: {{ $device->id }} })"
+                                        class="inline-flex h-11 flex-none items-center gap-1.5 rounded-control border border-brand bg-white px-3 text-sm font-medium text-brand">
+                                        <i class="fa-solid fa-right-left text-xs" aria-hidden="true"></i>
+                                        Reemplazar
+                                    </button>
+                                @endif
                             </div>
                         @empty
                             <p class="m-0 text-sm text-ink-muted">Solo foto: esta sección no lleva dispositivos.</p>
@@ -84,8 +125,8 @@
 
                     <div class="flex flex-col gap-3.5 rounded-card bg-white p-4 shadow-card">
                         <div class="flex items-baseline justify-between gap-2">
-                            <strong class="font-heading text-base font-medium">Fotos</strong>
-                            <span class="text-sm text-ink-muted">{{ $step->photos->count() }} · mínimo 1</span>
+                            <strong class="font-heading text-base font-medium">{{ $oldPhotos->isEmpty() ? 'Fotos' : 'Fotos nuevas' }}</strong>
+                            <span @class(['text-sm', 'font-medium text-badge-warning-ink' => $currentPhotos->isEmpty() && $oldPhotos->isNotEmpty(), 'text-ink-muted' => $currentPhotos->isNotEmpty() || $oldPhotos->isEmpty()])>{{ $currentPhotos->count() }} · mínimo 1</span>
                         </div>
 
                         <button type="button" x-show="canCapture" x-on:click="takePhoto({{ $step->id }})"
@@ -96,9 +137,9 @@
                         <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente.</p>
 
                         <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
-                            @foreach ($step->photos as $photo)
+                            @foreach ($currentPhotos as $photo)
                                 <button type="button" wire:key="photo-{{ $photo->id }}"
-                                    x-on:click="openViewer({ stepId: {{ $step->id }}, photoId: {{ $photo->id }}, section: @js($step->section->name), url: @js(route('intranet.certification-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at->format('d/m/Y').' a las '.$photo->created_at->format('H:i')) })"
+                                    x-on:click="openViewer({ stepId: {{ $step->id }}, photoId: {{ $photo->id }}, section: @js($step->section->name), url: @js(route('intranet.certification-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at->format('d/m/Y').' a las '.$photo->created_at->format('H:i')), old: false })"
                                     class="relative aspect-square overflow-hidden rounded-lg bg-control" aria-label="Ver la foto {{ $loop->iteration }}">
                                     <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
                                     <span class="absolute top-1.5 right-1.5 flex size-5.5 items-center justify-center rounded-full bg-status-green text-white" aria-hidden="true">
@@ -123,6 +164,25 @@
                                 </template>
                             </div>
                         </div>
+
+                        @if ($oldPhotos->isNotEmpty())
+                            @if ($currentPhotos->isEmpty())
+                                <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Mientras falte la foto nueva, la sección queda pendiente y la certificación no se cierra.</p>
+                            @endif
+                            <div class="flex items-baseline justify-between gap-2 border-t border-line pt-3.5">
+                                <span class="text-base font-medium text-ink-muted">Antes del reemplazo · {{ $oldPhotos->count() }}</span>
+                                <span class="text-sm text-ink-muted">No cuentan</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
+                                @foreach ($oldPhotos as $photo)
+                                    <button type="button" wire:key="old-photo-{{ $photo->id }}"
+                                        x-on:click="openViewer({ stepId: {{ $step->id }}, photoId: {{ $photo->id }}, section: @js($step->section->name.' · antes del reemplazo'), url: @js(route('intranet.certification-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at->format('d/m/Y').' a las '.$photo->created_at->format('H:i')), old: true })"
+                                        class="relative aspect-square overflow-hidden rounded-lg bg-control opacity-55" aria-label="Ver la foto {{ $loop->iteration }}, antes del reemplazo">
+                                        <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </section>
             @endforeach
@@ -161,8 +221,8 @@
                         class="flex min-h-13 w-full items-center gap-2.5 border-t border-line py-1.5 text-left text-base">
                         <span class="w-5.5 flex-none text-ink-muted">{{ $index + 1 }}</span>
                         <span class="min-w-0 flex-1">{{ $step->section->name }}</span>
-                        @if ($step->photos->isNotEmpty())
-                            <x-status-badge variant="success">{{ trans_choice(':count foto|:count fotos', $step->photos->count()) }}</x-status-badge>
+                        @if ($current($step)->isNotEmpty())
+                            <x-status-badge variant="success">{{ trans_choice(':count foto|:count fotos', $current($step)->count()) }}</x-status-badge>
                         @else
                             <x-status-badge variant="warning">Sin foto</x-status-badge>
                         @endif
@@ -185,7 +245,7 @@
             </div>
             <div class="flex flex-none flex-col gap-3 p-4 pb-6">
                 <span class="text-sm">Subida por <strong x-text="viewer?.by"></strong> el <span x-text="viewer?.at"></span>.</span>
-                <div x-show="canCapture" class="grid grid-cols-2 gap-2.5">
+                <div x-show="canCapture && ! viewer?.old" class="grid grid-cols-2 gap-2.5">
                     <button type="button" x-on:click="replace" class="inline-flex h-13 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
                     <button type="button" x-on:click="remove" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
                 </div>

@@ -6,6 +6,7 @@ use App\Enums\CertificationSectionType;
 use App\Models\Certification;
 use App\Models\CertificationPhoto;
 use App\Models\CertificationStep;
+use App\Models\SecurityDeviceReplacement;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
  * and its photos.
  *
  * @phpstan-type Inspection array{type: CertificationSectionType, sections: int, photos: int, inspectors: list<string>, startedAt: Carbon|null, finishedAt: Carbon|null}
- * @phpstan-type Description array{inspections: list<Inspection>, steps: Collection<int, CertificationStep>, photos: int, devices: int}
+ * @phpstan-type Description array{inspections: list<Inspection>, steps: Collection<int, CertificationStep>, photos: int, devices: int, replacements: Collection<int, SecurityDeviceReplacement>}
  */
 class DescribeCertification
 {
@@ -41,6 +42,9 @@ class DescribeCertification
             'steps' => $steps,
             'photos' => $steps->sum(fn (CertificationStep $step): int => $step->photos->count()),
             'devices' => $steps->sum(fn (CertificationStep $step): int => $step->devices->count()),
+            'replacements' => $certification->replacements()
+                ->with(['removedDevice.lot.securityDeviceType', 'installedDevice', 'bulkDispatch', 'step.section', 'replacer'])
+                ->get(),
         ];
     }
 

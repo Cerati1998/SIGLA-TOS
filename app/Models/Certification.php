@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BulkDispatchReason;
 use App\Enums\CertificationKitDecision;
 use App\Enums\CertificationSectionType;
 use App\Enums\CertificationStatus;
@@ -62,6 +63,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CertificationStep> $steps
  * @property-read Collection<int, CertificationReopening> $reopenings
  * @property-read CertificationReopening|null $lastReopening
+ * @property-read Collection<int, SecurityDeviceReplacement> $replacements
  */
 #[Fillable([
     'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
@@ -219,6 +221,29 @@ class Certification extends Model
     }
 
     /**
+     * Get its extra devices (H38, criterion 2): the ones a bulk dispatch for the operation sent to its kit, whether they
+     * are still unused (Despachado) or already replaced a device of the kit.
+     *
+     * @return Builder<SecurityDevice>
+     */
+    public function extraDevices(): Builder
+    {
+        return SecurityDevice::query()->whereHas('bulkDispatches', fn (Builder $dispatches) => $dispatches
+            ->where('reason', BulkDispatchReason::Operation)
+            ->where('kit_id', $this->kit_id));
+    }
+
+    /**
+     * Get the replacements of devices of its kit by extra devices, the newest first (H38, criterion 8).
+     *
+     * @return HasMany<SecurityDeviceReplacement, $this>
+     */
+    public function replacements(): HasMany
+    {
+        return $this->hasMany(SecurityDeviceReplacement::class)->latest()->latest('id');
+    }
+
+    /**
      * Whether the assignment of its kit was annulled: then it is kept, but it is neither edited nor closed (H32).
      */
     public function isAnnulled(): bool
@@ -264,9 +289,9 @@ class Certification extends Model
     {
         $query->withCount([
             'steps as internal_total' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal),
-            'steps as internal_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal)->has('photos'),
+            'steps as internal_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal)->has('currentPhotos'),
             'steps as external_total' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External),
-            'steps as external_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External)->has('photos'),
+            'steps as external_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External)->has('currentPhotos'),
         ])->withExists('reopenings');
     }
 
@@ -280,7 +305,7 @@ class Certification extends Model
     {
         $complete = fn (Builder $certifications) => $certifications
             ->has('steps')
-            ->whereDoesntHave('steps', fn (Builder $steps) => $steps->doesntHave('photos'));
+            ->whereDoesntHave('steps', fn (Builder $steps) => $steps->doesntHave('currentPhotos'));
 
         if ($status === CertificationStatus::Annulled) {
             $query->whereNotNull('certifications.annulled_at');
@@ -320,8 +345,8 @@ class Certification extends Model
     }
 
     /**
-     * Whether every section of both inspections has at least one photo, the only way to close it (H19, criteria 1
-     * and 2). A certification without sections is never complete.
+     * Whether every section of both inspections has at least one photo that counts, the only way to close it (H19,
+     * criteria 1 and 2; H38, criterion 6). A certification without sections is never complete.
      */
     public function inspectionsAreComplete(): bool
     {
@@ -355,11 +380,11 @@ class Certification extends Model
      */
     public function inspectionProgress(CertificationSectionType $type): array
     {
-        $steps = $this->steps()->where('type', $type)->withExists('photos')->get();
+        $steps = $this->steps()->where('type', $type)->withExists('currentPhotos')->get();
 
         return [
             'total' => $steps->count(),
-            'done' => $steps->where('photos_exists', true)->count(),
+            'done' => $steps->where('current_photos_exists', true)->count(),
         ];
     }
 }

@@ -29,6 +29,8 @@ use Illuminate\Support\Carbon;
  * @property-read CertificationSection $section
  * @property-read Collection<int, SecurityDevice> $devices
  * @property-read Collection<int, CertificationPhoto> $photos
+ * @property-read Collection<int, CertificationPhoto> $currentPhotos
+ * @property-read Collection<int, SecurityDeviceReplacement> $replacements
  */
 #[Fillable(['certification_id', 'certification_section_id', 'type', 'position'])]
 class CertificationStep extends Model
@@ -87,5 +89,26 @@ class CertificationStep extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(CertificationPhoto::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    /**
+     * Get the photos that count, the oldest first: the ones taken after the last replacement of a device of the section
+     * (H38, criterion 6). The section is done when it has at least one of them.
+     *
+     * @return HasMany<CertificationPhoto, $this>
+     */
+    public function currentPhotos(): HasMany
+    {
+        return $this->photos()->whereNull('superseded_by_replacement_id');
+    }
+
+    /**
+     * Get the replacements of devices of the section, the oldest first (H38).
+     *
+     * @return HasMany<SecurityDeviceReplacement, $this>
+     */
+    public function replacements(): HasMany
+    {
+        return $this->hasMany(SecurityDeviceReplacement::class)->orderBy('created_at')->orderBy('id');
     }
 }
