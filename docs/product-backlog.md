@@ -292,6 +292,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   - Un dispositivo Descartado no se agrega a un kit (H14) ni se despacha a granel (H30). El detalle del lote lo cuenta aparte.
   - Descartar cambia el estado del dispositivo, así que la serie del lote ya no se puede corregir (H28, criterio 3).
   - Hay un segundo camino de descarte, desde un kit cuya asignación se anuló (H32).
+- Corrección del 2026-11-24 (T77), pedida por el usuario el 2026-11-23: el descarte pide, además del motivo, una **foto obligatoria**, tomada con la cámara y comprimida en el navegador como en H18, con un visor para verla en grande, volver a tomarla o quitarla. Cada dispositivo Descartado del detalle del lote tiene el botón «Ver descarte», y solo esos: abre un modal con el motivo, la foto (que se amplía) y quién lo descartó y cuándo (confirmado por el usuario el 2026-11-24). No está en la búsqueda por serie. Diseño: «T77 · Foto al descartar un dispositivo», página «E2 · Dispositivos de seguridad» del lienzo, aprobado por el usuario el 2026-11-24.
   - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón rojo por fila y un modal con el motivo, como «Reaperturar» de H19.
 - Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al buscar una serie se muestran todas las coincidencias, cada una con su tipo y su lote.
 
@@ -669,6 +670,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Un kit va en una sola certificación que no esté anulada (H17, criterio 8): al reutilizarlo, la anulada conserva su referencia al kit.
 - Depende de: H18 a H20 (listado de Asignaciones y detalle) y T65 (estado Descartado). Se construye en una rama que parte de la de H20.
 - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón por fila y un modal con el motivo y la decisión, como «Reaperturar» de H19.
+- Corrección del 2026-11-24 (T77): con «Inhabilitar el kit» (criterio 4) se pide además una **foto obligatoria** del kit, una sola, que queda como foto del descarte de cada uno de sus dispositivos y se ve en su «Ver descarte» (H08). Con «Reutilizar» no se pide (decisión del usuario del 2026-11-24). El modal de anular quedó dibujado en el diseño de T77.
 
 ### E6 · Checkpoint (historias aprobadas el 2026-11-23)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.
