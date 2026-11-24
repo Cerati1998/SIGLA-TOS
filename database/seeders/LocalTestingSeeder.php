@@ -31,9 +31,10 @@ use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
- * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, sections, carriers with their
- * drivers and vehicles, lots received and activated, kit types, kits Armados and Armando, and four dispatches, two of
- * them with kits of Chiquita and Seatrade ready to assign (T74). It goes through the same actions as the screens.
+ * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, the devices of some catalog
+ * sections, carriers with their drivers and vehicles, lots received and activated, kit types, kits Armados and Armando,
+ * and four dispatches, two of them with kits of Chiquita and Seatrade ready to assign (T74). It goes through the same
+ * actions as the screens.
  * DatabaseSeeder runs it only in the local environment; it can also run on its own, never in production:
  * php artisan db:seed --class=LocalTestingSeeder
  */
@@ -158,28 +159,30 @@ class LocalTestingSeeder extends Seeder
     }
 
     /**
-     * Create the sections of the container, external and internal, with the devices that together make exactly the
-     * reefer kit, so its kits fit when they are assigned (H17, criterion 16).
+     * Set the devices of some sections of the catalog (H33), so that together they make exactly the reefer kit and its
+     * kits fit when they are assigned (H17, criterion 16). A section the admin already configured is left as it is.
      */
     private function certificationSections(SecurityDeviceType $containerSeal, SecurityDeviceType $bottleSeal, SecurityDeviceType $inspectionTape): void
     {
+        $this->call(CertificationSectionCatalogSeeder::class);
+
         $sections = [
-            ['Lado derecho', CertificationSectionType::External, [[$inspectionTape, 1]]],
-            ['Lado izquierdo', CertificationSectionType::External, [[$inspectionTape, 1]]],
-            ['Puertas', CertificationSectionType::External, [[$containerSeal, 1], [$bottleSeal, 2]]],
-            ['Techo', CertificationSectionType::External, []],
-            ['Piso', CertificationSectionType::Internal, [[$inspectionTape, 1]]],
-            ['Panel frontal', CertificationSectionType::Internal, []],
+            ['Puerta cerrada y panorámica', CertificationSectionType::Internal, [[$containerSeal, 1], [$bottleSeal, 2]]],
+            ['Kit de precintos en piso', CertificationSectionType::Internal, [[$inspectionTape, 1]]],
+            ['Evaporadores cerrados', CertificationSectionType::External, [[$inspectionTape, 1]]],
+            ['Ventilador', CertificationSectionType::External, [[$inspectionTape, 1]]],
         ];
 
-        foreach ($sections as $order => [$name, $type, $devices]) {
-            $section = CertificationSection::factory();
+        foreach ($sections as [$name, $type, $devices]) {
+            $section = CertificationSection::query()->where('name', $name)->where('type', $type)->firstOrFail();
 
-            foreach ($devices as [$securityDeviceType, $quantity]) {
-                $section = $section->carrying($securityDeviceType, $quantity);
+            if ($section->securityDeviceTypes()->exists()) {
+                continue;
             }
 
-            $section->create(['name' => $name, 'type' => $type, 'sort_order' => $order + 1]);
+            foreach ($devices as [$securityDeviceType, $quantity]) {
+                $section->securityDeviceTypes()->attach($securityDeviceType, ['quantity' => $quantity]);
+            }
         }
     }
 

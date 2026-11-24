@@ -101,7 +101,7 @@ class CertificationSectionsManagementTest extends TestCase
             ->call('save')
             ->assertHasErrors(['form.name' => 'required', 'form.type' => 'required'])
             ->assertSeeText('El campo nombre es obligatorio.')
-            ->assertSeeText('Elige si la sección es interna o externa.');
+            ->assertSeeText('Elige si la sección es interna, externa o de checkpoint.');
 
         Livewire::test(CreateModal::class)
             ->set('form.name', 'Sección')

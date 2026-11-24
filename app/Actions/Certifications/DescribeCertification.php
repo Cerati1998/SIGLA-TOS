@@ -36,7 +36,7 @@ class DescribeCertification
         return [
             'inspections' => array_map(
                 fn (CertificationSectionType $type): array => $this->inspection($type, $steps->where('type', $type)),
-                CertificationSectionType::cases(),
+                CertificationSectionType::inspectionTypes(),
             ),
             'steps' => $steps,
             'photos' => $steps->sum(fn (CertificationStep $step): int => $step->photos->count()),

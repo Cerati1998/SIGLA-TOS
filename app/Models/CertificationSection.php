@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CertificationSectionType;
+use App\Enums\CheckpointSectionKind;
 use Database\Factories\CertificationSectionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,18 +14,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
- * A section of the container that the certification inspects (H11). Its order is the order of the steps.
+ * A section of the container that the certification inspects (H11), or a step of the checkpoint (H33). Its order is
+ * the order of the steps: one order for all of them, each inspection and the checkpoint take only their own.
  *
  * @property int $id
  * @property string $name
  * @property CertificationSectionType $type
+ * @property CheckpointSectionKind|null $checkpoint_kind What a checkpoint section asks for; null for the other types.
  * @property int|null $sort_order Position among the active sections; null while it is deactivated.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, SecurityDeviceType> $securityDeviceTypes
+ * @property-read Collection<int, CertificationSection> $verifiedSections
  */
-#[Fillable(['name', 'type', 'sort_order'])]
+#[Fillable(['name', 'type', 'checkpoint_kind', 'sort_order'])]
 class CertificationSection extends Model
 {
     /** @use HasFactory<CertificationSectionFactory> */
@@ -39,6 +43,7 @@ class CertificationSection extends Model
     {
         return [
             'type' => CertificationSectionType::class,
+            'checkpoint_kind' => CheckpointSectionKind::class,
             'sort_order' => 'integer',
         ];
     }
@@ -55,5 +60,20 @@ class CertificationSection extends Model
             ->withPivot('quantity')
             ->withTrashed()
             ->orderBy('security_device_types.name');
+    }
+
+    /**
+     * Get the internal or external sections whose serial numbers a checkpoint section of verification shows (H33),
+     * even the deactivated ones: the link stays until the admin removes it.
+     *
+     * @return BelongsToMany<CertificationSection, $this>
+     */
+    public function verifiedSections(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'certification_section_verifications', 'checkpoint_section_id', 'verified_section_id')
+            ->withTrashed()
+            ->orderByRaw('certification_sections.sort_order is null')
+            ->orderBy('certification_sections.sort_order')
+            ->orderBy('certification_sections.name');
     }
 }

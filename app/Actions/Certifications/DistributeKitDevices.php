@@ -10,7 +10,8 @@ use App\Models\Kit;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Places the devices of a kit in the active sections of the catalog, as many of each type as each section asks for
+ * Places the devices of a kit in the active internal and external sections of the catalog (the checkpoint ones are
+ * not part of the certification, H33), as many of each type as each section asks for
  * (H12), so the inspector does not choose them (H18, criterion 3). A type split between the internal and the
  * external assignment, as the inspection tape, goes to the sections of its side (T55). The kit fits only when it has
  * exactly what the sections ask for (H17, criterion 16). The pouch is left out: it only holds the kit and is not used
@@ -37,6 +38,7 @@ class DistributeKitDevices
     public function handle(Kit $kit): array
     {
         $sections = CertificationSection::query()
+            ->whereIn('type', CertificationSectionType::inspectionTypes())
             ->whereNotNull('sort_order')
             ->with('securityDeviceTypes')
             ->orderBy('sort_order')

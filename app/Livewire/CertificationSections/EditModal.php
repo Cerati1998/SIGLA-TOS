@@ -3,6 +3,7 @@
 namespace App\Livewire\CertificationSections;
 
 use App\Enums\CertificationSectionType;
+use App\Enums\CheckpointSectionKind;
 use App\Livewire\Forms\CertificationSectionForm;
 use App\Models\CertificationSection;
 use Illuminate\Contracts\View\View;
@@ -21,7 +22,7 @@ class EditModal extends Component
     {
         $this->form->reset();
         $this->form->resetValidation();
-        $this->form->setCertificationSection(CertificationSection::withTrashed()->with('securityDeviceTypes')->findOrFail($certificationSectionId));
+        $this->form->setCertificationSection(CertificationSection::withTrashed()->with(['securityDeviceTypes', 'verifiedSections'])->findOrFail($certificationSectionId));
         $this->form->openModal = true;
     }
 
@@ -39,13 +40,15 @@ class EditModal extends Component
 
     /**
      * Render the component with the security device types to choose from, plus the ones the section already
-     * carries if they were deactivated.
+     * carries if they were deactivated, and the sections a checkpoint section can verify.
      */
     public function render(): View
     {
         return view('pages.certification-sections.edit-modal', [
             'types' => CertificationSectionType::options(),
             'deviceTypes' => $this->form->deviceTypeOptions(),
+            'kinds' => CheckpointSectionKind::cases(),
+            'verifiableSections' => $this->form->verifiableSectionOptions(),
         ]);
     }
 }

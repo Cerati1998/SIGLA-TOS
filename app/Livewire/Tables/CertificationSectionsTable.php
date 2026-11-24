@@ -39,7 +39,7 @@ class CertificationSectionsTable extends BaseTable
     public function builder(): Builder
     {
         return CertificationSection::withTrashed()
-            ->with('securityDeviceTypes')
+            ->with(['securityDeviceTypes', 'verifiedSections'])
             ->orderByRaw('certification_sections.sort_order is null')
             ->orderBy('certification_sections.sort_order')
             ->orderBy('certification_sections.name');

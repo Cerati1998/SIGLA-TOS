@@ -4,7 +4,7 @@
         name="certification-section-create"
         width="sm:max-w-4xl"
         wire:model="form.openModal"
-        x-on:open="$wire.form.name = ''; $wire.form.type = ''; $wire.form.devices = []"
+        x-on:open="$wire.form.name = ''; $wire.form.type = ''; $wire.form.devices = []; $wire.form.checkpointKind = ''; $wire.form.verifiedSectionIds = []"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="certification-section-create-form" wire:submit="save">

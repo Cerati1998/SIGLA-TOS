@@ -3,6 +3,7 @@
 namespace App\Livewire\CertificationSections;
 
 use App\Enums\CertificationSectionType;
+use App\Enums\CheckpointSectionKind;
 use App\Livewire\Forms\CertificationSectionForm;
 use App\Services\CertificationSectionOrder;
 use Illuminate\Contracts\View\View;
@@ -33,13 +34,16 @@ class CreateModal extends Component
     }
 
     /**
-     * Render the component with the security device types to choose from.
+     * Render the component with the security device types to choose from and the sections a checkpoint section can
+     * verify.
      */
     public function render(): View
     {
         return view('pages.certification-sections.create-modal', [
             'types' => CertificationSectionType::options(),
             'deviceTypes' => $this->form->deviceTypeOptions(),
+            'kinds' => CheckpointSectionKind::cases(),
+            'verifiableSections' => $this->form->verifiableSectionOptions(),
         ]);
     }
 }

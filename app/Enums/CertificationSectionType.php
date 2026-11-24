@@ -6,6 +6,7 @@ enum CertificationSectionType: string
 {
     case Internal = 'internal';
     case External = 'external';
+    case Checkpoint = 'checkpoint';
 
     /**
      * Get the name shown on screen.
@@ -15,6 +16,7 @@ enum CertificationSectionType: string
         return match ($this) {
             self::Internal => 'Interna',
             self::External => 'Externa',
+            self::Checkpoint => 'Checkpoint',
         };
     }
 
@@ -26,7 +28,27 @@ enum CertificationSectionType: string
         return match ($this) {
             self::Internal => 'info',
             self::External => 'neutral',
+            self::Checkpoint => 'warning',
         };
+    }
+
+    /**
+     * Whether the sections of this type belong to an inspection of the certification (H18). The checkpoint ones
+     * belong to the checkpoint (H33): they are never copied into a certification.
+     */
+    public function isInspection(): bool
+    {
+        return $this !== self::Checkpoint;
+    }
+
+    /**
+     * Get the types of the inspections of a certification: internal and external (H18).
+     *
+     * @return list<self>
+     */
+    public static function inspectionTypes(): array
+    {
+        return [self::Internal, self::External];
     }
 
     /**
