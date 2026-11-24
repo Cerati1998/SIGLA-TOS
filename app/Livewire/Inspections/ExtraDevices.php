@@ -10,20 +10,17 @@ use App\Models\Certification;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 /**
  * The extra devices of a unit, sent by a bulk dispatch for the operation, and the window that replaces a device of the
- * kit by one of them (H38, criteria 3 to 5). The list and the window open in the browser, from the inspection: the
- * server is called only to replace. Once replaced, the inspection reloads its sections.
+ * kit by one of them (H38, criteria 3 to 5). The list and the window open in the browser, from the inspection, and
+ * filter the devices there: the server is called only to replace. Once replaced, the inspection reloads its sections.
  *
  * @phpstan-import-type Extra from ListExtraDevices
  * @phpstan-import-type Placed from ListExtraDevices
- *
- * @property-read array{extras: list<Extra>, placed: list<Placed>} $devices
  */
 class ExtraDevices extends Component
 {
@@ -38,20 +35,26 @@ class ExtraDevices extends Component
     public SecurityDeviceReplacementForm $form;
 
     /**
-     * Get the extra devices of the unit and the devices of the kit placed in this inspection.
+     * The extra devices of the unit and the devices of the kit placed in this inspection, which the browser lists and
+     * filters by type.
      *
-     * @return array{extras: list<Extra>, placed: list<Placed>}
+     * @var array{extras: list<Extra>, placed: list<Placed>}
      */
-    #[Computed]
-    public function devices(): array
+    #[Locked]
+    public array $devices = ['extras' => [], 'placed' => []];
+
+    /**
+     * Load the devices of the unit.
+     */
+    public function mount(ListExtraDevices $listExtraDevices): void
     {
-        return app(ListExtraDevices::class)->handle($this->certification, $this->type);
+        $this->devices = $listExtraDevices->handle($this->certification, $this->type);
     }
 
     /**
      * Replace the device, tell the inspection to reload its sections and close the window.
      */
-    public function replace(ReplaceSecurityDevice $replaceDevice): void
+    public function replace(ReplaceSecurityDevice $replaceDevice, ListExtraDevices $listExtraDevices): void
     {
         /** @var User $user */
         $user = Auth::user();
@@ -64,7 +67,7 @@ class ExtraDevices extends Component
         }
 
         $this->form->reset();
-        unset($this->devices);
+        $this->devices = $listExtraDevices->handle($this->certification, $this->type);
         $this->dispatch('security-device-replaced');
         $this->dispatch('toast', icon: 'success', title: 'Dispositivo reemplazado', text: 'El que salió pasó a Descartado. Toma al menos una foto nueva de la sección.');
     }

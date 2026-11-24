@@ -89,8 +89,10 @@ class SecurityDeviceReplacementTest extends TestCase
 
         Livewire::actingAs($this->inspector)
             ->test(ExtraDevices::class, ['certification' => $this->certification, 'type' => CertificationSectionType::Internal])
-            ->assertSee('MSK0000455')
-            ->assertSee('DG-'.str_pad((string) BulkDispatch::query()->sole()->id, 6, '0', STR_PAD_LEFT));
+            ->assertSet('devices.extras.0.serialNumber', 'MSK0000455')
+            ->assertSet('devices.extras.0.dispatch', BulkDispatch::query()->sole()->number())
+            ->assertSet('devices.extras.0.unused', true)
+            ->assertSet('devices.placed.0.section', 'Puertas cerradas y sello provisional');
     }
 
     public function test_a_device_is_replaced_by_an_extra_of_the_same_type_with_its_reason_and_the_photo_of_the_discard(): void
