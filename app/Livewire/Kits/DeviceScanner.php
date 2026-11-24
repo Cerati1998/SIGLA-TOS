@@ -85,6 +85,7 @@ class DeviceScanner extends Component
             'canChange' => $this->kit->status->contentsCanChange(),
             'kitDispatch' => $this->kit->dispatch(),
             'kitSlots' => $kitSlots,
+            'pouchTypeId' => $this->kit->pouchType()?->id,
             'devicesBySlot' => $this->devicesBySlot(),
             'totalQuantity' => array_sum(array_column($kitSlots, 'quantity')),
             'totalAdded' => array_sum(array_column($kitSlots, 'added')),

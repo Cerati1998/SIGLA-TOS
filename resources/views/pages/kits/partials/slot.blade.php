@@ -28,7 +28,7 @@
         @include('pages.kits.partials.progress', ['label' => $label, 'added' => $kitSlot['added'], 'quantity' => $kitSlot['quantity']])
     @endunless
 
-    @if ($canChange)
+    @if ($canChange && ! $isPouch)
         <x-scan-input
             :id="$inputId"
             :disabled="$isFull"
@@ -52,7 +52,7 @@
             @foreach ($devices as $device)
                 <li wire:key="device-{{ $device->id }}" class="inline-flex h-8 items-center gap-0.5 rounded-full border border-line bg-surface ps-2.5 pe-0.5 text-sm text-ink max-md:h-11 max-md:ps-3">
                     {{ $device->serial_number }}
-                    @if ($canChange)
+                    @if ($canChange && ! $isPouch)
                     <button
                         type="button"
                         x-on:click="confirmAction('¿Quitar {{ $device->serial_number }} del kit?', 'Vuelve a quedar Disponible y el kit sigue Armando hasta completarse.', () => $wire.remove({{ $device->id }}))"
@@ -68,5 +68,9 @@
                 </li>
             @endforeach
         </ul>
+    @endif
+
+    @if ($isPouch)
+        <p class="m-0 text-sm text-ink-muted">Entró con la cabecera. No se quita.</p>
     @endif
 </div>

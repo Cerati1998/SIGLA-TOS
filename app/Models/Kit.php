@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Actions\Kits\AddSecurityDeviceToKit;
 use App\Enums\KitAssignment;
 use App\Enums\KitStatus;
+use App\Enums\SecurityDeviceKind;
 use Database\Factories\KitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -161,9 +162,18 @@ class Kit extends Model
     }
 
     /**
-     * Get the slots the kit has to fill, in the order of its device types, each with how many devices it asks for and
-     * how many it has. A split type gives the external slot first and then the internal one, leaving out a side that
-     * asks for none.
+     * Get the security device type of the pouch the kit carries, the one of kind Funda (T76), or null for a kit whose
+     * type carried no pouch.
+     */
+    public function pouchType(): ?SecurityDeviceType
+    {
+        return $this->securityDeviceTypes->first(fn (SecurityDeviceType $type): bool => $type->kind === SecurityDeviceKind::Pouch);
+    }
+
+    /**
+     * Get the slots the kit has to fill, the pouch first and then in the order of its device types, each with how many
+     * devices it asks for and how many it has. A split type gives the external slot first and then the internal one,
+     * leaving out a side that asks for none.
      *
      * @return list<array{key: string, securityDeviceTypeId: int, name: string, assignment: KitAssignment|null, quantity: int, added: int}>
      */
@@ -172,7 +182,9 @@ class Kit extends Model
         $added = $this->deviceCountsBySlot();
         $slots = [];
 
-        foreach ($this->securityDeviceTypes as $securityDeviceType) {
+        $securityDeviceTypes = $this->securityDeviceTypes->sortBy(fn (SecurityDeviceType $type): int => $type->kind === SecurityDeviceKind::Pouch ? 0 : 1);
+
+        foreach ($securityDeviceTypes as $securityDeviceType) {
             /** @var object{quantity: int, internal_quantity: int|null, external_quantity: int|null} $pivot */
             $pivot = $securityDeviceType->getRelationValue('pivot');
             $quantities = $pivot->internal_quantity === null && $pivot->external_quantity === null

@@ -61,18 +61,27 @@ class KitForm extends Form
     }
 
     /**
-     * Validate the data and create the kit, empty and in Armando.
+     * Validate the data and create the kit in Armando, with its pouch inside. When the pouch cannot be used, the field
+     * tells why and no kit is created (T76).
      */
-    public function store(CreateKit $createKit, User $user): Kit
+    public function store(CreateKit $createKit, User $user): ?Kit
     {
         $this->pouchCode = mb_strtoupper(trim($this->pouchCode));
 
         $this->validate();
 
-        return $createKit->handle([
+        $result = $createKit->handle([
             'pouchCode' => $this->pouchCode,
             'kitTypeId' => (int) $this->kitTypeId,
             'shippingLineId' => (int) $this->shippingLineId,
         ], $user);
+
+        if (is_string($result)) {
+            $this->addError('pouchCode', $result);
+
+            return null;
+        }
+
+        return $result;
     }
 }

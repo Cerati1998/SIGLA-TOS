@@ -86,7 +86,7 @@
 
             <div class="flex flex-col gap-3 lg:col-start-1 lg:row-span-2 lg:row-start-1">
                 @foreach ($kitSlots as $kitSlot)
-                    @include('pages.kits.partials.slot', ['devices' => $devicesBySlot->get($kitSlot['key'], collect()), 'canChange' => $canChange])
+                    @include('pages.kits.partials.slot', ['devices' => $devicesBySlot->get($kitSlot['key'], collect()), 'canChange' => $canChange, 'isPouch' => $kitSlot['securityDeviceTypeId'] === $pouchTypeId])
                 @endforeach
             </div>
 
