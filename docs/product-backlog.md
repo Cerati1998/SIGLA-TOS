@@ -729,7 +729,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - H35 reusa este reemplazo y su registro en su criterio 5 (el dispositivo con ✗ se reemplaza por un extra).
 - Fuera: agregar un extra sin sacar ninguno, devolver extras a bodega y editar o anular un reemplazo.
 - Depende de: H18 a H20, H30 y T77 (foto del descarte).
-- Diseño: en la página «E5 · Certificación» del lienzo. Se aprueba antes de construir.
+- Diseño: página «E5 · Certificación» del lienzo, aprobado por el usuario el 2026-11-24: la sección con «Dispositivos extra» y «Reemplazar», la lista de extras, el modal de reemplazo, la sección después del reemplazo, el detalle con «Dispositivos reemplazados» (teléfono y escritorio) y sus estados. Se reemplaza desde el teléfono; en escritorio, como en H18, es solo lectura. Por la regla del lienzo se actualizó también el selector de Operación en los estados de H30 (E4).
+- Suposición por confirmar al empezar T79: si una asignación con un reemplazo se anula con «Reutilizar» (H32), el extra que entró sigue en el kit en lugar del descartado.
 
 ### E6 · Checkpoint (historias aprobadas el 2026-11-23)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.
