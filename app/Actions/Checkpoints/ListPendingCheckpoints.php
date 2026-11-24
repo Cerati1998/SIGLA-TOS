@@ -7,8 +7,8 @@ use App\Models\CheckpointMark;
 use App\Models\CheckpointPhoto;
 use App\Models\CheckpointStep;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 
 /**
  * The units whose checkpoint is pending or half done (H34, criteria 1 and 2): certifications closed and not annulled,
@@ -20,7 +20,7 @@ class ListPendingCheckpoints
     /**
      * Get the pending units.
      *
-     * @return list<array{id: int, container: string, pouchCode: string, shippingLine: string, started: bool, done: int, total: int, lastChange: array{by: string, at: Carbon}|null, closedAt: Carbon}>
+     * @return list<array{id: int, container: string, pouchCode: string, shippingLine: string, started: bool, done: int, total: int, lastChange: array{by: string, at: CarbonInterface}|null, closedAt: CarbonInterface}>
      */
     public function handle(): array
     {
@@ -43,7 +43,7 @@ class ListPendingCheckpoints
 
         $units = $certifications->map(function (Certification $certification) use ($catalogSteps, $lastChanges): array {
             $checkpoint = $certification->checkpoint;
-            /** @var Carbon $closedAt */
+            /** @var CarbonInterface $closedAt */
             $closedAt = $certification->closed_at;
 
             return [
@@ -66,7 +66,7 @@ class ListPendingCheckpoints
      * Get who changed each checkpoint last and when: the latest of its photos and of its marks.
      *
      * @param  array<int, int>  $checkpointIds
-     * @return array<int, array{by: string, at: Carbon}>
+     * @return array<int, array{by: string, at: CarbonInterface}>
      */
     private function lastChanges(array $checkpointIds): array
     {
@@ -93,9 +93,9 @@ class ListPendingCheckpoints
     /**
      * Keep a change of a checkpoint if it is later than the one already kept.
      *
-     * @param  array<int, array{by: string, at: Carbon}>  $changes
+     * @param  array<int, array{by: string, at: CarbonInterface}>  $changes
      */
-    private function keepLatest(array &$changes, int $checkpointId, ?User $user, ?Carbon $at): void
+    private function keepLatest(array &$changes, int $checkpointId, ?User $user, ?CarbonInterface $at): void
     {
         if ($user === null || $at === null) {
             return;
