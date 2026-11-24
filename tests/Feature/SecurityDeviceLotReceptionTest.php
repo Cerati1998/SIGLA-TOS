@@ -60,6 +60,7 @@ class SecurityDeviceLotReceptionTest extends TestCase
             ->assertSeeText('MSK · Maersk')
             ->assertSeeText('Proveedor de Precintos S.A.C.')
             ->assertSeeText('Precinto ISO')
+            ->assertSeeInOrder(['Correlativo inicial', 'Cantidad', 'Calcula el correlativo final.', 'Correlativo final'])
             ->assertDontSeeText('Cinta Retirada')
             ->assertDontSeeText('Naviera Cerrada');
     }
