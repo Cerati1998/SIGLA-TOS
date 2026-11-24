@@ -697,10 +697,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Seeders (decisión del usuario del 2026-11-23, T67): las secciones internas y externas se cargan desde el documento «Proceso de certificación de contenedores» (`documentation/`), y las de checkpoint desde el video, menos «Candado satelital y sello», que queda fuera hasta decidir cómo se maneja una unidad sin candado. Hoy no hay seeder de secciones para producción: solo `LocalTestingSeeder` crea seis de ejemplo. El seeder carga solo las secciones (nombre, tipo y orden), sin sus dispositivos: qué lleva cada una lo configura el admin en pantalla (H12), con los tipos reales, porque el documento nombra dispositivos que aún no son tipos (bolsa de seguridad, precinto GPS, precintos de vacío). En la interna, los ítems repetidos del documento se llaman «Puerta lado derecho» (6), «Puerta lado izquierdo» (7), «Pared interna» (9) y «Cintas de pared interna» (10) (confirmado por el usuario el 2026-11-23). El ítem 1 de cada tabla (escribir el número de contenedor) no es sección. En la externa, los ítems 16 y 17 («Mostrar dibujo de contenedor parte externa derecha / izquierda», 1 foto) sí son secciones con foto: «Dibujo parte externa derecha» y «Dibujo parte externa izquierda» (decisión del usuario del 2026-11-23). Quedan 17 internas y 16 externas.
 - Seeder de checkpoint (aprobado por el usuario el 2026-11-23, T67), en este orden, después de las internas y externas: (1) Placa, cédula y transporte; (2) Panorámica del panel frontal; (3) Cintas de evaporadores y máquina; (4) Verificación de cintas de evaporadores → Evaporadores cerrados y Ventilador (externas); (5) Paredes, pisos externos y puertas; (6) Cinta de puerta; (7) Verificación de cinta de puerta → Kit de precintos en piso (interna); (8) Sellos de naviera; (9) Sello cable; (10) Verificación de sello cable → Puerta cerrada y panorámica (interna); (11) Cintas de puerta y checkpoint; (12) Panorámica de puertas. Las secciones sin enlace son de fotos. Sellos de naviera queda como sección de fotos, sin verificación propia.
 
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): la sección de checkpoint en el modal de H12 (Tipo, «¿Qué pide este paso?» y «¿Qué secciones verifica?»), con el listado de secciones de E3 actualizado.
+
 **H34 · Hacer el checkpoint de una unidad** (aprobada el 2026-11-23 en T67)
 - Como inspector checkpoint, quiero recorrer las secciones del checkpoint de una unidad certificada, tomando sus fotos y verificando sus cintas y sellos, para confirmar que la unidad llega al puerto como salió del depot.
 - Criterios de aceptación:
-  1. En el menú, Certificación → Checkpoint deja de estar desactivado (H17, criterio 15) y abre la lista de unidades con checkpoint pendiente o a medias, con un buscador por contenedor (4 letras y 7 números, escrito o escaneado).
+  1. En el menú, Certificación → Checkpoint deja de estar desactivado (H17, criterio 15) y pasa a ser un desplegable, como Inspección, con «Registrar checkpoint» y «Checkpoints» (H36). «Registrar checkpoint» abre la lista de unidades con checkpoint pendiente o a medias, con un buscador por contenedor (4 letras y 7 números, escrito o escaneado). Primero van las que vuelven de una reinspección. (Cambiado por el usuario el 2026-11-24 en T68: antes Checkpoint abría directo la lista.)
   2. Solo aparecen certificaciones cerradas que no tienen el checkpoint cerrado. Una certificación anulada (H32) no aparece.
   3. Una certificación tiene un solo checkpoint. Si hay una ✗, ese mismo checkpoint queda en reinspección y, al volver, se sigue y se cierra; todo su historial queda en él (decisión del usuario del 2026-11-23, T67).
   4. El inspector recorre las secciones activas de tipo Checkpoint, en su orden, en un formulario por pasos con barra de progreso, como la inspección de H18. Puede ir a cualquier paso y dejar el checkpoint a medias; cualquier inspector lo puede seguir.
@@ -714,6 +716,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. Por ahora, cualquier usuario con sesión hace el checkpoint; los roles llegan con H24.
   13. La pantalla se usa bien desde el celular.
 
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y el menú el 2026-11-24): elegir la unidad, el paso de verificación con los botones «Correcta» e «Incorrecta», y el último paso con observaciones, fotos extra, resumen y «Finalizar». El paso de fotos es el de H18. Con todas las series correctas, el botón dice «Finalizar y cerrar».
+
 **H35 · Reinspección desde el checkpoint** (aprobada el 2026-11-23 en T67)
 - Como inspector checkpoint, quiero iniciar la reinspección cuando una cinta o un sello no está bien, para que el inspector certificado cambie solo lo que falló y yo vuelva a verificarlo antes de cerrar.
 - Criterios de aceptación:
@@ -725,11 +729,13 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   6. El inspector certificado vuelve a tomar las fotos de la sección reabierta. Las fotos anteriores se conservan, marcadas «antes de la reinspección», y se ven en el detalle (H20 y H36), pero ya no cuentan: la sección necesita al menos una foto nueva (decisión del usuario del 2026-11-23, T67).
   7. Cuando todas las secciones reabiertas tienen su dispositivo nuevo y al menos una foto nueva, el inspector certificado cierra la reinspección, como en H19. Queda registrado quién y cuándo.
   8. Con la reinspección cerrada, la unidad vuelve a la lista del checkpoint, que verifica de nuevo solo las series reemplazadas: muestra solo los pasos de verificación con series nuevas, y lo que ya estaba en ✓ y las fotos del checkpoint se conservan (decisión del usuario del 2026-11-23, T67). Si todas están en ✓, se cierra. Si vuelve a haber una ✗, se inicia otra reinspección.
-  9. Una certificación en reinspección no se anula (H32) ni se reapertura (H19).
+  9. Una certificación en reinspección no se anula (H32), no se reapertura (H19) ni ofrece su PDF (H20) hasta cerrar la reinspección (el PDF, decidido en el diseño el 2026-11-24, T68).
   10. Todo se guarda junto o nada.
   11. Por ahora, cualquier usuario con sesión inicia y cierra reinspecciones; los roles llegan con H24.
   12. La pantalla se usa bien desde el celular.
 - Reemplaza la historia de E4 que faltaba («reasignar dispositivos a una unidad en reinspección»): los dispositivos llegan por H30.
+
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y ronda 2 el 2026-11-24): el motivo al finalizar, la sección reabierta para el inspector certificado, el listado de Asignaciones con «En reinspección» y su cierre, y la segunda vuelta del checkpoint. En las listas de Inspección interna y externa, la unidad en reinspección lleva la etiqueta «Reinspección», sobre el diseño de H18.
 
 **H36 · Consultar checkpoints** (aprobada el 2026-11-23 en T67)
 - Como usuario de la intranet, quiero un listado de los checkpoints y su detalle, para seguir su avance y consultar lo verificado.
@@ -741,6 +747,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   5. Sin PDF por ahora (decisión del usuario del 2026-11-23).
   6. Por ahora todos los usuarios con sesión ven todos los checkpoints; los roles llegan con H24.
   7. El listado y el detalle se usan bien desde el celular.
+
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): listado y detalle, en escritorio y teléfono. El detalle muestra las reinspecciones (motivo, sección reabierta, reemplazo y segunda verificación) y cada paso con sus fotos o sus series marcadas. El detalle de la certificación (H20) suma el botón «Ver checkpoint».
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.
