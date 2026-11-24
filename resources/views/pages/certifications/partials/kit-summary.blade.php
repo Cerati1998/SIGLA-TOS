@@ -1,5 +1,6 @@
 @php
     $dispatch = $kit->dispatch();
+    $pouchTypeId = $kit->pouchType()?->id;
     $devicesBySlot = collect($contents['devices'])->groupBy(fn (array $device): string => $device['type'].'|'.$device['assignment']);
 @endphp
 
@@ -35,7 +36,16 @@
         </button>
 
         <div x-show="showContents" class="flex flex-col">
+            @if ($pouchTypeId !== null)
+                <p class="m-0 mb-2.5 flex items-start gap-2 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
+                    <x-feather name="info" class="mt-0.5 size-4 shrink-0" />
+                    <span><strong>Funda {{ $kit->pouch_code }}</strong> · es el depósito del kit: no se reparte en las secciones ni se usa en la inspección.</span>
+                </p>
+            @endif
+
             @foreach ($contents['slots'] as $slot)
+                @continue($slot['securityDeviceTypeId'] === $pouchTypeId)
+
                 @php
                     $assignment = $slot['assignment']?->label() ?? '-';
                     $devices = $devicesBySlot->get($slot['name'].'|'.$assignment, collect());
