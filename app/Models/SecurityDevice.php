@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $discarded_at
  * @property int|null $discarded_by
  * @property string|null $discard_reason
+ * @property string|null $discard_photo_path
+ * @property string|null $discard_thumbnail_path
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read SecurityDeviceLot $lot
@@ -32,7 +34,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Kit> $kits
  * @property-read Collection<int, BulkDispatch> $bulkDispatches
  */
-#[Fillable(['security_device_lot_id', 'serial_number_scope', 'serial_number', 'status', 'discarded_at', 'discarded_by', 'discard_reason'])]
+#[Fillable(['security_device_lot_id', 'serial_number_scope', 'serial_number', 'status', 'discarded_at', 'discarded_by', 'discard_reason', 'discard_photo_path', 'discard_thumbnail_path'])]
 class SecurityDevice extends Model
 {
     /** @use HasFactory<SecurityDeviceFactory> */
