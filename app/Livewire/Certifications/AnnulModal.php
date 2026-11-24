@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * The window that annuls the assignment of the kit of a certification, from the list of assignments (H32).
  */
 class AnnulModal extends Component
 {
+    use WithFileUploads;
+
     public CertificationAnnulmentForm $form;
 
     /**

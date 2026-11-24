@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
- * Discard a device of a lot, with a reason (T65).
+ * Discard a device of a lot, with a reason (T65) and a photo taken with the camera (T77).
  */
 class DiscardModal extends Component
 {
+    use WithFileUploads;
+
     public SecurityDeviceDiscardForm $form;
 
     /**

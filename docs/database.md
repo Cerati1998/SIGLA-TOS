@@ -206,6 +206,8 @@ erDiagram
     datetime discarded_at "null"
     bigint discarded_by FK "null"
     string discard_reason "null"
+    string discard_photo_path "null"
+    string discard_thumbnail_path "null"
   }
   security_device_lot_approvals {
     bigint id PK
@@ -713,6 +715,8 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `discarded_at` | timestamp (null) | Cuándo se descartó (T65). Solo se descarta un dispositivo `inactive` o `available` fuera de un kit, y no se deshace. |
 | `discarded_by` | bigint FK → `users` (null) | Quién lo descartó (T65). |
 | `discard_reason` | varchar(255) (null) | Motivo del descarte, obligatorio al descartar (T65). |
+| `discard_photo_path` | varchar(255) (null) | Ruta de la foto del descarte en el disco privado, obligatoria al descartar (T77). Los dispositivos de un kit inhabilitado al anular su asignación comparten la foto del kit (H32). |
+| `discard_thumbnail_path` | varchar(255) (null) | Ruta de su miniatura (T77). |
 | `timestamps` | | |
 
 El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.

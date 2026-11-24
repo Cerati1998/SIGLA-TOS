@@ -9,6 +9,7 @@ use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\KitDispatchController;
 use App\Http\Controllers\ProviderOptionsController;
+use App\Http\Controllers\SecurityDeviceDiscardPhotoController;
 use App\Http\Controllers\SecurityDeviceLotController;
 use App\Http\Controllers\WorkerOptionsController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('security-device-lots/{securityDeviceLot}', [SecurityDeviceLotController::class, 'show'])->name('security-device-lots.show');
 
     Route::get('security-device-lots/{securityDeviceLot}/edit', [SecurityDeviceLotController::class, 'edit'])->name('security-device-lots.edit');
+
+    Route::get('security-devices/{securityDevice}/discard-photo', [SecurityDeviceDiscardPhotoController::class, 'show'])->name('security-devices.discard-photo');
+
+    Route::get('security-devices/{securityDevice}/discard-photo/thumbnail', [SecurityDeviceDiscardPhotoController::class, 'thumbnail'])->name('security-devices.discard-photo.thumbnail');
 
     Route::view('security-device-types', 'pages.security-device-types.index')->name('security-device-types.index');
 

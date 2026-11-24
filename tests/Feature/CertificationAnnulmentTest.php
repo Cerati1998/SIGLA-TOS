@@ -17,6 +17,8 @@ use App\Models\Kit;
 use App\Models\SecurityDevice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -108,12 +110,32 @@ class CertificationAnnulmentTest extends TestCase
         $this->assertSame('TGHU5550123', $kit->refresh()->certification?->container);
     }
 
-    public function test_disabling_the_kit_discards_all_its_devices(): void
+    public function test_disabling_the_kit_asks_for_a_photo_of_the_kit(): void
     {
+        $certification = $this->certification();
+
+        Livewire::test(AnnulModal::class)
+            ->call('open', $certification->id)
+            ->set('form.reason', 'La naviera canceló el despacho.')
+            ->set('form.kitDecision', CertificationKitDecision::Disable->value)
+            ->call('annul')
+            ->assertHasErrors(['form.photo' => 'required_if'])
+            ->assertSeeText('Toma la foto del kit inhabilitado.');
+
+        $this->assertFalse($certification->refresh()->isAnnulled());
+    }
+
+    public function test_disabling_the_kit_discards_all_its_devices_with_the_photo_of_the_kit(): void
+    {
+        Storage::fake('local');
         $certification = $this->certification();
         $kit = $certification->kit;
 
         $this->annul($certification, CertificationKitDecision::Disable);
+
+        $photoPaths = $kit->devices()->distinct()->pluck('discard_photo_path')->all();
+        $this->assertCount(1, $photoPaths);
+        Storage::disk('local')->assertExists([(string) $photoPaths[0], (string) $kit->devices()->value('discard_thumbnail_path')]);
 
         $this->assertSame(KitStatus::Disabled, $kit->refresh()->status);
         $this->assertSame(
@@ -157,6 +179,8 @@ class CertificationAnnulmentTest extends TestCase
             ->call('open', $certification->id)
             ->set('form.reason', ' La naviera canceló el despacho. ')
             ->set('form.kitDecision', $decision->value)
+            ->set('form.photo', $decision === CertificationKitDecision::Disable ? UploadedFile::fake()->image('foto.jpg') : null)
+            ->set('form.thumbnail', $decision === CertificationKitDecision::Disable ? UploadedFile::fake()->image('miniatura.jpg') : null)
             ->call('annul')
             ->assertHasNoErrors()
             ->assertDispatched('toast', icon: 'success', title: 'Asignación anulada');
