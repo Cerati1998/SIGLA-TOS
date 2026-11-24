@@ -34,3 +34,6 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Sección de una certificación | `certification_step` | Copia fija de una sección del catálogo en la certificación, con los dispositivos del kit colocados en ella (H18, aprobado por el usuario el 2026-11-20). |
 | Foto (de una sección) | `certification_photo` | Foto de un paso, con su miniatura (H18, aprobado por el usuario el 2026-11-20). |
 | Reapertura | `certification_reopening` | Volver a abrir una certificación cerrada, con su motivo (H19, aprobado por el usuario el 2026-11-20). |
+| Sección de checkpoint | `checkpoint` | Tercer tipo de sección del catálogo, junto a interna y externa, en `CertificationSectionType`. No lleva dispositivos propios (H33, aprobado por el usuario el 2026-11-24). |
+| Qué pide el paso (del checkpoint) | `checkpoint_kind` (`photos`, `verification`) | Si el paso pide fotos o verifica series. Enum `CheckpointSectionKind` (H33, aprobado por el usuario el 2026-11-24). |
+| Secciones que verifica | `certification_section_verifications` | Secciones internas o externas cuyas series muestra un paso de verificación. Relación `verifiedSections` (H33, aprobado por el usuario el 2026-11-24). |
