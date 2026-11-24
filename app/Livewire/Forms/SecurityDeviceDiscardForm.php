@@ -6,6 +6,7 @@ use App\Actions\SecurityDevices\DiscardSecurityDevice;
 use App\Models\SecurityDevice;
 use App\Models\User;
 use Livewire\Attributes\Locked;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
 class SecurityDeviceDiscardForm extends Form
@@ -26,6 +27,16 @@ class SecurityDeviceDiscardForm extends Form
     public string $reason = '';
 
     /**
+     * The photo of the device, already compressed in the browser (T77).
+     */
+    public ?TemporaryUploadedFile $photo = null;
+
+    /**
+     * The thumbnail of the photo, made in the browser.
+     */
+    public ?TemporaryUploadedFile $thumbnail = null;
+
+    /**
      * Fill the form with the device to discard.
      */
     public function setSecurityDevice(SecurityDevice $device): void
@@ -35,7 +46,7 @@ class SecurityDeviceDiscardForm extends Form
     }
 
     /**
-     * Get the validation rules of the form.
+     * Get the validation rules of the form: the reason and the photo are required (T77).
      *
      * @return array<string, array<int, string>>
      */
@@ -43,6 +54,23 @@ class SecurityDeviceDiscardForm extends Form
     {
         return [
             'reason' => ['required', 'string', 'max:'.self::REASON_MAX],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg', 'max:3072'],
+            'thumbnail' => ['required', 'image', 'mimes:jpg,jpeg', 'max:512'],
+        ];
+    }
+
+    /**
+     * Get the custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return [
+            'photo.required' => 'Toma la foto del dispositivo.',
+            'thumbnail.required' => 'Toma la foto del dispositivo.',
+            'photo.*' => 'La foto no es válida. Tómala otra vez.',
+            'thumbnail.*' => 'La foto no es válida. Tómala otra vez.',
         ];
     }
 
@@ -59,13 +87,18 @@ class SecurityDeviceDiscardForm extends Form
     }
 
     /**
-     * Discard the device. Return why it was not discarded, or null.
+     * Discard the device with its photo. Return why it was not discarded, or null.
      */
     public function store(DiscardSecurityDevice $discardDevice, SecurityDevice $device, User $user): ?string
     {
         $this->reason = trim($this->reason);
         $this->validate();
 
-        return $discardDevice->handle($device, $this->reason, $user);
+        /** @var TemporaryUploadedFile $photo */
+        $photo = $this->photo;
+        /** @var TemporaryUploadedFile $thumbnail */
+        $thumbnail = $this->thumbnail;
+
+        return $discardDevice->handle($device, $this->reason, $photo, $thumbnail, $user);
     }
 }
