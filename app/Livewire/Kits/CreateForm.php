@@ -44,7 +44,7 @@ class CreateForm extends Component
     }
 
     /**
-     * Create the kit and open it, to scan its devices.
+     * Create the kit with its pouch and open it, to scan its other devices.
      */
     public function save(CreateKit $createKit): void
     {
@@ -52,6 +52,10 @@ class CreateForm extends Component
         $user = Auth::user();
 
         $kit = $this->form->store($createKit, $user);
+
+        if ($kit === null) {
+            return;
+        }
 
         session()->flash('toast', [
             'icon' => 'success',

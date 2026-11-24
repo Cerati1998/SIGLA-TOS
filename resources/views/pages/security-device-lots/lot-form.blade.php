@@ -50,6 +50,7 @@
                 <div class="md:col-span-2" x-bind:class="{ 'col-span-2': !usesSeries }">
                     <flux:input wire:model="form.minDigits" :disabled="$seriesLocked" label="Mínimo de dígitos" type="text" inputmode="numeric" maxlength="2" required autocomplete="off" />
                 </div>
+                <div x-show="!usesSeries" x-cloak class="max-md:hidden md:col-span-4" aria-hidden="true"></div>
                 <div x-show="usesSeries" class="col-span-2">
                     <flux:input
                         wire:model="form.seriesSuffix"
@@ -62,12 +63,27 @@
                         class:input="uppercase"
                     />
                 </div>
-                <div x-bind:class="correlativeColumns">
-                    <flux:input wire:model="form.seriesStart" :disabled="$seriesLocked" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
+                <div class="md:col-span-2">
+                    <flux:input wire:model="form.seriesStart" x-on:input="startChanged" :disabled="$seriesLocked" label="Correlativo inicial" type="text" inputmode="numeric" maxlength="15" required autocomplete="off" />
                 </div>
-                <div x-bind:class="correlativeColumns">
+                <div class="md:col-span-2">
+                    <flux:input
+                        x-model="quantity"
+                        x-on:input="quantityChanged"
+                        x-digits-only
+                        :disabled="$seriesLocked"
+                        label="Cantidad"
+                        :description:trailing="$seriesLocked ? null : 'Calcula el correlativo final.'"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="5"
+                        autocomplete="off"
+                    />
+                </div>
+                <div class="col-span-2">
                     <flux:input
                         wire:model="form.seriesEnd"
+                        x-on:input="endChanged"
                         :disabled="$seriesLocked"
                         label="Correlativo final"
                         type="text"

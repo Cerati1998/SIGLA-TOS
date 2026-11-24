@@ -58,10 +58,13 @@ class CertificationInspectionTest extends TestCase
 
     public function test_assigning_copies_the_active_sections_and_places_the_devices_of_the_kit_in_each_one(): void
     {
-        $kit = $this->kitWith(['CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
+        $pouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
+        $kit = $this->kitWith(['KIT-000046' => [$pouch, null], 'CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
             'CTA0000003' => [$this->tape, KitAssignment::External], 'SLL0000001' => [$this->seal, null]]);
 
-        $certification = app(StartCertification::class)->handle($this->gateOutRequest(), $kit, null, YardZone::factory()->create(), $this->inspector);
+        $this->assertNull(app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine));
+
+        $certification = app(StartCertification::class)->handle($this->gateOutRequest(), $this->shippingLine, $kit, null, YardZone::factory()->create(), $this->inspector);
 
         $steps = $certification->steps()->with(['section', 'devices'])->get();
 
@@ -79,7 +82,7 @@ class CertificationInspectionTest extends TestCase
         $kit = $this->kitWith(['CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
             'SLL0000001' => [$this->seal, null], 'SLL0000002' => [$this->seal, null]]);
 
-        $reason = app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine->name);
+        $reason = app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine);
 
         $this->assertSame(
             'El kit KIT-000046 no calza con lo que piden las secciones activas: Falta 1 · Cinta de inspección · Externa; Sobra 1 · Sello botella. Escanea otra funda o pide otro kit en bodega.',

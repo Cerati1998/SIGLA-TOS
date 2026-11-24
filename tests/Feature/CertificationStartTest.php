@@ -11,6 +11,10 @@ use App\Models\Certification;
 use App\Models\Driver;
 use App\Models\Kit;
 use App\Models\KitDispatch;
+use App\Models\SecurityDevice;
+use App\Models\SecurityDeviceAnnouncement;
+use App\Models\SecurityDeviceLot;
+use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -218,16 +222,91 @@ class CertificationStartTest extends TestCase
         $this->assertSame(1, Certification::query()->count());
     }
 
-    public function test_a_kit_is_rejected_when_the_shipping_line_of_the_request_is_not_in_the_catalog(): void
+    public function test_the_shipping_line_of_sigla1_squares_with_the_line_whose_name_starts_with_it(): void
+    {
+        $this->fakeSigla1([$this->gateOutRequest(['linea_booking' => 'CHIQUITA'])]);
+        $chiquita = ShippingLine::factory()->create(['code' => 'CHQT', 'name' => 'Chiquita Brands International']);
+        $kit = $this->dispatchedKit('KIT-000046', $chiquita);
+
+        $this->lookedUp()
+            ->assertSet('matchedShippingLineId', $chiquita->id)
+            ->assertSeeText('CHQT · Chiquita Brands International')
+            ->assertSeeText('En SIGLA 1.0: CHIQUITA')
+            ->assertDontSeeText('Elige a qué naviera corresponde.')
+            ->set('form.pouchCode', $kit->pouch_code)
+            ->call('findKit')
+            ->assertHasNoErrors()
+            ->assertSet('kitId', $kit->id);
+
+        $this->assertSame(2, ShippingLine::query()->count());
+    }
+
+    public function test_when_the_shipping_line_does_not_square_the_inspector_chooses_it_and_it_is_remembered(): void
+    {
+        $this->freezeSecond();
+        $this->fakeSigla1([$this->gateOutRequest(['linea_booking' => 'HAPAG LLOYD AG'])]);
+        $hapag = ShippingLine::factory()->create(['code' => 'HLCU', 'name' => 'Hapag-Lloyd']);
+        $kit = $this->dispatchedKit('KIT-000046', $hapag);
+
+        $form = $this->lookedUp()
+            ->assertSet('matchedShippingLineId', null)
+            ->assertSeeText('SIGLA 1.0 indica la naviera HAPAG LLOYD AG y no la encontramos en Líneas navieras. Elige a qué naviera corresponde.')
+            ->assertSeeText('Tu elección se recuerda: las próximas solicitudes de HAPAG LLOYD AG se cuadran solas.')
+            ->set('form.pouchCode', $kit->pouch_code)
+            ->call('findKit')
+            ->assertHasErrors(['form.shippingLineId' => 'required'])
+            ->assertSeeText('Elige la línea naviera de la solicitud.')
+            ->assertSet('kitId', null);
+
+        $form->set('form.shippingLineId', (string) $this->requestLine->id)
+            ->call('findKit')
+            ->assertHasErrors(['form.pouchCode'])
+            ->assertSeeText('El kit KIT-000046 es de HLCU · Hapag-Lloyd y la solicitud es de NDE · Naviera de Ejemplo.');
+
+        $form->set('form.shippingLineId', (string) $hapag->id)
+            ->call('findKit')
+            ->assertHasNoErrors()
+            ->set('form.yardZoneId', (string) $this->yardZone->id)
+            ->call('start')
+            ->assertHasNoErrors();
+
+        $this->assertSame($hapag->id, Certification::query()->sole()->shipping_line_id);
+        $this->assertSame('HAPAG LLOYD AG', $hapag->fresh()?->sigla1_name);
+        $this->assertSame(2, ShippingLine::query()->count());
+    }
+
+    public function test_when_several_lines_match_they_are_offered_first_and_none_is_taken(): void
+    {
+        $this->fakeSigla1([$this->gateOutRequest(['linea_booking' => 'FLEET'])]);
+        ShippingLine::factory()->create(['code' => 'APLU', 'name' => 'APL']);
+        $banana = ShippingLine::factory()->create(['code' => 'BANF', 'name' => 'Banana Fleet']);
+        $greatWhite = ShippingLine::factory()->create(['code' => 'GREX', 'name' => 'Great White Fleet (Del Monte)']);
+
+        $form = $this->lookedUp()
+            ->assertSet('matchedShippingLineId', null)
+            ->assertSeeText('SIGLA 1.0 indica la naviera FLEET y coincide con más de una línea. Elige la que corresponde.')
+            ->assertSeeHtml('<optgroup label="Coinciden con FLEET">');
+
+        $this->assertSame(['BANF', 'GREX', 'APLU', 'NDE'], $form->instance()->shippingLineOptions->pluck('code')->all());
+        $this->assertEqualsCanonicalizing([$banana->id, $greatWhite->id], $form->get('shippingLineCandidateIds'));
+    }
+
+    public function test_the_pouch_of_the_kit_is_shown_apart_because_it_does_not_go_in_the_sections(): void
     {
         $this->fakeSigla1([$this->gateOutRequest()]);
-        $kit = $this->dispatchedKit('KIT-000046');
-        $this->requestLine->update(['name' => 'Otra naviera']);
+        $pouchType = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
+        $kit = $this->dispatchedKit('FMK0000012');
+        $kit->securityDeviceTypes()->attach($pouchType->id, ['quantity' => 1]);
+        $lot = SecurityDeviceLot::factory()->create([
+            'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create(['security_device_type_id' => $pouchType->id])->id,
+        ]);
+        $kit->devices()->attach(SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => 'FMK0000012'])->id);
 
         $this->lookedUp()
             ->set('form.pouchCode', $kit->pouch_code)
             ->call('findKit')
-            ->assertSeeText('El kit KIT-000046 es de NDE · Otra naviera y la solicitud es de NAVIERA DE EJEMPLO.');
+            ->assertHasNoErrors()
+            ->assertSeeText('Funda FMK0000012 · es el depósito del kit: no se reparte en las secciones ni se usa en la inspección.');
     }
 
     public function test_when_saving_fails_nothing_is_saved_and_the_inspector_is_told(): void
@@ -237,8 +316,7 @@ class CertificationStartTest extends TestCase
         $form = $this->lookedUp()->set('form.pouchCode', $kit->pouch_code)->call('findKit');
 
         $this->mock(ShippingLineRegistry::class, function ($mock): void {
-            $mock->shouldReceive('find')->andReturn($this->requestLine);
-            $mock->shouldReceive('findOrRegister')->andThrow(new RuntimeException('The database went away.'));
+            $mock->shouldReceive('remember')->andThrow(new RuntimeException('The database went away.'));
         });
 
         $form->set('form.yardZoneId', (string) $this->yardZone->id)

@@ -4,6 +4,7 @@ namespace App\Actions\Certifications;
 
 use App\Enums\CertificationSectionType;
 use App\Enums\KitAssignment;
+use App\Enums\SecurityDeviceKind;
 use App\Models\CertificationSection;
 use App\Models\Kit;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,8 @@ use Illuminate\Support\Facades\DB;
  * not part of the certification, H33), as many of each type as each section asks for
  * (H12), so the inspector does not choose them (H18, criterion 3). A type split between the internal and the
  * external assignment, as the inspection tape, goes to the sections of its side (T55). The kit fits only when it has
- * exactly what the sections ask for (H17, criterion 16).
+ * exactly what the sections ask for (H17, criterion 16). The pouch is left out: it only holds the kit and is not used
+ * in the inspection (T76).
  */
 class DistributeKitDevices
 {
@@ -108,6 +110,7 @@ class DistributeKitDevices
             ->join('security_device_announcements', 'security_device_announcements.id', '=', 'security_device_lots.security_device_announcement_id')
             ->join('security_device_types', 'security_device_types.id', '=', 'security_device_announcements.security_device_type_id')
             ->where('kit_security_device.kit_id', $kit->id)
+            ->where('security_device_types.kind', '!=', SecurityDeviceKind::Pouch->value)
             ->orderBy('security_devices.serial_number')
             ->get([
                 'security_devices.id',

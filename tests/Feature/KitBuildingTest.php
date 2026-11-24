@@ -32,6 +32,8 @@ class KitBuildingTest extends TestCase
 
     private SecurityDeviceType $bottleSeal;
 
+    private SecurityDeviceType $pouch;
+
     private KitType $kitType;
 
     protected function setUp(): void
@@ -44,10 +46,13 @@ class KitBuildingTest extends TestCase
         $this->maersk = ShippingLine::factory()->create(['code' => 'MSK', 'name' => 'Maersk']);
         $this->inspectionTape = SecurityDeviceType::factory()->splitsInternalExternal()->create(['name' => 'Cinta de inspección']);
         $this->bottleSeal = SecurityDeviceType::factory()->create(['name' => 'Sello botella']);
+        $this->pouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
         $this->kitType = KitType::factory()
+            ->carrying($this->pouch, 1)
             ->carryingSplit($this->inspectionTape, internal: 2, external: 1)
             ->carrying($this->bottleSeal, 1)
             ->create(['name' => 'Kit de seguridad reefer']);
+        $this->device($this->pouch, 'KIT-000046');
     }
 
     public function test_the_warehouse_creates_an_empty_kit_in_armando_with_a_copy_of_what_its_kit_type_carries(): void
@@ -63,8 +68,10 @@ class KitBuildingTest extends TestCase
 
         $this->assertSame(['KIT-000046', KitStatus::Building, $this->user->id], [$kit->pouch_code, $kit->status, $kit->created_by]);
         $this->assertNotNull($kit->created_at);
+        $this->assertSame(['KIT-000046'], $kit->devices()->pluck('serial_number')->all());
+        $this->assertSame(SecurityDeviceStatus::InKit, SecurityDevice::query()->where('serial_number', 'KIT-000046')->value('status'));
         $this->assertSame(
-            [[$this->inspectionTape->id, 3, 2, 1], [$this->bottleSeal->id, 1, null, null]],
+            [[$this->inspectionTape->id, 3, 2, 1], [$this->pouch->id, 1, null, null], [$this->bottleSeal->id, 1, null, null]],
             $kit->securityDeviceTypes->map(fn (SecurityDeviceType $type): array => [
                 $type->id,
                 $type->getRelationValue('pivot')->quantity,
@@ -97,13 +104,55 @@ class KitBuildingTest extends TestCase
         $this->assertSame(1, Kit::query()->count());
     }
 
+    public function test_the_pouch_must_be_an_available_pouch_of_the_shipping_line_and_of_the_pouch_type_of_the_kit_type(): void
+    {
+        $this->device($this->bottleSeal, 'SLL0000044');
+        $this->device(SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda grande']), 'FGR0000001');
+        $this->device($this->pouch, 'FHL0000001', shippingLine: ShippingLine::factory()->create(['code' => 'HLCU', 'name' => 'Hapag-Lloyd']));
+        $this->device($this->pouch, 'FMK0000002', SecurityDeviceStatus::Inactive);
+        $this->device($this->pouch, 'FMK0000003', SecurityDeviceStatus::Used);
+
+        $rejections = [
+            'FMK0000999' => 'No hay ninguna funda con el código FMK0000999.',
+            'SLL0000044' => 'SLL0000044 es un dispositivo Sello botella, no una funda.',
+            'FGR0000001' => 'La funda FGR0000001 es del tipo Funda grande y el tipo de kit lleva Funda.',
+            'FHL0000001' => 'La funda FHL0000001 es de HLCU · Hapag-Lloyd y el kit es de MSK · Maersk.',
+            'FMK0000002' => 'La funda FMK0000002 está Inactiva: falta registrar la aprobación de la naviera.',
+            'FMK0000003' => 'La funda FMK0000003 está Usado y solo se usa una Disponible.',
+        ];
+
+        foreach ($rejections as $pouchCode => $reason) {
+            Livewire::test(CreateForm::class)
+                ->set('form.pouchCode', $pouchCode)
+                ->set('form.kitTypeId', (string) $this->kitType->id)
+                ->set('form.shippingLineId', (string) $this->maersk->id)
+                ->call('save')
+                ->assertHasErrors(['form.pouchCode'])
+                ->assertSeeText($reason)
+                ->assertNoRedirect();
+        }
+
+        $withoutPouch = KitType::factory()->carrying($this->bottleSeal, 1)->create(['name' => 'Kit sin funda']);
+
+        Livewire::test(CreateForm::class)
+            ->set('form.pouchCode', 'KIT-000046')
+            ->set('form.kitTypeId', (string) $withoutPouch->id)
+            ->set('form.shippingLineId', (string) $this->maersk->id)
+            ->call('save')
+            ->assertSeeText('El tipo de kit Kit sin funda no lleva funda. Edítalo en Tipos de kit y enciende una.');
+
+        $this->assertSame(0, Kit::query()->count());
+        $this->assertSame(SecurityDeviceStatus::Available, SecurityDevice::query()->where('serial_number', 'KIT-000046')->value('status'));
+    }
+
     public function test_the_kit_shows_one_field_per_slot_with_the_external_tape_before_the_internal_one(): void
     {
         $kit = $this->kit();
 
         $this->get(route('intranet.kits.show', $kit))
             ->assertOk()
-            ->assertSeeTextInOrder(['Cinta de inspección', 'Externa', '0 de 1', 'Cinta de inspección', 'Interna', '0 de 2', 'Sello botella', '0 de 1'])
+            ->assertSeeTextInOrder(['Funda', '1 de 1', 'Entró con la cabecera. No se quita.', 'Cinta de inspección', 'Externa', '0 de 1', 'Cinta de inspección', 'Interna', '0 de 2', 'Sello botella', '0 de 1'])
+            ->assertDontSee('data-slot-input="'.Kit::slotKey($this->pouch->id, null).'"', false)
             ->assertSeeText($kit->week())
             ->assertSeeText('Armando');
     }
@@ -130,7 +179,7 @@ class KitBuildingTest extends TestCase
 
         $this->assertSame(KitStatus::Built, $kit->refresh()->status);
         $this->assertSame(
-            ['CTA0001201' => 'external', 'CTA0001202' => 'internal', 'CTA0001203' => 'internal', 'SLL0000044' => null],
+            ['KIT-000046' => null, 'CTA0001201' => 'external', 'CTA0001202' => 'internal', 'CTA0001203' => 'internal', 'SLL0000044' => null],
             $kit->devices->mapWithKeys(fn (SecurityDevice $device): array => [$device->serial_number => $device->getRelationValue('pivot')->assignment])->all(),
         );
 
@@ -168,7 +217,7 @@ class KitBuildingTest extends TestCase
             $scanner->call('add', $internal, $serialNumber)->assertReturned(['ok' => false, 'message' => $reason]);
         }
 
-        $this->assertSame(0, $kit->devices()->count());
+        $this->assertSame(1, $kit->devices()->count());
         $this->assertSame(SecurityDeviceStatus::Available, SecurityDevice::query()->where('serial_number', 'SLL0000045')->value('status'));
     }
 
@@ -186,7 +235,7 @@ class KitBuildingTest extends TestCase
         $scanner->call('add', $external, 'CTA0001202')
             ->assertReturned(['ok' => false, 'message' => 'El kit ya tiene 1 de 1 en Cinta de inspección · Externa.']);
 
-        $this->assertSame(1, $kit->devices()->count());
+        $this->assertSame(2, $kit->devices()->count());
     }
 
     public function test_removing_a_device_makes_it_available_again_and_the_kit_goes_back_to_armando(): void
@@ -212,7 +261,14 @@ class KitBuildingTest extends TestCase
 
         $this->assertSame(KitStatus::Building, $kit->refresh()->status);
         $this->assertSame(SecurityDeviceStatus::Available, $devices[1][0]->refresh()->status);
-        $this->assertSame(3, $kit->devices()->count());
+        $this->assertSame(4, $kit->devices()->count());
+
+        $pouchId = (int) SecurityDevice::query()->where('serial_number', 'KIT-000046')->value('id');
+
+        $scanner->call('remove', $pouchId)
+            ->assertDispatched('toast', icon: 'warning', title: 'No se quitó', text: 'La funda no se quita: es la cabecera del kit.');
+
+        $this->assertSame(SecurityDeviceStatus::InKit, SecurityDevice::query()->whereKey($pouchId)->value('status'));
     }
 
     public function test_the_contents_of_a_dispatched_kit_no_longer_change(): void
@@ -230,7 +286,7 @@ class KitBuildingTest extends TestCase
         $scanner->call('remove', $seal->id)
             ->assertDispatched('toast', icon: 'warning', title: 'No se quitó', text: 'El kit ya se despachó: su contenido no cambia.');
 
-        $this->assertSame([$seal->id], $kit->devices()->pluck('security_devices.id')->all());
+        $this->assertSame(['KIT-000046', 'SLL0000044'], $kit->devices()->pluck('serial_number')->all());
     }
 
     public function test_editing_the_kit_type_does_not_change_what_a_kit_built_from_it_asks_for(): void
@@ -256,7 +312,7 @@ class KitBuildingTest extends TestCase
             ->assertSeeText('KIT-000046')
             ->assertSeeText('Kit de seguridad reefer')
             ->assertSeeText('MSK')
-            ->assertSeeText('1 de 4')
+            ->assertSeeText('2 de 5')
             ->assertSeeText('Armando')
             ->assertSeeHtml('href="'.route('intranet.kits.show', $kit).'"');
     }

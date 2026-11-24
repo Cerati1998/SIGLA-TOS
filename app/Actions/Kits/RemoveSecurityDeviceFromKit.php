@@ -10,7 +10,8 @@ class RemoveSecurityDeviceFromKit
 {
     /**
      * Take a device out of the kit: it becomes available again and the kit goes back to Armando (H14, criteria 9 and
-     * 14). Return the reason it was not removed, to show it on screen, or null when it was removed.
+     * 14). The pouch stays: it is the header of the kit (T76). Return the reason it was not removed, to show it on
+     * screen, or null when it was removed.
      */
     public function handle(Kit $kit, int $securityDeviceId): ?string
     {
@@ -25,6 +26,10 @@ class RemoveSecurityDeviceFromKit
 
             if ($device === null) {
                 return 'Ese dispositivo ya no está en el kit.';
+            }
+
+            if ($device->lot->announcement->security_device_type_id === $kit->pouchType()?->id) {
+                return 'La funda no se quita: es la cabecera del kit.';
             }
 
             $kit->devices()->detach($device->id);

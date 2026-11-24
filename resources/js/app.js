@@ -13,4 +13,5 @@ import './security-device-lot-preview';
 import './kit-scanner';
 import './barcode-scanner';
 import './photo-capture';
+import './photo-field';
 import '../../vendor/rappasoft/laravel-livewire-tables/resources/imports/laravel-livewire-tables';

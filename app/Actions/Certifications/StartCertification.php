@@ -9,6 +9,7 @@ use App\Models\Certification;
 use App\Models\Driver;
 use App\Models\Identity;
 use App\Models\Kit;
+use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\YardZone;
@@ -36,26 +37,30 @@ class StartCertification
      * Start the certification of the unit of a gate out request with a dispatched kit (H17). Everything is saved or
      * nothing is (criterion 4). The certification keeps only the reference, the booking and the container of the
      * request, and links the shipping line, the carrier, the driver and the vehicles, registering the ones that are
-     * not in their catalogs yet (criterion 3). The kit stays Despachado.
+     * not in their catalogs yet (criterion 3). The shipping line is not registered: it is the active line squared
+     * with the request or chosen by the inspector, and the line remembers how SIGLA 1.0 writes it (T74). The kit
+     * stays Despachado.
      *
      * @param  GateOutRequest  $gateOutRequest
      *
      * @throws ValidationException When the request already has a certification or the kit can no longer be used.
      */
-    public function handle(array $gateOutRequest, Kit $kit, ?string $inspectionSheetCode, YardZone $yardZone, User $inspector): Certification
+    public function handle(array $gateOutRequest, ShippingLine $shippingLine, Kit $kit, ?string $inspectionSheetCode, YardZone $yardZone, User $inspector): Certification
     {
-        return DB::transaction(function () use ($gateOutRequest, $kit, $inspectionSheetCode, $yardZone, $inspector): Certification {
+        return DB::transaction(function () use ($gateOutRequest, $shippingLine, $kit, $inspectionSheetCode, $yardZone, $inspector): Certification {
             $kit = Kit::query()->with('shippingLine')->lockForUpdate()->findOrFail($kit->id);
 
             if (Certification::query()->where('gate_out_request_reference', $gateOutRequest['reference'])->exists()) {
                 throw ValidationException::withMessages(['form.booking' => 'Esta solicitud ya tiene una certificación.']);
             }
 
-            $rejectionReason = $this->findKit->rejectionReason($kit, $gateOutRequest['shipping_line']);
+            $rejectionReason = $this->findKit->rejectionReason($kit, $shippingLine);
 
             if ($rejectionReason !== null) {
                 throw ValidationException::withMessages(['form.pouchCode' => $rejectionReason]);
             }
+
+            $this->shippingLines->remember($shippingLine, $gateOutRequest['shipping_line']);
 
             $carrier = $this->carrier($gateOutRequest['carrier']);
             $driver = $this->driver($gateOutRequest['driver'], $carrier);
@@ -66,7 +71,7 @@ class StartCertification
                 'container' => (string) $gateOutRequest['container'],
                 'client' => $gateOutRequest['client']['name'],
                 'product' => $gateOutRequest['product'],
-                'shipping_line_id' => $this->shippingLines->findOrRegister((string) $gateOutRequest['shipping_line'])->id,
+                'shipping_line_id' => $shippingLine->id,
                 'carrier_id' => $carrier?->id,
                 'driver_id' => $driver?->id,
                 'tractor_id' => $this->vehicle($gateOutRequest['tractor'], VehicleKind::Tractor)?->id,

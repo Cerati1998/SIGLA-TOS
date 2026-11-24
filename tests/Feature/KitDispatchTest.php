@@ -34,6 +34,8 @@ class KitDispatchTest extends TestCase
 
     private SecurityDeviceType $bottleSeal;
 
+    private SecurityDeviceType $pouch;
+
     private KitType $reeferKit;
 
     private Worker $receiver;
@@ -49,7 +51,8 @@ class KitDispatchTest extends TestCase
 
         $this->maersk = ShippingLine::factory()->create(['code' => 'MSK', 'name' => 'Maersk']);
         $this->bottleSeal = SecurityDeviceType::factory()->create(['name' => 'Sello botella']);
-        $this->reeferKit = KitType::factory()->carrying($this->bottleSeal, 2)->create(['name' => 'Kit de seguridad reefer']);
+        $this->pouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
+        $this->reeferKit = KitType::factory()->carrying($this->pouch, 1)->carrying($this->bottleSeal, 2)->create(['name' => 'Kit de seguridad reefer']);
         $this->receiver = Worker::factory()->create(['full_name' => 'Trabajador De Ejemplo Dos', 'document_number' => '00000002']);
     }
 
@@ -171,7 +174,7 @@ class KitDispatchTest extends TestCase
 
     public function test_the_table_of_the_window_only_lists_kits_armados_not_dispatched_and_filters_them(): void
     {
-        $sealsKit = KitType::factory()->carrying($this->bottleSeal, 1)->create(['name' => 'Kit de cambio de sellos']);
+        $sealsKit = KitType::factory()->carrying($this->pouch, 1)->carrying($this->bottleSeal, 1)->create(['name' => 'Kit de cambio de sellos']);
         $this->builtKit('KIT-000046');
         $this->builtKit('KIT-000051', $sealsKit);
         $this->kit('KIT-000048', devices: 0);
@@ -212,7 +215,7 @@ class KitDispatchTest extends TestCase
 
     public function test_the_list_shows_each_dispatch_with_its_number_receiver_kits_and_who_dispatched_it_and_filters_them(): void
     {
-        $sealsKit = KitType::factory()->carrying($this->bottleSeal, 1)->create(['name' => 'Kit de cambio de sellos']);
+        $sealsKit = KitType::factory()->carrying($this->pouch, 1)->carrying($this->bottleSeal, 1)->create(['name' => 'Kit de cambio de sellos']);
         $other = Worker::factory()->create(['full_name' => 'Otro Trabajador']);
         $first = $this->dispatchOf($this->receiver, [$this->builtKit('KIT-000046'), $this->builtKit('KIT-000051', $sealsKit)]);
         $second = $this->dispatchOf($other, [$this->builtKit('KIT-000047')]);
@@ -354,15 +357,19 @@ class KitDispatchTest extends TestCase
     }
 
     /**
-     * Create a kit of the kit type with the given number of devices in it, in its status.
+     * Create a kit of the kit type, with its pouch and the given number of other devices in it, in its status.
      */
     private function kit(string $pouchCode, ?KitType $kitType = null, int $devices = 2): Kit
     {
+        $this->device($this->pouch, $pouchCode, SecurityDeviceStatus::Available);
+
         $kit = app(CreateKit::class)->handle([
             'pouchCode' => $pouchCode,
             'kitTypeId' => ($kitType ?? $this->reeferKit)->id,
             'shippingLineId' => $this->maersk->id,
         ], $this->user);
+
+        $this->assertInstanceOf(Kit::class, $kit);
 
         for ($added = 0; $added < $devices; $added++) {
             $kit->devices()->attach($this->device()->id);
@@ -374,13 +381,13 @@ class KitDispatchTest extends TestCase
     }
 
     /**
-     * Create a complete kit, Armado.
+     * Create a complete kit, Armado: its pouch and every other device its kit type asks for.
      */
     private function builtKit(string $pouchCode, ?KitType $kitType = null): Kit
     {
         $kitType ??= $this->reeferKit;
 
-        return $this->kit($pouchCode, $kitType, (int) $kitType->securityDeviceTypes()->sum('quantity'));
+        return $this->kit($pouchCode, $kitType, (int) $kitType->securityDeviceTypes()->sum('quantity') - 1);
     }
 
     /**
@@ -398,16 +405,16 @@ class KitDispatchTest extends TestCase
     }
 
     /**
-     * Create a bottle seal of Maersk, already in a kit.
+     * Create a device of Maersk, a bottle seal already in a kit by default.
      */
-    private function device(): SecurityDevice
+    private function device(?SecurityDeviceType $type = null, ?string $serialNumber = null, SecurityDeviceStatus $status = SecurityDeviceStatus::InKit): SecurityDevice
     {
-        $announcement = SecurityDeviceAnnouncement::factory()->for($this->maersk)->for($this->bottleSeal)->create();
+        $announcement = SecurityDeviceAnnouncement::factory()->for($this->maersk)->for($type ?? $this->bottleSeal)->create();
         $lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create();
 
         return SecurityDevice::factory()->for($lot, 'lot')->create([
-            'serial_number' => sprintf('SLL%07d', $this->nextSerial++),
-            'status' => SecurityDeviceStatus::InKit,
+            'serial_number' => $serialNumber ?? sprintf('SLL%07d', $this->nextSerial++),
+            'status' => $status,
         ]);
     }
 }

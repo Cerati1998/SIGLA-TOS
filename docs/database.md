@@ -132,6 +132,7 @@ erDiagram
     bigint id PK
     string code UK
     string name
+    string sigla1_name UK
     datetime deleted_at
   }
   providers {
@@ -153,7 +154,7 @@ erDiagram
   security_device_types {
     bigint id PK
     string name UK
-    string kind "seal, container_seal, tape, other"
+    string kind "seal, container_seal, tape, pouch, other"
     boolean splits_internal_external
     boolean uses_series
     boolean requires_lot_approval
@@ -205,6 +206,8 @@ erDiagram
     datetime discarded_at "null"
     bigint discarded_by FK "null"
     string discard_reason "null"
+    string discard_photo_path "null"
+    string discard_thumbnail_path "null"
   }
   security_device_lot_approvals {
     bigint id PK
@@ -628,9 +631,10 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `id` | bigint PK | |
 | `code` | varchar(20) | UK (criterio 2). Se guarda sin espacios a los lados y en mayúsculas. |
 | `name` | varchar(100) | |
+| `sigla1_name` | varchar(100) (null) | UK. Cómo escribe SIGLA 1.0 esta naviera (por ejemplo `CHIQUITA`), en mayúsculas y sin espacios de más. Es la caché con que la asignación (H17) cuadra la naviera de una solicitud sin volver a buscarla: la llena el seeder y, si no hubo una única coincidencia, la elección del inspector (T74, 2026-11-23). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express). Si un código ya existe, aunque esté desactivado, no lo toca.
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Si un código ya existe, aunque esté desactivado, no lo toca.
 
 ### 5.7 `providers` · `en código`
 
@@ -668,13 +672,13 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK (criterio 2). Se guarda sin espacios a los lados. |
-| `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `other` (otro). ER: `type`. No se edita después de crear. |
+| `kind` | varchar(20) | Enum de PHP `SecurityDeviceKind`, lista fija: `seal` (sello), `container_seal` (precinto), `tape` (cinta), `pouch` (funda, T76) y `other` (otro). ER: `type`. No se edita después de crear. Todo tipo de kit lleva exactamente un tipo `pouch`, con cantidad 1, y la funda de cada kit es un dispositivo de ese tipo (T76). |
 | `splits_internal_external` | boolean | Por defecto `false`. Si está marcado, en el tipo de kit su cantidad se reparte entre la asignación interna y la externa (casilla en crear y editar; corrección del 2026-11-16, T55). Se puede cambiar al editar: los tipos de kit ya guardados conservan sus cantidades hasta que se editen. |
 | `uses_series` | boolean | Por defecto `true`. La casilla «No utiliza serie» lo deja en `false`: sus lotes no piden inicio ni final de serie y cada serie es solo el correlativo con ceros, única dentro del tipo (corrección del 2026-11-20, T62). |
 | `requires_lot_approval` | boolean | Por defecto `true`. Si está en `false` («Requiere aprobación en lote» desmarcada), los dispositivos de sus lotes nacen `available` y no pasan por la aprobación de H29 (T62). `uses_series` y `requires_lot_approval` solo cambian mientras el tipo no tenga lotes. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 4). Los tipos no se eliminan (criterio 5). |
 
-`SecurityDeviceTypeSeeder` carga los 8 tipos iniciales de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`). Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
+`SecurityDeviceTypeSeeder` carga los 9 tipos iniciales: los 8 de los diseños de H12 y H13, pedidos por el usuario el 2026-11-12: cinta de inspección, puerta empty y puerta full (`tape`); sello botella, cable y plástico (`seal`); precinto de naviera (`container_seal`) y formato de inspección (`other`); y la funda (`pouch`), sumada el 2026-11-24 en T76. Solo la cinta de inspección se reparte entre interna y externa. Si un tipo ya existe, aunque esté desactivado, no lo toca. (Corregido el 2026-11-16, T55: la cinta interna y la externa eran un solo tipo, la cinta de inspección. El seeder no borra ni renombra las dos de una base ya cargada.)
 
 ### 5.9 `security_device_announcements` · `en código`
 
@@ -720,6 +724,8 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `discarded_at` | timestamp (null) | Cuándo se descartó (T65). Solo se descarta un dispositivo `inactive` o `available` fuera de un kit, y no se deshace. |
 | `discarded_by` | bigint FK → `users` (null) | Quién lo descartó (T65). |
 | `discard_reason` | varchar(255) (null) | Motivo del descarte, obligatorio al descartar (T65). |
+| `discard_photo_path` | varchar(255) (null) | Ruta de la foto del descarte en el disco privado, obligatoria al descartar (T77). Los dispositivos de un kit inhabilitado al anular su asignación comparten la foto del kit (H32). |
+| `discard_thumbnail_path` | varchar(255) (null) | Ruta de su miniatura (T77). |
 | `timestamps` | | |
 
 El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
@@ -1003,7 +1009,7 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
 | `client` | varchar(255) (null) | El cliente (operador) de la solicitud, como lo manda SIGLA 1.0 (T58). |
 | `product` | varchar(255) (null) | El producto de la solicitud, como lo manda SIGLA 1.0 (T58). |
-| `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, buscada por nombre sin distinguir mayúsculas. Si estaba desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre (SEAT) y un número si se repite (MAER1). |
+| `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, cuadrada con las navieras activas al buscarla: por `sigla1_name`, por nombre o código exactos, por el inicio del nombre y por el texto que contiene, solo si hay una única coincidencia. Si no, la elige el inspector y su elección queda en `sigla1_name`. Ya no se crean navieras al asignar (T74, 2026-11-23; antes se reactivaba o se creaba). |
 | `carrier_id` | bigint FK → `carriers.id` (null) | Buscado por RUC o creado (criterio 3). Null si SIGLA 1.0 no manda el RUC o la razón social. |
 | `driver_id` | bigint FK → `drivers.id` (null) | Buscado por DNI o creado, y enlazado con el transportista en `carrier_driver` (criterio 3). Null si SIGLA 1.0 no manda el DNI, el nombre o el brevete. |
 | `tractor_id` | bigint FK → `vehicles.id` (null) | Remolcador, buscado por placa o creado con `VehicleRegistry`. Null si falta la placa, la marca o la carrocería. |

@@ -10,7 +10,8 @@ class SecurityDeviceTypeSeeder extends Seeder
 {
     /**
      * The initial security device types, the ones shown in the H12 and H13 designs, asked by the user on 2026-11-12.
-     * The internal and the external tape are one type, the inspection tape (corrected by the user on 2026-11-16).
+     * The internal and the external tape are one type, the inspection tape (corrected by the user on 2026-11-16). The
+     * pouch of the kit is a device too, of kind Funda (T76, asked by the user on 2026-11-24).
      *
      * @var array<string, SecurityDeviceKind>
      */
@@ -23,6 +24,7 @@ class SecurityDeviceTypeSeeder extends Seeder
         'Sello plástico' => SecurityDeviceKind::Seal,
         'Precinto de naviera' => SecurityDeviceKind::ContainerSeal,
         'Formato de inspección' => SecurityDeviceKind::Other,
+        'Funda' => SecurityDeviceKind::Pouch,
     ];
 
     /**

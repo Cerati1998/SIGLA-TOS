@@ -8,9 +8,12 @@ use App\Actions\Kits\AddSecurityDeviceToKit;
 use App\Actions\Kits\CreateKit;
 use App\Actions\SecurityDevices\ApproveSecurityDeviceLotRange;
 use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
+use App\Enums\CertificationSectionType;
+use App\Enums\SecurityDeviceKind;
 use App\Enums\SecurityDeviceStatus;
 use App\Enums\VehicleKind;
 use App\Models\Carrier;
+use App\Models\CertificationSection;
 use App\Models\ContainerType;
 use App\Models\Kit;
 use App\Models\KitType;
@@ -28,9 +31,11 @@ use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
- * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, carriers with their
- * drivers and vehicles, lots received and activated, kit types, kits Armados and Armando, and two dispatches.
- * It goes through the same actions as the screens. Run it on its own, never in production:
+ * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, the devices of some catalog
+ * sections, carriers with their drivers and vehicles, lots received and activated, kit types, kits Armados and Armando,
+ * and four dispatches, two of them with kits of Chiquita and Seatrade ready to assign (T74). It goes through the same
+ * actions as the screens.
+ * DatabaseSeeder runs it only in the local environment; it can also run on its own, never in production:
  * php artisan db:seed --class=LocalTestingSeeder
  */
 class LocalTestingSeeder extends Seeder
@@ -41,8 +46,6 @@ class LocalTestingSeeder extends Seeder
     public const string MARKER_DOCUMENT = '20999999901';
 
     private User $user;
-
-    private int $nextPouch = 1;
 
     /**
      * Load the sample data.
@@ -67,22 +70,38 @@ class LocalTestingSeeder extends Seeder
 
         $maersk = ShippingLine::query()->where('code', 'MAEU')->firstOrFail();
         $hapagLloyd = ShippingLine::query()->where('code', 'HLCU')->firstOrFail();
+        $chiquita = ShippingLine::query()->where('code', 'CHQT')->firstOrFail();
+        $seatrade = ShippingLine::query()->where('code', 'SEAT')->firstOrFail();
         $containerSeal = SecurityDeviceType::query()->where('name', 'Precinto de naviera')->firstOrFail();
         $bottleSeal = SecurityDeviceType::query()->where('name', 'Sello botella')->firstOrFail();
         $inspectionTape = SecurityDeviceType::query()->where('name', 'Cinta de inspección')->firstOrFail();
+        $pouch = SecurityDeviceType::query()->where('name', 'Funda')->firstOrFail();
+        $this->certificationSections($containerSeal, $bottleSeal, $inspectionTape);
 
+        $this->lot($maersk, $providers[0], $pouch, 'FMK', 1, 30);
+        $this->lot($hapagLloyd, $providers[0], $pouch, 'FHL', 1, 30);
+        $this->lot($chiquita, $providers[0], $pouch, 'FCQ', 1, 30);
+        $this->lot($seatrade, $providers[0], $pouch, 'FST', 1, 30);
         $this->lot($maersk, $providers[0], $containerSeal, 'MSK', 1, 60);
         $this->lot($maersk, $providers[0], $bottleSeal, 'SB', 1001, 1120);
         $this->lot($maersk, $providers[1], $inspectionTape, 'CIN', 1, 120);
         $this->lot($hapagLloyd, $providers[1], $bottleSeal, 'HLS', 1, 60);
+        $this->lot($chiquita, $providers[0], $containerSeal, 'CHQ', 1, 30);
+        $this->lot($chiquita, $providers[0], $bottleSeal, 'CQB', 1, 30);
+        $this->lot($chiquita, $providers[1], $inspectionTape, 'CQC', 1, 30);
+        $this->lot($seatrade, $providers[0], $containerSeal, 'SEA', 1, 30);
+        $this->lot($seatrade, $providers[0], $bottleSeal, 'STB', 1, 30);
+        $this->lot($seatrade, $providers[1], $inspectionTape, 'STC', 1, 30);
 
         $containerType = ContainerType::query()->orderBy('id')->firstOrFail();
         $reeferKit = KitType::factory()
+            ->carrying($pouch, 1)
             ->carrying($containerSeal, 1)
             ->carrying($bottleSeal, 2)
             ->hasAttached($inspectionTape, ['quantity' => 3, 'internal_quantity' => 1, 'external_quantity' => 2], 'securityDeviceTypes')
             ->create(['name' => 'Kit de seguridad reefer', 'container_type_id' => $containerType->id]);
         $sealsKit = KitType::factory()
+            ->carrying($pouch, 1)
             ->carrying($bottleSeal, 2)
             ->create(['name' => 'Kit de cambio de sellos', 'container_type_id' => $containerType->id]);
 
@@ -90,12 +109,16 @@ class LocalTestingSeeder extends Seeder
         $this->kit($reeferKit, $maersk, leaveMissing: 1);
         $this->kit($reeferKit, $maersk, leaveMissing: 6);
         $sealsKits = array_map(fn (): Kit => $this->kit($sealsKit, $hapagLloyd), range(1, 4));
+        $chiquitaKits = array_map(fn (): Kit => $this->kit($reeferKit, $chiquita), range(1, 4));
+        $seatradeKits = array_map(fn (): Kit => $this->kit($reeferKit, $seatrade), range(1, 4));
 
         $dispatchKits = app(DispatchKits::class);
         $dispatchKits->handle($workers[0], [$reeferKits[0]->id, $reeferKits[1]->id], $this->user);
         $dispatchKits->handle($workers[1], [$sealsKits[0]->id], $this->user);
+        $dispatchKits->handle($workers[0], array_map(fn (Kit $kit): int => $kit->id, array_slice($chiquitaKits, 0, 3)), $this->user);
+        $dispatchKits->handle($workers[1], array_map(fn (Kit $kit): int => $kit->id, array_slice($seatradeKits, 0, 3)), $this->user);
 
-        $this->command->info('Datos de prueba cargados: 12 kits (7 Armados por despachar, 2 Armando y 3 ya despachados en 2 despachos).');
+        $this->command->info('Datos de prueba cargados: 20 kits (9 Armados por despachar, 2 Armando y 9 ya despachados en 4 despachos, 3 de Chiquita y 3 de Seatrade listos para asignar).');
     }
 
     /**
@@ -133,6 +156,34 @@ class LocalTestingSeeder extends Seeder
         )->create(['is_own' => false, 'position' => 'Técnico']);
 
         return [...$own->all(), ...$fromProvider->all()];
+    }
+
+    /**
+     * Set the devices of some sections of the catalog (H33), so that together they make exactly the reefer kit and its
+     * kits fit when they are assigned (H17, criterion 16). A section the admin already configured is left as it is.
+     */
+    private function certificationSections(SecurityDeviceType $containerSeal, SecurityDeviceType $bottleSeal, SecurityDeviceType $inspectionTape): void
+    {
+        $this->call(CertificationSectionCatalogSeeder::class);
+
+        $sections = [
+            ['Puerta cerrada y panorámica', CertificationSectionType::Internal, [[$containerSeal, 1], [$bottleSeal, 2]]],
+            ['Kit de precintos en piso', CertificationSectionType::Internal, [[$inspectionTape, 1]]],
+            ['Evaporadores cerrados', CertificationSectionType::External, [[$inspectionTape, 1]]],
+            ['Ventilador', CertificationSectionType::External, [[$inspectionTape, 1]]],
+        ];
+
+        foreach ($sections as [$name, $type, $devices]) {
+            $section = CertificationSection::query()->where('name', $name)->where('type', $type)->firstOrFail();
+
+            if ($section->securityDeviceTypes()->exists()) {
+                continue;
+            }
+
+            foreach ($devices as [$securityDeviceType, $quantity]) {
+                $section->securityDeviceTypes()->attach($securityDeviceType, ['quantity' => $quantity]);
+            }
+        }
     }
 
     /**
@@ -188,19 +239,32 @@ class LocalTestingSeeder extends Seeder
     }
 
     /**
-     * Create a kit and scan its devices, leaving the given number of them missing.
+     * Create a kit with the next available pouch of its shipping line, and scan its devices, leaving the given number
+     * of them missing.
      */
     private function kit(KitType $kitType, ShippingLine $shippingLine, int $leaveMissing = 0): Kit
     {
+        $pouchCode = SecurityDevice::query()
+            ->where('status', SecurityDeviceStatus::Available)
+            ->whereHas('lot.announcement', fn ($query) => $query
+                ->where('shipping_line_id', $shippingLine->id)
+                ->whereHas('securityDeviceType', fn ($type) => $type->where('kind', SecurityDeviceKind::Pouch)))
+            ->orderBy('serial_number')
+            ->value('serial_number');
+
         $kit = app(CreateKit::class)->handle([
-            'pouchCode' => sprintf('KIT-%06d', $this->nextPouch++),
+            'pouchCode' => (string) $pouchCode,
             'kitTypeId' => $kitType->id,
             'shippingLineId' => $shippingLine->id,
         ], $this->user);
 
+        if (is_string($kit)) {
+            throw new RuntimeException("No se pudo crear el kit de {$shippingLine->code}: {$kit}");
+        }
+
         $addDevice = app(AddSecurityDeviceToKit::class);
-        $slots = $kit->slots();
-        $toAdd = array_sum(array_column($slots, 'quantity')) - $leaveMissing;
+        $slots = array_values(array_filter($kit->slots(), fn (array $slot): bool => $slot['added'] < $slot['quantity']));
+        $toAdd = array_sum(array_map(fn (array $slot): int => $slot['quantity'] - $slot['added'], $slots)) - $leaveMissing;
 
         foreach ($slots as $slot) {
             for ($added = 0; $added < $slot['quantity'] && $toAdd > 0; $added++, $toAdd--) {

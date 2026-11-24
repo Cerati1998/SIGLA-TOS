@@ -128,7 +128,9 @@ class SecurityDeviceLotCorrectionTest extends TestCase
 
         $this->get(route('intranet.security-device-lots.edit', $this->lot))
             ->assertOk()
-            ->assertSeeText('La serie no se puede cambiar porque 3 dispositivos de este lote ya cambiaron de estado (1 en un kit y 2 usados).');
+            ->assertSeeText('La serie no se puede cambiar porque 3 dispositivos de este lote ya cambiaron de estado (1 en un kit y 2 usados).')
+            ->assertSee('x-model="quantity"', false)
+            ->assertDontSeeText('Calcula el correlativo final.');
 
         $this->editForm()
             ->assertSet('form.seriesLocked', true)

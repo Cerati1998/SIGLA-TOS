@@ -16,7 +16,7 @@
                     required
                     x-on:keydown.enter.prevent="$el.closest('form').querySelector('select')?.focus()"
                 />
-                <span class="text-sm text-ink-muted">El código de barras de la funda; al escanearlo pasa al tipo de kit. No se repite en otro kit.</span>
+                <span class="text-sm text-ink-muted">Escanea una funda Disponible de la naviera del kit. Entra sola en el kit; al escanearla pasa al tipo de kit.</span>
                 <flux:error name="form.pouchCode" />
             </div>
 
