@@ -5,20 +5,19 @@ namespace App\Actions\Certifications;
 use App\Enums\KitStatus;
 use App\Models\Certification;
 use App\Models\Kit;
-use App\Services\ShippingLineRegistry;
+use App\Models\ShippingLine;
 
 class FindKitToCertify
 {
     public function __construct(
-        private ShippingLineRegistry $shippingLines,
         private DistributeKitDevices $distributeKitDevices,
     ) {}
 
     /**
      * Find the kit with the scanned or written pouch code, or get why it cannot be used to certify the unit of a
-     * request of this shipping line, to show it on screen.
+     * request of this shipping line, already squared with the catalog (T74), to show it on screen.
      */
-    public function handle(string $pouchCode, ?string $shippingLineName): Kit|string
+    public function handle(string $pouchCode, ShippingLine $shippingLine): Kit|string
     {
         $kit = Kit::query()
             ->with(['kitType', 'shippingLine'])
@@ -29,7 +28,7 @@ class FindKitToCertify
             return sprintf('No hay ningún kit con la funda %s.', $pouchCode);
         }
 
-        return $this->rejectionReason($kit, $shippingLineName) ?? $kit;
+        return $this->rejectionReason($kit, $shippingLine) ?? $kit;
     }
 
     /**
@@ -37,7 +36,7 @@ class FindKitToCertify
      * (criterion 7), of the same shipping line as the request (decision of the user of 2026-11-17), that is in no
      * other certification (criterion 8) and that has exactly what the active sections ask for (criterion 16).
      */
-    public function rejectionReason(Kit $kit, ?string $shippingLineName): ?string
+    public function rejectionReason(Kit $kit, ShippingLine $shippingLine): ?string
     {
         if ($kit->status !== KitStatus::Dispatched) {
             return $kit->status === KitStatus::Used
@@ -51,15 +50,14 @@ class FindKitToCertify
             return sprintf('El kit %s ya está en la certificación del contenedor %s.', $kit->pouch_code, $certification->container);
         }
 
-        $requestShippingLine = $shippingLineName === null ? null : $this->shippingLines->find($shippingLineName);
-
-        if ($requestShippingLine?->id !== $kit->shipping_line_id) {
+        if ($shippingLine->id !== $kit->shipping_line_id) {
             return sprintf(
-                'El kit %s es de %s · %s y la solicitud es de %s.',
+                'El kit %s es de %s · %s y la solicitud es de %s · %s.',
                 $kit->pouch_code,
                 $kit->shippingLine->code,
                 $kit->shippingLine->name,
-                $requestShippingLine === null ? ($shippingLineName ?? 'una naviera sin nombre') : "{$requestShippingLine->code} · {$requestShippingLine->name}",
+                $shippingLine->code,
+                $shippingLine->name,
             );
         }
 

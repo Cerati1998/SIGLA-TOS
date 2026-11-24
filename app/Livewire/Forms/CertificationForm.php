@@ -5,6 +5,7 @@ namespace App\Livewire\Forms;
 use App\Actions\Certifications\StartCertification;
 use App\Models\Certification;
 use App\Models\Kit;
+use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\YardZone;
 use App\Services\Sigla1LookupResult;
@@ -35,6 +36,11 @@ class CertificationForm extends Form
 
     public string $booking = '';
 
+    /**
+     * The line the inspector chooses when the one of SIGLA 1.0 does not square with exactly one line (T74).
+     */
+    public string $shippingLineId = '';
+
     public string $pouchCode = '';
 
     public string $inspectionSheetCode = '';
@@ -55,6 +61,7 @@ class CertificationForm extends Form
             'containerOwner' => ['required', 'string', 'regex:/^[A-Z]{4}$/'],
             'containerNumber' => ['required', 'string', 'regex:/^\d{7}$/'],
             'booking' => ['required', 'string', 'max:50'],
+            'shippingLineId' => ['required', Rule::exists(ShippingLine::class, 'id')->whereNull('deleted_at')],
             'pouchCode' => ['required', 'string', 'max:50'],
             'inspectionSheetCode' => ['nullable', 'string', 'max:50', $this->inspectionSheetIsFree(...)],
             'yardZoneId' => ['required', Rule::exists(YardZone::class, 'id')
@@ -75,6 +82,8 @@ class CertificationForm extends Form
             'containerNumber.required' => 'Escribe los 7 números del contenedor.',
             'containerNumber.regex' => 'Escribe los 7 números del contenedor.',
             'booking.required' => 'Escribe el booking.',
+            'shippingLineId.required' => 'Elige la línea naviera de la solicitud.',
+            'shippingLineId.exists' => 'Elige una línea naviera activa.',
             'pouchCode.required' => 'Escanea o escribe el código de la funda.',
             'yardZoneId.required' => 'Elige la zona de patio.',
             'yardZoneId.exists' => 'Elige una zona de patio activa de tu sede.',
@@ -92,6 +101,7 @@ class CertificationForm extends Form
             'containerOwner' => 'letras del contenedor',
             'containerNumber' => 'números del contenedor',
             'booking' => 'booking',
+            'shippingLineId' => 'línea naviera',
             'pouchCode' => 'funda',
             'inspectionSheetCode' => 'formato',
             'yardZoneId' => 'zona de patio',
@@ -119,6 +129,16 @@ class CertificationForm extends Form
     }
 
     /**
+     * Get the active line the inspector chose for the request, validating it (T74).
+     */
+    public function chosenShippingLine(): ShippingLine
+    {
+        $this->validate(Arr::only($this->rules(), ['shippingLineId']));
+
+        return ShippingLine::query()->findOrFail((int) $this->shippingLineId);
+    }
+
+    /**
      * Validate the pouch code, to look up the kit (criterion 7).
      */
     public function validatePouch(): void
@@ -129,12 +149,12 @@ class CertificationForm extends Form
     }
 
     /**
-     * Validate the inspection sheet and the yard zone, and start the certification with the request and the kit
-     * already found.
+     * Validate the inspection sheet and the yard zone, and start the certification with the request, its shipping
+     * line and the kit already found.
      *
      * @param  GateOutRequest  $gateOutRequest
      */
-    public function store(StartCertification $startCertification, array $gateOutRequest, Kit $kit, User $inspector): Certification
+    public function store(StartCertification $startCertification, array $gateOutRequest, ShippingLine $shippingLine, Kit $kit, User $inspector): Certification
     {
         $this->inspectionSheetCode = mb_strtoupper(trim($this->inspectionSheetCode));
 
@@ -142,6 +162,7 @@ class CertificationForm extends Form
 
         return $startCertification->handle(
             $gateOutRequest,
+            $shippingLine,
             $kit,
             $this->inspectionSheetCode === '' ? null : $this->inspectionSheetCode,
             YardZone::query()->findOrFail((int) $this->yardZoneId),
