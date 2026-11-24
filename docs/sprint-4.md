@@ -24,6 +24,7 @@ Dejar construido el checkpoint: las secciones de checkpoint en el catálogo, el 
 - **Adelanto opcional:** mejora de H20, las marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación (T73).
 - **Corrección del Sprint 3** (agregada el 2026-11-23 a pedido del usuario): la naviera de SIGLA 1.0 en la asignación (H17, T74), la cantidad al ingresar un lote (H07 y H28, T75), la funda como dispositivo del kit (H06, H13 y H14, T76) y la foto al descartar un dispositivo (H08, T77).
 - **H37** · Ingresar un anuncio de ingreso de lotes (T78), agregada el 2026-11-24 a pedido del usuario: un anuncio de ingreso de lotes trae n lotes y cada lote, n dispositivos. Cambia H07, H08, H28 y H29.
+- **H38** · Reemplazar dispositivos del kit con dispositivos extra (T79), agregada el 2026-11-24 a pedido del usuario: el inspector ve los dispositivos despachados a granel para su asignación y reemplaza con ellos uno del kit, con su registro. Cambia H18, H19, H20 y H30, y la usa H35.
 
 Sigue el orden de épicas aprobado: E6 es la última. H24 queda para el Sprint 5.
 
@@ -59,17 +60,18 @@ Pedidas por el usuario el 2026-11-23, al revisar lo construido en el Sprint 3. C
 ### Historia nueva (agregada el 2026-11-24)
 Pedida por el usuario el 2026-11-23 como nota del sprint y armada con él el 2026-11-24. Las horas son una propuesta de Claude Code.
 - [x] **T78** · H37 · Ingresar un anuncio de ingreso de lotes. El anuncio de ingreso de lotes es la cabecera (naviera, proveedor, fecha y guía) y trae uno o más lotes, cada uno con su tipo, su serie, sus correlativos y sus observaciones; todo se guarda junto, con un tope de 10 000 series por anuncio. Bodega consulta la lista de anuncios, el detalle de cada anuncio con sus lotes y el detalle de cada lote con sus dispositivos. Cambia H07, H08, H28 y H29. Se parte de cero con `migrate:fresh` y deja `docs/database.md` y `docs/glossary.md` al día. Incluye diseñar el ingreso, la lista y el detalle del anuncio en la página E2 del lienzo y que el usuario los apruebe antes de construir. Quién: Claude Code. 4 h. (Hecho el 2026-11-24, PR #109, unas 2.5 h reales: del primer commit, a las 12:59, al visto bueno, a las 15:27, con el diseño y las correcciones de la prueba. La migración conserva los datos, aunque se decidió partir de cero con `migrate:fresh`. Correcciones del usuario al probar: el menú dice «Ingreso de lotes» y los títulos «Anuncios de ingreso de lotes»; en el celular, los lotes del detalle del anuncio van en tarjetas, solo en esa vista.)
+- [ ] **T79** · H38 · Dispositivos extra y reemplazo en la asignación. La inspección suma «Dispositivos extra» para reemplazar un dispositivo del kit por uno despachado a granel para esa asignación, del mismo tipo, con motivo y foto del descarte; el que sale pasa a Descartado y la sección pide una foto nueva. El PDF y el detalle muestran el nuevo, y el detalle suma «Dispositivos reemplazados». Incluye el cambio de H30, criterio 3 (por Operación se ofrecen las certificaciones en curso, reabiertas y cerradas), y el diseño en la página E5 del lienzo, que el usuario aprueba antes de construir. Quién: Claude Code. 4.5 h (1 h de diseño y 3.5 h de construcción). Va antes de T71.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
 | Compromiso | T67, T68, T69, T70, T71, T72 | 13 h |
 | Corrección del Sprint 3 (agregada el 2026-11-23) | T74, T75, T76, T77 | 7.5 h |
-| Historia nueva (agregada el 2026-11-24) | T78 | 4 h |
+| Historia nueva (agregada el 2026-11-24) | T78, T79 | 8.5 h |
 | Adelanto opcional | T73 | 2 h |
-| **Total** | | **26.5 h** |
+| **Total** | | **31 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5. T74 a T77 suman 7.5 h (20.5 h sin el adelanto opcional, 22.5 h con él), por decisión del usuario del 2026-11-23: el compromiso con las correcciones pasa la capacidad en unas 2.5 h. Si el tiempo no alcanza, el usuario decide qué se corta. T78 suma 4 h más (24.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; las correcciones T74 a T77 llevaron unas 3 h reales de las 7.5 h estimadas.
+Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5. T74 a T77 suman 7.5 h (20.5 h sin el adelanto opcional, 22.5 h con él), por decisión del usuario del 2026-11-23: el compromiso con las correcciones pasa la capacidad en unas 2.5 h. Si el tiempo no alcanza, el usuario decide qué se corta. T78 suma 4 h más (24.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; las correcciones T74 a T77 llevaron unas 3 h reales de las 7.5 h estimadas. T79 suma 4.5 h más (29 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; si el tiempo no alcanza, T72 (H36) pasa al Sprint 5.
 
 ## Orden de trabajo
 Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión pendiente (T67), un diseño sin aprobar (T68) o el visto bueno de la prueba de una historia.
@@ -88,6 +90,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | — | T76 · H06, H13 y H14 · Funda en el kit | `fix/T76-funda-en-kit` | `main` | decisiones de T76 y diseño aprobado |
 | — | T77 · H08 · Foto al descartar | `fix/T77-H08-foto-descarte` | `main` | decisiones de T77 y diseño aprobado |
 | — | T78 · H37 · Anuncio de lotes | `fix/T78-anuncio-de-lotes` | `main` | diseño aprobado |
+| — | T79 · H38 · Reemplazo con extras | `feature/H38-reemplazo-dispositivos` | `main` | diseño aprobado; antes de T71 |
 
 - **Ramas encadenadas.** Cada historia de E6 parte de la anterior porque usa lo que esta deja: las secciones de checkpoint de H33, el checkpoint de H34 y la reinspección de H35. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
 - **Orden de merge:** T69, T70, T71 y T72, en ese orden.
@@ -97,7 +100,8 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 
 ## Impedimentos y dependencias
 - **H35 toca la certificación ya construida:** reabre solo algunas secciones, reemplaza dispositivos y suma el estado En reinspección al listado de Asignaciones (H20). Es la tarea con más riesgo del sprint.
-- **H30 sin cambios:** la reinspección usa el despacho a granel con motivo Operación tal como está. Si al construir hace falta cambiarlo, se avisa al usuario.
+- **H30 sin cambios:** la reinspección usa el despacho a granel con motivo Operación tal como está. Si al construir hace falta cambiarlo, se avisa al usuario. (Cambiado el 2026-11-24 con H38: por Operación se ofrecen también las certificaciones en curso y reabiertas, y el reemplazo de H35, criterio 5, usa el de H38.)
+- **T79 toca lo que usa E6:** el despacho a granel por Operación, la inspección y el detalle de la certificación, y el reemplazo que H35 reusa. Va antes de T71; al llegar a `main`, se avisa a quien construye E6 para que traiga `main` a su rama.
 - **T76 toca lo que usa E6:** el kit, su contenido y el reparto de sus dispositivos entre las secciones al asignar (H17, criterio 16), que H34 y H35 también usan. Si cambia el reparto, se avisa a quien construye E6 para que traiga `main` a su rama.
 - **T78 cambia el modelo del lote:** el lote y su anuncio están debajo de los kits, la certificación y el reparto en secciones, que E6 también usa. Al llegar a `main`, se avisa a quien construye E6 para que traiga `main` a su rama.
 - **Datos de prueba:** para probar el checkpoint hace falta al menos una certificación cerrada con sus dispositivos repartidos.
@@ -111,4 +115,4 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 - Aprobar H33 a H36 en el backlog (T67). (Resuelto el 2026-11-23: el usuario las aprobó.)
 - Confirmar los acuerdos de la retrospectiva del Sprint 3 y la capacidad. (Resuelto el 2026-11-23: el usuario confirmó los cinco acuerdos y las 20 h.)
 - Registrar las horas reales de cada tarea (acuerdo 1).
-- Notas del usuario del 2026-11-23 que no entran como corrección: el ingreso de lotes como 1 anuncio → n lotes → n dispositivos, que cambia H07, H08, H28 y H29 y pide una historia nueva en el backlog con su diseño; y el reemplazo de un dispositivo del kit por uno de un despacho a granel, con su registro en la asignación, que es una propuesta por revisar con el equipo y se cruza con la reinspección (H35). (La primera se resolvió el 2026-11-24: es H37, aprobada por el usuario, y entra al sprint como T78. La segunda sigue pendiente: el usuario no la trabaja por ahora.)
+- Notas del usuario del 2026-11-23 que no entran como corrección: el ingreso de lotes como 1 anuncio → n lotes → n dispositivos, que cambia H07, H08, H28 y H29 y pide una historia nueva en el backlog con su diseño; y el reemplazo de un dispositivo del kit por uno de un despacho a granel, con su registro en la asignación, que es una propuesta por revisar con el equipo y se cruza con la reinspección (H35). (La primera se resolvió el 2026-11-24: es H37, aprobada por el usuario, y entra al sprint como T78. La segunda sigue pendiente: el usuario no la trabaja por ahora. Se resolvió el 2026-11-24: es H38, aprobada por el usuario, y entra al sprint como T79, antes de T71.)
