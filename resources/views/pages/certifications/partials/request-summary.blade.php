@@ -3,9 +3,11 @@
         ? null
         : rescue(fn (): string => \Illuminate\Support\Carbon::createFromFormat('Y-m-d H:i:s', $gateOutRequest['dispatched_at'])->format('d/m/Y H:i'), $gateOutRequest['dispatched_at'], false);
     $main = [
-        'Cliente' => $value($gateOutRequest['client']['name']),
-        'Línea naviera' => $value($gateOutRequest['shipping_line']),
-        'Conductor' => $value($gateOutRequest['driver']['name']),
+        'Cliente' => [$value($gateOutRequest['client']['name']), null],
+        'Línea naviera' => $matchedShippingLine === null
+            ? [$value($gateOutRequest['shipping_line']), null]
+            : [$value($matchedShippingLine->code, $matchedShippingLine->name), 'En SIGLA 1.0: '.$gateOutRequest['shipping_line']],
+        'Conductor' => [$value($gateOutRequest['driver']['name']), null],
     ];
     $more = [
         'Producto' => $value($gateOutRequest['product']),
@@ -30,10 +32,15 @@
     </div>
 
     <dl class="m-0 grid grid-cols-2 gap-3 md:grid-cols-4">
-        @foreach ($main as $label => $detail)
+        @foreach ($main as $label => [$detail, $origin])
             <div wire:key="request-main-{{ $loop->index }}" class="col-span-2 flex min-w-0 flex-col gap-0.5 md:col-span-1">
                 <dt class="text-xs tracking-wider text-ink-muted uppercase">{{ $label }}</dt>
-                <dd class="m-0 break-words">{{ $detail }}</dd>
+                <dd class="m-0 break-words">
+                    {{ $detail }}
+                    @if ($origin !== null)
+                        <small class="block text-sm text-ink-muted">{{ $origin }}</small>
+                    @endif
+                </dd>
             </div>
         @endforeach
         @foreach ($plates as $label => $plate)

@@ -3,88 +3,91 @@
 namespace App\Services;
 
 use App\Models\ShippingLine;
+use Closure;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 /**
- * Find a shipping line that SIGLA 1.0 sends only by its name, or register it in the catalog (H17). The code of a new
- * line is made from its name, so the admin can fix it later in Líneas navieras (decision of the user of 2026-11-17).
+ * Square the shipping line that SIGLA 1.0 sends only by its name, such as CHIQUITA, with an active line of the
+ * catalog, such as CHQT · Chiquita Brands International (H17, T74). Lines are no longer registered from SIGLA 1.0:
+ * when the name does not square with exactly one line, the inspector chooses it, and the choice is remembered in
+ * the line (decision of the user of 2026-11-23).
  */
 class ShippingLineRegistry
 {
     /**
-     * How many characters of the name make the code of a new line.
-     */
-    private const CODE_LENGTH = 4;
-
-    /**
-     * Find the line with this name without minding upper or lower case, or null when it is not in the catalog. A
-     * deactivated line counts too.
-     */
-    public function find(string $name): ?ShippingLine
-    {
-        $name = $this->normalizeName($name);
-
-        if ($name === '') {
-            return null;
-        }
-
-        return ShippingLine::withTrashed()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
-            ->orderBy('id')
-            ->first();
-    }
-
-    /**
-     * Get the line with this name, reactivating it when it was deactivated, or register it with a code made from
-     * its name.
+     * Get the active lines that match the name SIGLA 1.0 sends, from the surest way to the loosest: the name already
+     * remembered, the exact name or code, the start of the name and any part of it. The first way that finds lines
+     * gives them. One line means the name squares with it; more than one, or none, means the inspector chooses.
      *
-     * @throws InvalidArgumentException When SIGLA 1.0 sends no name.
+     * @return Collection<int, ShippingLine>
      */
-    public function findOrRegister(string $name): ShippingLine
+    public function candidates(?string $sigla1Name): Collection
     {
-        $name = $this->normalizeName($name);
+        $name = $this->normalize($sigla1Name);
 
         if ($name === '') {
-            throw new InvalidArgumentException('SIGLA 1.0 did not send the name of the shipping line.');
+            return new Collection;
         }
 
-        $shippingLine = $this->find($name);
+        $lowerName = mb_strtolower($name);
+        $likeName = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $lowerName);
 
-        if ($shippingLine?->trashed()) {
-            $shippingLine->restore();
+        /** @var list<Closure(Builder<ShippingLine>): mixed> $ways */
+        $ways = [
+            fn (Builder $query) => $query->where('sigla1_name', $name),
+            fn (Builder $query) => $query->whereRaw('LOWER(name) = ?', [$lowerName])->orWhereRaw('LOWER(code) = ?', [$lowerName]),
+            fn (Builder $query) => $query->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$likeName.'%']),
+            fn (Builder $query) => $query->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", ['%'.$likeName.'%']),
+        ];
+
+        foreach ($ways as $way) {
+            $lines = ShippingLine::query()->where($way)->orderBy('name')->get();
+
+            if ($lines->isNotEmpty()) {
+                return $lines;
+            }
         }
 
-        return $shippingLine ?? ShippingLine::query()->create([
-            'code' => $this->codeFor($name),
-            'name' => $name,
-        ]);
+        return new Collection;
     }
 
     /**
-     * Make the code of a new line: the first four letters or digits of its name in upper case, without spaces or
-     * signs (SEATRADE gives SEAT). When that code is taken, a number is added: MAER1, MAER2 and so on.
+     * Get the only active line that matches the name SIGLA 1.0 sends, or null when none or several match.
      */
-    public function codeFor(string $name): string
+    public function match(?string $sigla1Name): ?ShippingLine
     {
-        $base = Str::of(Str::ascii($name))->upper()->replaceMatches('/[^A-Z0-9]/', '')->substr(0, self::CODE_LENGTH)->value();
-        $base = $base === '' ? 'NAV' : $base;
-        $code = $base;
+        $candidates = $this->candidates($sigla1Name);
 
-        for ($number = 1; $this->codeIsTaken($code); $number++) {
-            $code = $base.$number;
+        return $candidates->count() === 1 ? $candidates->first() : null;
+    }
+
+    /**
+     * Remember that SIGLA 1.0 writes this line with this name, so its next requests square with it at once. A name
+     * remembered in another line, which can only be a deactivated one, moves to this one.
+     */
+    public function remember(ShippingLine $shippingLine, ?string $sigla1Name): void
+    {
+        $name = $this->normalize($sigla1Name);
+
+        if ($name === '' || $shippingLine->sigla1_name === $name) {
+            return;
         }
 
-        return $code;
+        ShippingLine::withTrashed()
+            ->where('sigla1_name', $name)
+            ->whereKeyNot($shippingLine->getKey())
+            ->update(['sigla1_name' => null]);
+
+        $shippingLine->update(['sigla1_name' => $name]);
     }
 
-    private function codeIsTaken(string $code): bool
+    /**
+     * Get the name as it is remembered: in upper case and without extra spaces.
+     */
+    private function normalize(?string $sigla1Name): string
     {
-        return ShippingLine::withTrashed()->where('code', $code)->exists();
-    }
-
-    private function normalizeName(string $name): string
-    {
-        return Str::squish($name);
+        return mb_strtoupper(Str::squish((string) $sigla1Name));
     }
 }

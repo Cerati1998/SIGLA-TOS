@@ -132,6 +132,7 @@ erDiagram
     bigint id PK
     string code UK
     string name
+    string sigla1_name UK
     datetime deleted_at
   }
   providers {
@@ -619,9 +620,10 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `id` | bigint PK | |
 | `code` | varchar(20) | UK (criterio 2). Se guarda sin espacios a los lados y en mayúsculas. |
 | `name` | varchar(100) | |
+| `sigla1_name` | varchar(100) (null) | UK. Cómo escribe SIGLA 1.0 esta naviera (por ejemplo `CHIQUITA`), en mayúsculas y sin espacios de más. Es la caché con que la asignación (H17) cuadra la naviera de una solicitud sin volver a buscarla: la llena el seeder y, si no hubo una única coincidencia, la elección del inspector (T74, 2026-11-23). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express). Si un código ya existe, aunque esté desactivado, no lo toca.
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Si un código ya existe, aunque esté desactivado, no lo toca.
 
 ### 5.7 `providers` · `en código`
 
@@ -982,7 +984,7 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
 | `client` | varchar(255) (null) | El cliente (operador) de la solicitud, como lo manda SIGLA 1.0 (T58). |
 | `product` | varchar(255) (null) | El producto de la solicitud, como lo manda SIGLA 1.0 (T58). |
-| `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, buscada por nombre sin distinguir mayúsculas. Si estaba desactivada, se reactiva; si no existe, se crea con un código de 4 caracteres tomado del nombre (SEAT) y un número si se repite (MAER1). |
+| `shipping_line_id` | bigint FK → `shipping_lines.id` | La naviera de la solicitud, cuadrada con las navieras activas al buscarla: por `sigla1_name`, por nombre o código exactos, por el inicio del nombre y por el texto que contiene, solo si hay una única coincidencia. Si no, la elige el inspector y su elección queda en `sigla1_name`. Ya no se crean navieras al asignar (T74, 2026-11-23; antes se reactivaba o se creaba). |
 | `carrier_id` | bigint FK → `carriers.id` (null) | Buscado por RUC o creado (criterio 3). Null si SIGLA 1.0 no manda el RUC o la razón social. |
 | `driver_id` | bigint FK → `drivers.id` (null) | Buscado por DNI o creado, y enlazado con el transportista en `carrier_driver` (criterio 3). Null si SIGLA 1.0 no manda el DNI, el nombre o el brevete. |
 | `tractor_id` | bigint FK → `vehicles.id` (null) | Remolcador, buscado por placa o creado con `VehicleRegistry`. Null si falta la placa, la marca o la carrocería. |

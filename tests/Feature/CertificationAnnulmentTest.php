@@ -102,7 +102,7 @@ class CertificationAnnulmentTest extends TestCase
         $this->assertNull($kit->certification);
         $this->assertSame(2, $kit->devices()->where('status', SecurityDeviceStatus::InKit->value)->count());
         $this->assertDatabaseCount('certification_step_security_device', 0);
-        $this->assertStringNotContainsString('ya está en la certificación', (string) app(FindKitToCertify::class)->rejectionReason($kit, null));
+        $this->assertStringNotContainsString('ya está en la certificación', (string) app(FindKitToCertify::class)->rejectionReason($kit, $kit->shippingLine));
 
         Certification::factory()->create(['container' => 'TGHU5550123', 'kit_id' => $kit->id]);
         $this->assertSame('TGHU5550123', $kit->refresh()->certification?->container);
@@ -121,7 +121,7 @@ class CertificationAnnulmentTest extends TestCase
             $kit->devices()->distinct()->pluck('status')->map->value->all(),
         );
         $this->assertSame('Asignación anulada: La naviera canceló el despacho.', $kit->devices()->value('discard_reason'));
-        $this->assertSame('El kit '.$kit->pouch_code.' está Inhabilitado y todavía no se despachó.', app(FindKitToCertify::class)->rejectionReason($kit, null));
+        $this->assertSame('El kit '.$kit->pouch_code.' está Inhabilitado y todavía no se despachó.', app(FindKitToCertify::class)->rejectionReason($kit, $kit->shippingLine));
     }
 
     public function test_an_annulled_certification_is_shown_as_such_and_can_neither_be_edited_nor_closed(): void

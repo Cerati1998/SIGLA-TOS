@@ -31,8 +31,9 @@ use RuntimeException;
 
 /**
  * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, sections, carriers with their
- * drivers and vehicles, lots received and activated, kit types, kits Armados and Armando, and two dispatches.
- * It goes through the same actions as the screens. Run it on its own, never in production:
+ * drivers and vehicles, lots received and activated, kit types, kits Armados and Armando, and four dispatches, two of
+ * them with kits of Chiquita and Seatrade ready to assign (T74). It goes through the same actions as the screens.
+ * DatabaseSeeder runs it only in the local environment; it can also run on its own, never in production:
  * php artisan db:seed --class=LocalTestingSeeder
  */
 class LocalTestingSeeder extends Seeder
@@ -65,19 +66,27 @@ class LocalTestingSeeder extends Seeder
 
         $providers = $this->providers();
         $workers = $this->workers($providers);
-        $this->certificationSections();
         $this->carriers();
 
         $maersk = ShippingLine::query()->where('code', 'MAEU')->firstOrFail();
         $hapagLloyd = ShippingLine::query()->where('code', 'HLCU')->firstOrFail();
+        $chiquita = ShippingLine::query()->where('code', 'CHQT')->firstOrFail();
+        $seatrade = ShippingLine::query()->where('code', 'SEAT')->firstOrFail();
         $containerSeal = SecurityDeviceType::query()->where('name', 'Precinto de naviera')->firstOrFail();
         $bottleSeal = SecurityDeviceType::query()->where('name', 'Sello botella')->firstOrFail();
         $inspectionTape = SecurityDeviceType::query()->where('name', 'Cinta de inspección')->firstOrFail();
+        $this->certificationSections($containerSeal, $bottleSeal, $inspectionTape);
 
         $this->lot($maersk, $providers[0], $containerSeal, 'MSK', 1, 60);
         $this->lot($maersk, $providers[0], $bottleSeal, 'SB', 1001, 1120);
         $this->lot($maersk, $providers[1], $inspectionTape, 'CIN', 1, 120);
         $this->lot($hapagLloyd, $providers[1], $bottleSeal, 'HLS', 1, 60);
+        $this->lot($chiquita, $providers[0], $containerSeal, 'CHQ', 1, 30);
+        $this->lot($chiquita, $providers[0], $bottleSeal, 'CQB', 1, 30);
+        $this->lot($chiquita, $providers[1], $inspectionTape, 'CQC', 1, 30);
+        $this->lot($seatrade, $providers[0], $containerSeal, 'SEA', 1, 30);
+        $this->lot($seatrade, $providers[0], $bottleSeal, 'STB', 1, 30);
+        $this->lot($seatrade, $providers[1], $inspectionTape, 'STC', 1, 30);
 
         $containerType = ContainerType::query()->orderBy('id')->firstOrFail();
         $reeferKit = KitType::factory()
@@ -93,12 +102,16 @@ class LocalTestingSeeder extends Seeder
         $this->kit($reeferKit, $maersk, leaveMissing: 1);
         $this->kit($reeferKit, $maersk, leaveMissing: 6);
         $sealsKits = array_map(fn (): Kit => $this->kit($sealsKit, $hapagLloyd), range(1, 4));
+        $chiquitaKits = array_map(fn (): Kit => $this->kit($reeferKit, $chiquita), range(1, 4));
+        $seatradeKits = array_map(fn (): Kit => $this->kit($reeferKit, $seatrade), range(1, 4));
 
         $dispatchKits = app(DispatchKits::class);
         $dispatchKits->handle($workers[0], [$reeferKits[0]->id, $reeferKits[1]->id], $this->user);
         $dispatchKits->handle($workers[1], [$sealsKits[0]->id], $this->user);
+        $dispatchKits->handle($workers[0], array_map(fn (Kit $kit): int => $kit->id, array_slice($chiquitaKits, 0, 3)), $this->user);
+        $dispatchKits->handle($workers[1], array_map(fn (Kit $kit): int => $kit->id, array_slice($seatradeKits, 0, 3)), $this->user);
 
-        $this->command->info('Datos de prueba cargados: 12 kits (7 Armados por despachar, 2 Armando y 3 ya despachados en 2 despachos).');
+        $this->command->info('Datos de prueba cargados: 20 kits (9 Armados por despachar, 2 Armando y 9 ya despachados en 4 despachos, 3 de Chiquita y 3 de Seatrade listos para asignar).');
     }
 
     /**
@@ -139,21 +152,28 @@ class LocalTestingSeeder extends Seeder
     }
 
     /**
-     * Create the sections of the container, external and internal.
+     * Create the sections of the container, external and internal, with the devices that together make exactly the
+     * reefer kit, so its kits fit when they are assigned (H17, criterion 16).
      */
-    private function certificationSections(): void
+    private function certificationSections(SecurityDeviceType $containerSeal, SecurityDeviceType $bottleSeal, SecurityDeviceType $inspectionTape): void
     {
         $sections = [
-            ['Lado derecho', CertificationSectionType::External],
-            ['Lado izquierdo', CertificationSectionType::External],
-            ['Puertas', CertificationSectionType::External],
-            ['Techo', CertificationSectionType::External],
-            ['Piso', CertificationSectionType::Internal],
-            ['Panel frontal', CertificationSectionType::Internal],
+            ['Lado derecho', CertificationSectionType::External, [[$inspectionTape, 1]]],
+            ['Lado izquierdo', CertificationSectionType::External, [[$inspectionTape, 1]]],
+            ['Puertas', CertificationSectionType::External, [[$containerSeal, 1], [$bottleSeal, 2]]],
+            ['Techo', CertificationSectionType::External, []],
+            ['Piso', CertificationSectionType::Internal, [[$inspectionTape, 1]]],
+            ['Panel frontal', CertificationSectionType::Internal, []],
         ];
 
-        foreach ($sections as $order => [$name, $type]) {
-            CertificationSection::factory()->create(['name' => $name, 'type' => $type, 'sort_order' => $order + 1]);
+        foreach ($sections as $order => [$name, $type, $devices]) {
+            $section = CertificationSection::factory();
+
+            foreach ($devices as [$securityDeviceType, $quantity]) {
+                $section = $section->carrying($securityDeviceType, $quantity);
+            }
+
+            $section->create(['name' => $name, 'type' => $type, 'sort_order' => $order + 1]);
         }
     }
 
