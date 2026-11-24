@@ -4,8 +4,8 @@ namespace Database\Factories;
 
 use App\Models\Provider;
 use App\Models\SecurityDeviceAnnouncement;
-use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class SecurityDeviceAnnouncementFactory extends Factory
 {
     /**
-     * Define the model's default state: an announcement of the serial numbers GSW0000200 to GSW0000399.
+     * Define the model's default state: the reception of a dispatch, with no lots yet.
      *
      * @return array<string, mixed>
      */
@@ -23,12 +23,9 @@ class SecurityDeviceAnnouncementFactory extends Factory
         return [
             'shipping_line_id' => ShippingLine::factory(),
             'provider_id' => Provider::factory(),
-            'security_device_type_id' => SecurityDeviceType::factory(),
-            'series_prefix' => 'GSW',
-            'min_digits' => 7,
-            'series_start' => 200,
-            'series_end' => 399,
-            'series_suffix' => null,
+            'received_at' => fake()->date(),
+            'dispatch_number' => fake()->numerify('T001-######'),
+            'created_by' => User::factory(),
         ];
     }
 }

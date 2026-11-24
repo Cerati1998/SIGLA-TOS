@@ -28,7 +28,7 @@ class RemoveSecurityDeviceFromKit
                 return 'Ese dispositivo ya no está en el kit.';
             }
 
-            if ($device->lot->announcement->security_device_type_id === $kit->pouchType()?->id) {
+            if ($device->lot->security_device_type_id === $kit->pouchType()?->id) {
                 return 'La funda no se quita: es la cabecera del kit.';
             }
 

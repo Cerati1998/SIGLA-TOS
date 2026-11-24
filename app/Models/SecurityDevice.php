@@ -61,7 +61,7 @@ class SecurityDevice extends Model
     #[Scope]
     protected function ofType(Builder $query, int $securityDeviceTypeId): void
     {
-        $query->whereHas('lot.announcement', fn (Builder $announcement) => $announcement->where('security_device_type_id', $securityDeviceTypeId));
+        $query->whereHas('lot', fn (Builder $lot) => $lot->where('security_device_type_id', $securityDeviceTypeId));
     }
 
     /**

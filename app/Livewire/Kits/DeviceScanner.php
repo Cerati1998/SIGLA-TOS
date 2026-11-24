@@ -65,11 +65,11 @@ class DeviceScanner extends Component
      */
     private function devicesBySlot(): Collection
     {
-        return $this->kit->devices()->with('lot.announcement')->get()->toBase()->groupBy(function (SecurityDevice $device): string {
+        return $this->kit->devices()->with('lot')->get()->toBase()->groupBy(function (SecurityDevice $device): string {
             /** @var object{assignment: string|null} $pivot */
             $pivot = $device->getRelationValue('pivot');
 
-            return Kit::slotKey($device->lot->announcement->security_device_type_id, KitAssignment::tryFrom((string) $pivot->assignment));
+            return Kit::slotKey($device->lot->security_device_type_id, KitAssignment::tryFrom((string) $pivot->assignment));
         });
     }
 

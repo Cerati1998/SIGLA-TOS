@@ -8,10 +8,10 @@
         ],
         ['header' => 'Bodega'],
         [
-            'name' => 'Lotes de dispositivos',
+            'name' => 'Ingreso de lotes',
             'icon' => 'package',
-            'route' => route('intranet.security-device-lots.index'),
-            'active' => request()->routeIs('intranet.security-device-lots.*'),
+            'route' => route('intranet.security-device-announcements.index'),
+            'active' => request()->routeIs('intranet.security-device-announcements.*', 'intranet.security-device-lots.*'),
         ],
         [
             'name' => 'Tipos de kit',

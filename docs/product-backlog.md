@@ -12,6 +12,8 @@
 
 **Aprobadas el 2026-11-23:** H33 a H36 (E6, checkpoint), armadas con el usuario a partir del video del checkpoint actual. Sus suposiciones se cerraron y el usuario las aprobó ese mismo día (T67).
 
+**Pedida y aprobada por el usuario el 2026-11-24:** H37 (ingresar un anuncio de ingreso de lotes, E2), que cambia H07, H08, H28 y H29: un anuncio de ingreso de lotes trae n lotes y cada lote, n dispositivos. Se construye en el Sprint 4 (T78).
+
 Product Goal: ver `docs/product-goal.md`.
 
 ## Orden de las épicas (aprobado)
@@ -223,7 +225,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 ### E2 · Dispositivos de seguridad
 - Que bodega registre dispositivos por lote, consulte su estado y los active para despacho cuando la naviera lo confirma (H29, agregado el 2026-11-13).
 - Depende de: E1 y E8 (H07 usa naviera y proveedor). La necesitan E4 y E5.
-- Un anuncio es el origen del lote (de quién viene y cómo se identifican sus series); se crea uno por cada lote, así que bodega no lo gestiona aparte.
+- Un anuncio es el origen del lote (de quién viene y cómo se identifican sus series); se crea uno por cada lote, así que bodega no lo gestiona aparte. (Cambiado el 2026-11-24 en H37, a pedido del usuario: el anuncio es el ingreso de bodega, con la naviera, el proveedor, la guía y la fecha, y trae uno o más lotes; el tipo, la serie y el rango son de cada lote.)
 - Cada dispositivo es único. Un segundo lote con la misma serie tiene otro rango.
 
 **H06 · Gestionar tipos de dispositivo**
@@ -270,6 +272,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   - **Tipo que no requiere aprobación en lote.** Sus dispositivos nacen **Disponibles**, no Inactivos (excepción al criterio 8), y se pueden usar de inmediato para armar un kit o despacharlos a granel.
   - El formulario cambia en cuanto se elige el tipo: con un tipo sin serie se ocultan el inicio y el final de serie, y con un tipo sin aprobación se avisa que los dispositivos quedarán Disponibles. Diseño: se ajusta en la página "E2 · Dispositivos de seguridad" del lienzo y se aprueba antes de construir.
 - Corrección del 2026-11-24 (T75), pedida por el usuario el 2026-11-23: el formulario suma el campo **Cantidad**, entre el correlativo inicial y el final. Con el inicial y la cantidad, el final se calcula solo (inicial + cantidad − 1: del 200 con 200 da 399). Si se escribe el final a mano, la cantidad se recalcula; si cambia el inicial y hay cantidad, se mantiene la cantidad y se mueve el final (confirmado por el usuario el 2026-11-24). La cantidad no se guarda: sale del rango, y el servidor valida el rango como antes (criterios 3 y 10). Vale también para los tipos que no utilizan serie y al corregir un lote (H28). Diseño: página "E2 · Dispositivos de seguridad" del lienzo, aprobado por el usuario el 2026-11-24.
+- Cambio del 2026-11-24 (H37), pedido por el usuario: el lote ya no se ingresa solo. Se ingresa dentro de un anuncio: la naviera, el proveedor, la fecha de recepción y el número de guía pasan a la cabecera del anuncio, y cada lote lleva el tipo, la serie, los correlativos y las observaciones. Las reglas de las series de esta historia siguen valiendo para cada lote. El máximo de 10 000 series (criterio 10) pasa a ser por anuncio. Ver H37.
 
 **H08 · Consultar lotes y dispositivos**
 - Como usuario de bodega, supervisor o admin, quiero ver los lotes ingresados y buscar un dispositivo por su serie, para saber qué tengo, en qué estado está y de qué lote viene.
@@ -295,6 +298,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Corrección del 2026-11-24 (T77), pedida por el usuario el 2026-11-23: el descarte pide, además del motivo, una **foto obligatoria**, tomada con la cámara y comprimida en el navegador como en H18, con un visor para verla en grande, volver a tomarla o quitarla. Cada dispositivo Descartado del detalle del lote tiene el botón «Ver descarte», y solo esos: abre un modal con el motivo, la foto (que se amplía) y quién lo descartó y cuándo (confirmado por el usuario el 2026-11-24). No está en la búsqueda por serie. Diseño: «T77 · Foto al descartar un dispositivo», página «E2 · Dispositivos de seguridad» del lienzo, aprobado por el usuario el 2026-11-24.
   - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón rojo por fila y un modal con el motivo, como «Reaperturar» de H19.
 - Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), al buscar una serie se muestran todas las coincidencias, cada una con su tipo y su lote.
+- Cambio del 2026-11-24 (H37), pedido por el usuario: la lista de lotes (criterios 1 y 2) pasa a ser una lista de anuncios, y los lotes se ven en el detalle de su anuncio. El detalle del lote (criterios 3, 5 y 6), la búsqueda por serie (criterio 4), la aprobación (H29) y el descarte siguen como están. Ver H37.
 
 **H28 · Corregir un lote** (propuesta del 2026-11-10, pedida por el usuario al revisar H08; reglas 2 y 3 confirmadas por el usuario el mismo día)
 - Como usuario de bodega, quiero corregir los datos de un lote ya ingresado, para arreglar un error de digitación sin borrar el lote y volver a ingresarlo.
@@ -310,6 +314,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: página "E2 · Dispositivos de seguridad" del lienzo, desde la plantilla "Formulario" (T36, aprobado por el usuario el 2026-11-10).
 - Corrección del 2026-11-20 (T62): al corregir un lote se aplican las mismas reglas de H07 según las casillas de su tipo (H06). En un lote cuyo tipo no requiere aprobación, el criterio 3 se cumple si todos sus dispositivos siguen Disponibles (ninguno en un kit ni despachado). El tipo de dispositivo solo se puede cambiar por otro con las mismas dos casillas («No utiliza serie» y «Requiere aprobación en lote»). Si las casillas son distintas, el cambio se bloquea con un aviso que explica por qué. Así, cambiar el tipo nunca toca el estado ni las series de los dispositivos ya ingresados (confirmado por el usuario el 2026-11-20).
 - Corrección del 2026-11-24 (T75): el formulario trae la **Cantidad** de H07, calculada desde el rango del lote. Cuando la serie está bloqueada (criterio 3), la cantidad también.
+- Cambio del 2026-11-24 (H37), pedido por el usuario: se corrige el anuncio. La naviera, el proveedor, la fecha y la guía (criterio 2) se corrigen siempre en su cabecera. Cada lote se corrige con las reglas de esta historia (criterios 2 a 5: tipo, serie, rango y observaciones). Además, un lote se puede quitar del anuncio si ninguno de sus dispositivos cambió de estado, y el anuncio siempre queda con al menos un lote. Ver H37.
 
 **H29 · Activar dispositivos para despacho** (pedida por el usuario el 2026-11-13; "por confirmar" cerrados en T46 y aprobada ese mismo día)
 - Como usuario de bodega, quiero registrar la aprobación de la naviera por tramos de un lote, para que solo se armen kits y se despachen dispositivos que la naviera ya aprobó.
@@ -333,6 +338,31 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado el 2026-11-13 en la página "E2 · Dispositivos de seguridad" del lienzo (T47). Se actualiza con los cambios del 2026-11-16 y espera una nueva aprobación.
 - Los dispositivos ingresados antes de H29 pasan a Inactivos: bodega registra su aprobación por tramos antes de armar kits con ellos.
 - Corrección del 2026-11-20 (T62), pedida por el usuario: la aprobación solo aplica a los lotes cuyo tipo de dispositivo tiene marcada «Requiere aprobación en lote» (H06), que es lo normal. Si el tipo no la requiere, sus dispositivos nacen Disponibles (H07), el detalle del lote no ofrece registrar aprobaciones y el criterio 13 se cumple sin aprobación. En la lista de lotes, su columna «Aprobados» dice «No requiere» en vez de «120 de 200», y el filtro de aprobación suma esa opción: sin aprobar, a medias, todo aprobado y no requiere. En el detalle del lote se ocultan «Registrar aprobación» e «Historial de aprobaciones» (confirmado por el usuario el 2026-11-20).
+- Cambio del 2026-11-24 (H37): la aprobación sigue siendo por tramos de cada lote, desde el detalle del lote, sin cambios. La columna «Aprobados» y su filtro (criterio 12) pasan de la lista de lotes a la tabla de lotes del detalle del anuncio, sin el filtro. Ver H37.
+
+**H37 · Ingresar un anuncio de ingreso de lotes** (pedida por el usuario el 2026-11-23; armada y aprobada con el usuario el 2026-11-24; cambia H07, H08, H28 y H29)
+- Como usuario de bodega, quiero ingresar en un solo anuncio la guía de un proveedor con todos los lotes que trae, para registrar de una vez lo que llegó y consultarlo por anuncio, por lote y por dispositivo.
+- Criterios de aceptación:
+  1. Un **anuncio de ingreso de lotes** tiene una cabecera con la naviera, el proveedor, la fecha de recepción y el número de guía, todos obligatorios. Un anuncio es de una sola naviera: todos sus lotes son de ella.
+  2. Debajo de la cabecera, un formulario agrega los **lotes** del anuncio. Cada lote lleva el tipo de dispositivo, la serie (inicio, mínimo de dígitos y final), los correlativos (inicial, cantidad y final) y las observaciones (opcional), con las mismas reglas de H07: solo tipos activos, tipos sin serie y sin aprobación (T62), la cantidad (T75) y la funda (T76).
+  3. Cada lote agregado entra en una lista del anuncio con su tipo, su primera y su última serie y su cantidad. Antes de guardar, cada lote de la lista se puede ver (un modal de solo lectura con sus datos y las series que se van a crear, con un buscador) y quitar (pedido por el usuario el 2026-11-24, al revisar el diseño). Un anuncio puede traer lotes de tipos distintos.
+  4. El anuncio se guarda con todos sus lotes juntos, todo o nada. Se necesita al menos un lote.
+  5. Si alguna serie ya existe en el sistema, o dos lotes del mismo anuncio traen la misma serie, no se guarda nada y se muestra cuáles chocan (H07, criterio 6, con las reglas de unicidad de T62).
+  6. Un anuncio trae como máximo 10 000 series, sumando todos sus lotes. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando.
+  7. Los dispositivos nacen Inactivos, o Disponibles si su tipo no requiere aprobación (H07, criterio 8, y T62).
+  8. Queda registrado quién ingresó el anuncio y cuándo.
+  9. Bodega → la lista de **anuncios** muestra, por cada uno, su número, la naviera, el proveedor, la guía, la fecha de recepción, cuántos lotes trae y cuántos dispositivos. Se filtra por naviera, proveedor y fecha. El buscador encuentra un anuncio por su guía o por la serie de uno de sus lotes: una serie completa (GSW0000250) muestra el anuncio cuyo lote la trae en su rango, y solo el inicio (GSW) muestra los anuncios con lotes de esa serie. La serie va en el buscador, no en los filtros (decisión del usuario del 2026-11-24).
+  10. El **detalle del anuncio** muestra su cabecera y sus lotes, cada uno con su tipo, su rango, su cantidad, la columna «Aprobados» (H29) y «Ver». Desde ahí se agregan más lotes a un anuncio ya guardado, con las reglas de los criterios 2 a 7, y el tope del criterio 6 cuenta también los lotes que ya tiene.
+  11. El **detalle del lote** muestra sus dispositivos como hoy (H08): estados, aprobación por tramos (H29), su historial y el descarte (T65 y T77), con un enlace de vuelta a su anuncio.
+  12. **Corrección:** la cabecera se corrige siempre. Cada lote se corrige con las reglas de H28. Un lote se puede quitar de un anuncio guardado si ninguno de sus dispositivos cambió de estado, con confirmación; el anuncio siempre queda con al menos un lote.
+  13. Por ahora, cualquier usuario con sesión usa estas pantallas. Los roles pasan a H24.
+  14. Las pantallas se usan bien desde el celular.
+- Decisiones del usuario del 2026-11-24: la naviera va en la cabecera; todo se guarda junto; el tope de 10 000 es por anuncio; se pueden quitar lotes sin uso; la lista es de anuncios y la serie se busca en el buscador; se parte de cero con `migrate:fresh`, como en T76, y `LocalTestingSeeder` crea anuncios con varios lotes.
+- Suposiciones confirmadas por el usuario el 2026-11-24: el anuncio se numera con su propia secuencia, `AN-000001`; la aprobación de la naviera (H29) sigue por tramos de cada lote, sin cambios; las observaciones van solo en cada lote, no en la cabecera; la entrada del menú sigue en el grupo «Bodega» y se llama «Ingreso de lotes»; los títulos y las migas de las vistas dicen «Anuncios de ingreso de lotes» (corregido por el usuario el 2026-11-24, al probar la construcción).
+- Término (decisión del usuario del 2026-11-24): en pantalla se dice siempre «anuncio de ingreso de lotes», para no confundirlo con otros anuncios de ingreso que vendrán (de contenedores, de unidades). Al construir se registra en `docs/glossary.md`.
+- Fuera de esta historia: la carga desde Excel, un PDF del anuncio y los roles (H24).
+- Toca lo que usa E6: el lote y su anuncio están debajo de los kits, la certificación y el reparto en secciones. Cuando llegue a `main`, la rama del checkpoint lo trae.
+- Diseño: «H37 · …», página «E2 · Dispositivos de seguridad» del lienzo, desde las plantillas «Formulario» y «Lista con tabla», aprobado por el usuario el 2026-11-24: el nuevo anuncio con sus tres bloques (anuncio, agregar lote y lotes del anuncio, con «Ver» y «Quitar»), sus estados, la lista, el detalle, la corrección del anuncio y de cada lote, y sus versiones móviles. Decisiones de diseño: los choques entre lotes del anuncio y el tope se revisan al agregar el lote, y las series que ya existen, al guardar; quitar un lote sin guardar no pide confirmación y uno guardado sí; «Agregar lotes» usa la misma pantalla con la cabecera en solo lectura; el anuncio y cada lote se corrigen por separado; el último lote no muestra «Quitar». En el celular, los lotes del detalle del anuncio se ven en tarjetas, como en el diseño, y no en la tabla con desplazamiento: es una excepción solo para esta vista; las rules no cambian (decisión del usuario del 2026-11-24).
 
 ### E3 · Secciones del contenedor
 - Tabla gestionable de secciones (criterios de inspección): unas 20 internas y unas 10 externas.

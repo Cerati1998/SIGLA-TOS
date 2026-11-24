@@ -409,8 +409,10 @@ class KitDispatchTest extends TestCase
      */
     private function device(?SecurityDeviceType $type = null, ?string $serialNumber = null, SecurityDeviceStatus $status = SecurityDeviceStatus::InKit): SecurityDevice
     {
-        $announcement = SecurityDeviceAnnouncement::factory()->for($this->maersk)->for($type ?? $this->bottleSeal)->create();
-        $lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create();
+        $lot = SecurityDeviceLot::factory()
+            ->for(SecurityDeviceAnnouncement::factory()->for($this->maersk), 'announcement')
+            ->for($type ?? $this->bottleSeal)
+            ->create();
 
         return SecurityDevice::factory()->for($lot, 'lot')->create([
             'serial_number' => $serialNumber ?? sprintf('SLL%07d', $this->nextSerial++),

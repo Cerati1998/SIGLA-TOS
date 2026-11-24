@@ -74,7 +74,7 @@
                         <strong class="pb-1.5 font-heading text-base font-medium">Dispositivos de esta sección</strong>
                         @forelse ($step->devices as $device)
                             <div wire:key="device-{{ $device->id }}" class="flex items-center justify-between gap-2.5 border-t border-line py-2.5 text-sm first-of-type:border-t-0">
-                                <span>{{ $device->lot->announcement->securityDeviceType->name }}</span>
+                                <span>{{ $device->lot->securityDeviceType->name }}</span>
                                 <span class="inline-flex h-7 items-center rounded-full border border-line bg-surface px-2.5 font-medium">{{ $device->serial_number }}</span>
                             </div>
                         @empty

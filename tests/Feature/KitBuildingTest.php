@@ -251,7 +251,7 @@ class KitBuildingTest extends TestCase
         $scanner = Livewire::test(DeviceScanner::class, ['kit' => $kit]);
 
         foreach ($devices as [$device, $assignment]) {
-            $scanner->call('add', Kit::slotKey($device->lot->announcement->security_device_type_id, $assignment), $device->serial_number);
+            $scanner->call('add', Kit::slotKey($device->lot->security_device_type_id, $assignment), $device->serial_number);
         }
 
         $this->assertSame(KitStatus::Built, $kit->refresh()->status);
@@ -345,11 +345,10 @@ class KitBuildingTest extends TestCase
      */
     private function device(SecurityDeviceType $type, string $serialNumber, SecurityDeviceStatus $status = SecurityDeviceStatus::Available, ?ShippingLine $shippingLine = null): SecurityDevice
     {
-        $announcement = SecurityDeviceAnnouncement::factory()
-            ->for($shippingLine ?? $this->maersk)
+        $lot = SecurityDeviceLot::factory()
+            ->for(SecurityDeviceAnnouncement::factory()->for($shippingLine ?? $this->maersk), 'announcement')
             ->for($type)
             ->create();
-        $lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create();
 
         return SecurityDevice::factory()->for($lot, 'lot')->create(['serial_number' => $serialNumber, 'status' => $status]);
     }

@@ -3,14 +3,10 @@
     'approved',
 ])
 
-@php
-    $announcement = $lot->announcement;
-@endphp
-
 <flux:modal name="lot-approvals" flyout class="flex w-full flex-col gap-0 p-0! md:w-110">
     <div class="flex flex-col gap-1 border-b border-line p-5 pe-14">
         <h3 class="m-0 font-heading text-h3 font-normal text-brand">Historial de aprobaciones</h3>
-        <span class="text-sm text-ink-muted">Lote {{ $announcement->lotName() }} · {{ number_format($approved, 0, ',', ' ') }} de {{ number_format($lot->quantity, 0, ',', ' ') }} aprobados</span>
+        <span class="text-sm text-ink-muted">Lote {{ $lot->name() }} · {{ number_format($approved, 0, ',', ' ') }} de {{ number_format($lot->quantity, 0, ',', ' ') }} aprobados</span>
     </div>
 
     @if ($lot->approvals->isEmpty())
@@ -26,7 +22,7 @@
                         <strong class="font-heading text-base font-medium text-brand">Del {{ $approval->correlative_start }} al {{ $approval->correlative_end }}</strong>
                         <x-status-badge variant="success">{{ number_format($approval->approved_count, 0, ',', ' ') }} {{ $approval->approved_count === 1 ? 'aprobado' : 'aprobados' }}</x-status-badge>
                     </div>
-                    <span class="text-sm">{{ $announcement->serialNumber($approval->correlative_start) }} – {{ $announcement->serialNumber($approval->correlative_end) }}</span>
+                    <span class="text-sm">{{ $lot->serialNumber($approval->correlative_start) }} – {{ $lot->serialNumber($approval->correlative_end) }}</span>
                     <span class="text-sm text-ink-muted">{{ $approval->created_at?->timezone('America/Lima')->format('d/m/Y H:i') }} · {{ $approval->approver->name }}</span>
                 </li>
             @endforeach

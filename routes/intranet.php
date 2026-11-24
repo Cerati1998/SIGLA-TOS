@@ -9,6 +9,7 @@ use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\KitDispatchController;
 use App\Http\Controllers\ProviderOptionsController;
+use App\Http\Controllers\SecurityDeviceAnnouncementController;
 use App\Http\Controllers\SecurityDeviceDiscardPhotoController;
 use App\Http\Controllers\SecurityDeviceLotController;
 use App\Http\Controllers\WorkerOptionsController;
@@ -35,9 +36,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('yard-zones', 'pages.yard-zones.index')->name('yard-zones.index');
 
-    Route::view('security-device-lots', 'pages.security-device-lots.index')->name('security-device-lots.index');
+    Route::view('security-device-announcements', 'pages.security-device-announcements.index')->name('security-device-announcements.index');
 
-    Route::view('security-device-lots/create', 'pages.security-device-lots.create')->name('security-device-lots.create');
+    Route::view('security-device-announcements/create', 'pages.security-device-announcements.create')->name('security-device-announcements.create');
+
+    Route::get('security-device-announcements/{securityDeviceAnnouncement}', [SecurityDeviceAnnouncementController::class, 'show'])->name('security-device-announcements.show');
+
+    Route::get('security-device-announcements/{securityDeviceAnnouncement}/edit', [SecurityDeviceAnnouncementController::class, 'edit'])->name('security-device-announcements.edit');
+
+    Route::get('security-device-announcements/{securityDeviceAnnouncement}/lots/create', [SecurityDeviceAnnouncementController::class, 'createLots'])->name('security-device-announcements.lots.create');
 
     Route::get('security-device-lots/{securityDeviceLot}', [SecurityDeviceLotController::class, 'show'])->name('security-device-lots.show');
 

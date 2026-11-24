@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Livewire\Forms\SecurityDeviceAnnouncementForm;
 use App\Livewire\Forms\SecurityDeviceLotForm;
 use App\Models\Provider;
 use App\Models\SecurityDeviceType;
@@ -11,9 +12,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 
 /**
- * The options of the origin of a lot: the active records, plus the current one of the lot being corrected.
+ * The options of the origin of a lot: the active records, plus the current one of the announcement or the lot being
+ * corrected.
  *
- * @property SecurityDeviceLotForm $form
+ * @property SecurityDeviceAnnouncementForm|SecurityDeviceLotForm $form
  */
 trait OffersSecurityDeviceLotOrigins
 {
@@ -85,6 +87,6 @@ trait OffersSecurityDeviceLotOrigins
     private function activeOrCurrent(Builder $query, string $field): Builder
     {
         return $query->whereNull('deleted_at')
-            ->when($this->form->currentOriginIds[$field], fn (Builder $current, int $id) => $current->orWhere('id', $id));
+            ->when($this->form->currentOriginIds[$field] ?? null, fn (Builder $current, int $id) => $current->orWhere('id', $id));
     }
 }

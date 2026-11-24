@@ -14,7 +14,7 @@ class FindDeviceToBulkDispatch
      */
     public function handle(string $serialNumber, ?SecurityDeviceType $type = null): SecurityDevice|string
     {
-        $device = $this->find($serialNumber, $type, ['lot.announcement.securityDeviceType', 'kits', 'bulkDispatches']);
+        $device = $this->find($serialNumber, $type, ['lot.securityDeviceType', 'kits', 'bulkDispatches']);
 
         return is_string($device) ? $device : ($this->rejectionReason($device) ?? $device);
     }
@@ -25,7 +25,7 @@ class FindDeviceToBulkDispatch
      *
      * @param  list<string>  $with
      */
-    public function find(string $serialNumber, ?SecurityDeviceType $type = null, array $with = ['lot.announcement.securityDeviceType']): SecurityDevice|string
+    public function find(string $serialNumber, ?SecurityDeviceType $type = null, array $with = ['lot.securityDeviceType']): SecurityDevice|string
     {
         $devices = SecurityDevice::query()
             ->with($with)

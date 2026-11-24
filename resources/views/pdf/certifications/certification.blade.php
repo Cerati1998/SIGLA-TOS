@@ -84,7 +84,7 @@
                                     <tr @class(['par' => $loop->even])>
                                         <td class="derecha">{{ ++$number }}</td>
                                         <td>{{ $row['device']->serial_number }}</td>
-                                        <td>{{ $row['device']->lot->announcement->securityDeviceType->name }}</td>
+                                        <td>{{ $row['device']->lot->securityDeviceType->name }}</td>
                                         <td>{{ $row['section'] }}</td>
                                     </tr>
                                 @empty

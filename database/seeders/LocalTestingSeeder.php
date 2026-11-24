@@ -7,7 +7,7 @@ use App\Actions\KitDispatches\DispatchKits;
 use App\Actions\Kits\AddSecurityDeviceToKit;
 use App\Actions\Kits\CreateKit;
 use App\Actions\SecurityDevices\ApproveSecurityDeviceLotRange;
-use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
+use App\Actions\SecurityDevices\ReceiveSecurityDeviceLots;
 use App\Enums\CertificationSectionType;
 use App\Enums\SecurityDeviceKind;
 use App\Enums\SecurityDeviceStatus;
@@ -78,20 +78,14 @@ class LocalTestingSeeder extends Seeder
         $pouch = SecurityDeviceType::query()->where('name', 'Funda')->firstOrFail();
         $this->certificationSections($containerSeal, $bottleSeal, $inspectionTape);
 
-        $this->lot($maersk, $providers[0], $pouch, 'FMK', 1, 30);
-        $this->lot($hapagLloyd, $providers[0], $pouch, 'FHL', 1, 30);
-        $this->lot($chiquita, $providers[0], $pouch, 'FCQ', 1, 30);
-        $this->lot($seatrade, $providers[0], $pouch, 'FST', 1, 30);
-        $this->lot($maersk, $providers[0], $containerSeal, 'MSK', 1, 60);
-        $this->lot($maersk, $providers[0], $bottleSeal, 'SB', 1001, 1120);
-        $this->lot($maersk, $providers[1], $inspectionTape, 'CIN', 1, 120);
-        $this->lot($hapagLloyd, $providers[1], $bottleSeal, 'HLS', 1, 60);
-        $this->lot($chiquita, $providers[0], $containerSeal, 'CHQ', 1, 30);
-        $this->lot($chiquita, $providers[0], $bottleSeal, 'CQB', 1, 30);
-        $this->lot($chiquita, $providers[1], $inspectionTape, 'CQC', 1, 30);
-        $this->lot($seatrade, $providers[0], $containerSeal, 'SEA', 1, 30);
-        $this->lot($seatrade, $providers[0], $bottleSeal, 'STB', 1, 30);
-        $this->lot($seatrade, $providers[1], $inspectionTape, 'STC', 1, 30);
+        $this->announcement($maersk, $providers[0], [[$pouch, 'FMK', 1, 30], [$containerSeal, 'MSK', 1, 60], [$bottleSeal, 'SB', 1001, 1120]]);
+        $this->announcement($maersk, $providers[1], [[$inspectionTape, 'CIN', 1, 120]]);
+        $this->announcement($hapagLloyd, $providers[0], [[$pouch, 'FHL', 1, 30]]);
+        $this->announcement($hapagLloyd, $providers[1], [[$bottleSeal, 'HLS', 1, 60]]);
+        $this->announcement($chiquita, $providers[0], [[$pouch, 'FCQ', 1, 30], [$containerSeal, 'CHQ', 1, 30], [$bottleSeal, 'CQB', 1, 30]]);
+        $this->announcement($chiquita, $providers[1], [[$inspectionTape, 'CQC', 1, 30]]);
+        $this->announcement($seatrade, $providers[0], [[$pouch, 'FST', 1, 30], [$containerSeal, 'SEA', 1, 30], [$bottleSeal, 'STB', 1, 30]]);
+        $this->announcement($seatrade, $providers[1], [[$inspectionTape, 'STC', 1, 30]]);
 
         $containerType = ContainerType::query()->orderBy('id')->firstOrFail();
         $reeferKit = KitType::factory()
@@ -211,31 +205,41 @@ class LocalTestingSeeder extends Seeder
     }
 
     /**
-     * Receive a lot and activate it for dispatch (H29), all but its last ten devices, which stay inactive to try the
-     * activation.
+     * Receive an announcement of the entry of lots with its lots (H37), and activate each lot for dispatch (H29), all but
+     * its last ten devices, which stay inactive to try the activation.
+     *
+     * @param  list<array{SecurityDeviceType, string, int, int}>  $lots  The type, the prefix and the first and last correlatives of each lot.
      */
-    private function lot(ShippingLine $shippingLine, Provider $provider, SecurityDeviceType $type, string $prefix, int $start, int $end): SecurityDeviceLot
+    private function announcement(ShippingLine $shippingLine, Provider $provider, array $lots): void
     {
         $announcement = new SecurityDeviceAnnouncement([
             'shipping_line_id' => $shippingLine->id,
             'provider_id' => $provider->id,
-            'security_device_type_id' => $type->id,
-            'series_prefix' => $prefix,
-            'min_digits' => 7,
-            'series_start' => $start,
-            'series_end' => $end,
-            'series_suffix' => null,
+            'received_at' => now()->subDays(3)->toDateString(),
+            'dispatch_number' => sprintf('T001-%06d', SecurityDeviceAnnouncement::query()->count() + 1),
         ]);
 
-        $lot = app(ReceiveSecurityDeviceLot::class)->handle($announcement, [
-            'received_at' => now()->subDays(3)->toDateString(),
-            'dispatch_number' => sprintf('T001-%06d', $start),
-            'notes' => null,
-        ], $this->user) ?? throw new RuntimeException("No se pudo recibir el lote {$prefix}.");
+        $newLots = array_map(function (array $lot): SecurityDeviceLot {
+            [$type, $prefix, $start, $end] = $lot;
 
-        app(ApproveSecurityDeviceLotRange::class)->handle($lot, $start, $end - 10, $this->user);
+            return (new SecurityDeviceLot([
+                'security_device_type_id' => $type->id,
+                'series_prefix' => $prefix,
+                'min_digits' => 7,
+                'series_start' => $start,
+                'series_end' => $end,
+            ]))->setRelation('securityDeviceType', $type);
+        }, $lots);
 
-        return $lot;
+        if (! app(ReceiveSecurityDeviceLots::class)->handle($announcement, $newLots, $this->user)) {
+            throw new RuntimeException("No se pudo recibir el anuncio de {$shippingLine->code}.");
+        }
+
+        foreach ($newLots as $lot) {
+            if ($lot->requiresApproval()) {
+                app(ApproveSecurityDeviceLotRange::class)->handle($lot, $lot->series_start, $lot->series_end - 10, $this->user);
+            }
+        }
     }
 
     /**
@@ -246,9 +250,8 @@ class LocalTestingSeeder extends Seeder
     {
         $pouchCode = SecurityDevice::query()
             ->where('status', SecurityDeviceStatus::Available)
-            ->whereHas('lot.announcement', fn ($query) => $query
-                ->where('shipping_line_id', $shippingLine->id)
-                ->whereHas('securityDeviceType', fn ($type) => $type->where('kind', SecurityDeviceKind::Pouch)))
+            ->whereHas('lot.announcement', fn ($query) => $query->where('shipping_line_id', $shippingLine->id))
+            ->whereHas('lot.securityDeviceType', fn ($type) => $type->where('kind', SecurityDeviceKind::Pouch))
             ->orderBy('serial_number')
             ->value('serial_number');
 
@@ -270,9 +273,8 @@ class LocalTestingSeeder extends Seeder
             for ($added = 0; $added < $slot['quantity'] && $toAdd > 0; $added++, $toAdd--) {
                 $serialNumber = SecurityDevice::query()
                     ->where('status', SecurityDeviceStatus::Available)
-                    ->whereHas('lot.announcement', fn ($query) => $query
-                        ->where('shipping_line_id', $shippingLine->id)
-                        ->where('security_device_type_id', $slot['securityDeviceTypeId']))
+                    ->whereHas('lot.announcement', fn ($query) => $query->where('shipping_line_id', $shippingLine->id))
+                    ->whereHas('lot', fn ($query) => $query->where('security_device_type_id', $slot['securityDeviceTypeId']))
                     ->orderBy('serial_number')
                     ->value('serial_number');
 

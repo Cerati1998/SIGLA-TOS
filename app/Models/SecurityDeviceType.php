@@ -68,16 +68,16 @@ class SecurityDeviceType extends Model
      */
     public function hasLots(): bool
     {
-        return $this->announcements()->exists();
+        return $this->lots()->exists();
     }
 
     /**
-     * Get the origins of the lots of this type.
+     * Get the lots of this type.
      *
-     * @return HasMany<SecurityDeviceAnnouncement, $this>
+     * @return HasMany<SecurityDeviceLot, $this>
      */
-    public function announcements(): HasMany
+    public function lots(): HasMany
     {
-        return $this->hasMany(SecurityDeviceAnnouncement::class);
+        return $this->hasMany(SecurityDeviceLot::class);
     }
 }

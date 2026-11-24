@@ -17,7 +17,7 @@ use Illuminate\Support\Arr;
 use Livewire\Component;
 
 /**
- * The correction of a lot (H28).
+ * The correction of a lot of an announcement (H28, H37): its type, its series and its notes.
  *
  * @property-read Collection<int, ShippingLine> $shippingLines
  * @property-read Collection<int, Provider> $providers

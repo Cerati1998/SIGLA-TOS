@@ -2,20 +2,28 @@
 
 namespace App\Livewire\Tables;
 
+use App\Actions\SecurityDevices\RemoveSecurityDeviceLot;
 use App\Enums\SecurityDeviceStatus;
-use App\Models\Provider;
 use App\Models\SecurityDeviceLot;
-use App\Models\SecurityDeviceType;
-use App\Models\ShippingLine;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\Locked;
 use Rappasoft\LaravelLivewireTables\Views\Column;
-use Rappasoft\LaravelLivewireTables\Views\Filter;
-use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
-use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
+/**
+ * The lots of an announcement of the entry of lots, in its detail (H37, criterion 10).
+ */
 class SecurityDeviceLotsTable extends BaseTable
 {
+    #[Locked]
+    public int $announcementId;
+
+    /**
+     * How many lots the announcement has, counted once per render.
+     */
+    private ?int $lotsCount = null;
+
     /**
      * Configure the table.
      */
@@ -26,27 +34,58 @@ class SecurityDeviceLotsTable extends BaseTable
         $this->setAdditionalSelects([
             'security_device_lots.id as id',
             'security_device_lots.security_device_announcement_id as security_device_announcement_id',
+            'security_device_lots.security_device_type_id as security_device_type_id',
+            'security_device_lots.series_prefix as series_prefix',
+            'security_device_lots.min_digits as min_digits',
+            'security_device_lots.series_start as series_start',
+            'security_device_lots.series_end as series_end',
+            'security_device_lots.series_suffix as series_suffix',
         ])
             ->setSearchDisabled()
-            ->setEmptyMessage('No se encontraron lotes.')
+            ->setFiltersDisabled()
+            ->setEmptyMessage('Este anuncio no tiene lotes.')
+            ->setToolsAttributes(['default-styling' => false, 'class' => 'border-b border-line p-5.25 max-md:hidden'])
+            ->setTableWrapperAttributes(['default' => false, 'class' => 'overflow-x-auto max-md:hidden'])
             ->setConfigurableAreas([
-                'toolbar-right-end' => 'pages.security-device-lots.partials.options',
-                'after-wrapper' => 'partials.panel.table-footer',
+                'before-wrapper' => 'pages.security-device-lots.partials.cards',
+                'after-wrapper' => 'pages.security-device-lots.partials.table-footer',
             ]);
     }
 
     /**
-     * Get the query of the table, the latest receptions first, with how many devices of each lot were approved (H29).
+     * Get every lot of the announcement for the cards shown on a phone instead of the table (H37, decided by the user on
+     * 2026-11-24 for this screen).
+     *
+     * @return Collection<int, SecurityDeviceLot>
+     */
+    public function cardLots(): Collection
+    {
+        return $this->builder()->get();
+    }
+
+    /**
+     * Check whether the lot can be removed: none of its devices changed status and the announcement keeps another lot.
+     */
+    public function canRemove(SecurityDeviceLot $lot): bool
+    {
+        $this->lotsCount ??= SecurityDeviceLot::query()->where('security_device_announcement_id', $this->announcementId)->count();
+
+        return $this->lotsCount > 1 && $lot->seriesCanBeCorrected();
+    }
+
+    /**
+     * Get the lots of the announcement in the order they were entered, with how many of their devices were approved (H29)
+     * and how many changed status, which tells whether the lot can be removed.
      *
      * @return Builder<SecurityDeviceLot>
      */
     public function builder(): Builder
     {
         return SecurityDeviceLot::query()
-            ->with('announcement.securityDeviceType')
+            ->with('securityDeviceType')
+            ->where('security_device_lots.security_device_announcement_id', $this->announcementId)
             ->withCount(['devices as approved_devices_count' => fn (Builder $devices) => $devices->whereNotIn('status', [SecurityDeviceStatus::Inactive->value, SecurityDeviceStatus::Discarded->value])])
-            ->orderByDesc('security_device_lots.received_at')
-            ->orderByDesc('security_device_lots.id');
+            ->orderBy('security_device_lots.id');
     }
 
     /**
@@ -57,13 +96,10 @@ class SecurityDeviceLotsTable extends BaseTable
     public function columns(): array
     {
         return [
-            Column::make('Tipo', 'announcement.securityDeviceType.name'),
-            Column::make('Naviera', 'announcement.shippingLine.code'),
-            Column::make('Proveedor', 'announcement.provider.business_name'),
-            Column::make('Serie', 'announcement.series_prefix')
-                ->format(fn (string $value): string => $value === '' ? '—' : $value),
+            Column::make('Tipo')
+                ->label(fn (SecurityDeviceLot $row): string => $row->securityDeviceType->name),
             Column::make('Rango')
-                ->label(fn (SecurityDeviceLot $row): string => $row->announcement->rangeLabel()),
+                ->label(fn (SecurityDeviceLot $row): string => $row->serialNumber($row->series_start).' – '.$row->serialNumber($row->series_end)),
             Column::make('Cantidad', 'quantity')
                 ->format(fn (int $value): string => number_format($value, 0, ',', ' ')),
             Column::make('Aprobados')
@@ -74,93 +110,33 @@ class SecurityDeviceLotsTable extends BaseTable
                         number_format($row->quantity, 0, ',', ' '),
                     )
                     : 'No requiere'),
-            Column::make('Recepción', 'received_at')
-                ->format(fn ($value): string => $value->format('d/m/Y')),
+            Column::make('Observaciones', 'notes')
+                ->format(fn (?string $value): string => $value ?? '—'),
             Column::make('Acciones')
-                ->label(fn (SecurityDeviceLot $row): View => view('pages.security-device-lots.partials.actions', ['lot' => $row])),
+                ->label(fn (SecurityDeviceLot $row): View => view('pages.security-device-lots.partials.actions', [
+                    'lot' => $row,
+                    'canRemove' => $this->canRemove($row),
+                ])),
         ];
     }
 
     /**
-     * Get the filters of the table: shipping line, provider, device type, approval and reception dates.
-     *
-     * @return array<int, Filter>
+     * Remove a lot from its announcement, with its devices, when none of them changed status and the announcement keeps
+     * another lot (H37, criterion 12).
      */
-    public function filters(): array
+    public function remove(int $id, RemoveSecurityDeviceLot $removeLot): void
     {
-        return [
-            SelectFilter::make('Aprobación', 'approval')
-                ->options(['' => 'Todos', 'none' => 'Sin aprobar', 'partial' => 'A medias', 'full' => 'Todo aprobado', 'not_required' => 'No requiere'])
-                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
-                ->filter(fn (Builder $builder, string $value) => $this->filterByApproval($builder, $value)),
-            $this->announcementFilter('Naviera', 'shipping_line', 'shipping_line_id', ['' => 'Todas'] + ShippingLine::withTrashed()->orderBy('code')->pluck('code', 'id')->all()),
-            $this->announcementFilter('Proveedor', 'provider', 'provider_id', ['' => 'Todos'] + Provider::withTrashed()->orderBy('business_name')->pluck('business_name', 'id')->all()),
-            $this->announcementFilter('Tipo de dispositivo', 'security_device_type', 'security_device_type_id', ['' => 'Todos'] + SecurityDeviceType::withTrashed()->orderBy('name')->pluck('name', 'id')->all()),
-            DateFilter::make('Recepción desde', 'received_from')
-                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
-                ->filter(fn (Builder $builder, string $value) => $builder->whereDate('security_device_lots.received_at', '>=', $value)),
-            DateFilter::make('Recepción hasta', 'received_until')
-                ->setInputAttributes(self::CONTROL_ATTRIBUTES)
-                ->filter(fn (Builder $builder, string $value) => $builder->whereDate('security_device_lots.received_at', '<=', $value)),
-        ];
-    }
+        $lot = $this->builder()->findOrFail($id);
+        $name = $lot->name();
 
-    /**
-     * Keep the lots with none, some or all of their devices approved (H29, criterion 12), or the ones whose type does
-     * not require approval (T62), which are left out of the other three.
-     *
-     * @param  Builder<SecurityDeviceLot>  $builder
-     * @return Builder<SecurityDeviceLot>
-     */
-    private function filterByApproval(Builder $builder, string $value): Builder
-    {
-        $approved = fn (Builder $devices) => $devices->whereNotIn('status', [SecurityDeviceStatus::Inactive->value, SecurityDeviceStatus::Discarded->value]);
-        $inactive = fn (Builder $devices) => $devices->where('status', SecurityDeviceStatus::Inactive->value);
+        if (! $removeLot->handle($lot)) {
+            $this->dispatch('toast', icon: 'warning', title: 'No se quitó el lote', text: 'Solo se quita un lote cuyos dispositivos siguen como se ingresaron, y el anuncio debe quedar con al menos un lote.');
 
-        if ($value === 'not_required') {
-            return $this->whereTypeRequiresApproval($builder, false);
+            return;
         }
 
-        if (! in_array($value, ['none', 'partial', 'full'], true)) {
-            return $builder;
-        }
+        session()->flash('toast', ['icon' => 'success', 'title' => 'Lote quitado', 'text' => sprintf('Se quitó el lote %s con sus dispositivos.', $name)]);
 
-        $builder = $this->whereTypeRequiresApproval($builder, true);
-
-        return match ($value) {
-            'none' => $builder->whereDoesntHave('devices', $approved),
-            'partial' => $builder->whereHas('devices', $approved)->whereHas('devices', $inactive),
-            default => $builder->whereDoesntHave('devices', $inactive),
-        };
-    }
-
-    /**
-     * Keep the lots whose type requires, or not, the approval of their devices (T62).
-     *
-     * @param  Builder<SecurityDeviceLot>  $builder
-     * @return Builder<SecurityDeviceLot>
-     */
-    private function whereTypeRequiresApproval(Builder $builder, bool $requiresApproval): Builder
-    {
-        return $builder->whereHas(
-            'announcement.securityDeviceType',
-            fn (Builder $type) => $type->where('requires_lot_approval', $requiresApproval),
-        );
-    }
-
-    /**
-     * Build a select filter on a column of the announcement of the lot.
-     *
-     * @param  array<int|string, string>  $options
-     */
-    private function announcementFilter(string $name, string $key, string $column, array $options): Filter
-    {
-        return SelectFilter::make($name, $key)
-            ->options($options)
-            ->setInputAttributes(self::CONTROL_ATTRIBUTES)
-            ->filter(fn (Builder $builder, string $value) => $builder->whereHas(
-                'announcement',
-                fn (Builder $announcement) => $announcement->where($column, $value),
-            ));
+        $this->redirectRoute('intranet.security-device-announcements.show', $this->announcementId, navigate: true);
     }
 }

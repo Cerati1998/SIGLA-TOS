@@ -30,7 +30,7 @@ class DescribeCertification
             'shippingLine', 'carrier', 'driver', 'tractor', 'semiTrailer', 'kit.kitType', 'yardZone', 'certifier', 'closer', 'lastReopening.reopener',
         ]);
         $steps = $certification->steps()
-            ->with(['section', 'devices.lot.announcement.securityDeviceType', 'photos.uploader'])
+            ->with(['section', 'devices.lot.securityDeviceType', 'photos.uploader'])
             ->get();
 
         return [

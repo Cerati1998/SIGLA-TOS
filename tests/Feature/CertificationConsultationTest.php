@@ -13,7 +13,6 @@ use App\Models\CertificationStep;
 use App\Models\Driver;
 use App\Models\Kit;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
@@ -148,9 +147,7 @@ class CertificationConsultationTest extends TestCase
                 'position' => $index + 1,
             ]);
             $lot = SecurityDeviceLot::factory()->create([
-                'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create([
-                    'security_device_type_id' => SecurityDeviceType::query()->firstOrCreate(['name' => $deviceType], SecurityDeviceType::factory()->make(['name' => $deviceType])->toArray())->id,
-                ])->id,
+                'security_device_type_id' => SecurityDeviceType::query()->firstOrCreate(['name' => $deviceType], SecurityDeviceType::factory()->make(['name' => $deviceType])->toArray())->id,
             ]);
             $device = SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => $prefix.substr($container, -7)]);
             $step->devices()->attach($device->id);

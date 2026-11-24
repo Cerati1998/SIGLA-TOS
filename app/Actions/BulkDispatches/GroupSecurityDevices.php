@@ -37,7 +37,7 @@ class GroupSecurityDevices
         }
 
         $lots = SecurityDeviceLot::query()
-            ->with('announcement.securityDeviceType')
+            ->with('securityDeviceType')
             ->whereKey($devices->pluck('security_device_lot_id')->unique()->all())
             ->get()
             ->keyBy('id');
@@ -92,9 +92,8 @@ class GroupSecurityDevices
             return [];
         }
 
-        $announcement = $lot->announcement;
         $sorted = $devices
-            ->map(fn (SecurityDevice $device): array => ['id' => $device->id, 'serialNumber' => $device->serial_number, 'correlative' => (int) $announcement->correlativeOf($device->serial_number)])
+            ->map(fn (SecurityDevice $device): array => ['id' => $device->id, 'serialNumber' => $device->serial_number, 'correlative' => (int) $lot->correlativeOf($device->serial_number)])
             ->sortBy('correlative')
             ->values();
 
@@ -114,13 +113,13 @@ class GroupSecurityDevices
 
         $stretches[] = $current;
 
-        return array_map(function (array $stretch) use ($lot, $announcement): array {
+        return array_map(function (array $stretch) use ($lot): array {
             $first = $stretch[0];
             $last = $stretch[count($stretch) - 1];
 
             return [
                 'key' => "{$lot->id}:{$first['correlative']}:{$last['correlative']}",
-                'type' => $announcement->securityDeviceType->name,
+                'type' => $lot->securityDeviceType->name,
                 'first' => $first['serialNumber'],
                 'range' => count($stretch) === 1 ? $first['serialNumber'] : $first['serialNumber'].' – '.$last['serialNumber'],
                 'count' => count($stretch),
