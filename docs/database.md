@@ -51,8 +51,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `providers` | E8 · H10 | `en código` | `providers` |
 | `clients` | E8 · H31 | `en código` | `clients` (estaba como futura) |
 | `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
-| `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
-| `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
+| `security_device_announcements` | E2 · H07, H37 | `en código` | `security_device_types_announcement` |
+| `security_device_lots` | E2 · H07, H37 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `security_device_lot_approvals` | E2 · H29 | `en código` | (nueva; bitácora de aprobaciones de la naviera) |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
@@ -168,9 +168,9 @@ erDiagram
 erDiagram
   shipping_lines ||--o{ security_device_announcements : "naviera"
   providers ||--o{ security_device_announcements : "proveedor"
-  security_device_types ||--o{ security_device_announcements : "tipo"
-  security_device_announcements ||--|| security_device_lots : "origen"
-  users ||--o{ security_device_lots : "ingresó"
+  users ||--o{ security_device_announcements : "ingresó"
+  security_device_announcements ||--|{ security_device_lots : "trae"
+  security_device_types ||--o{ security_device_lots : "tipo"
   security_device_lots ||--o{ security_devices : "trae"
   security_device_lots ||--o{ security_device_lot_approvals : "aprobaciones"
   users ||--o{ security_device_lot_approvals : "registró"
@@ -180,21 +180,21 @@ erDiagram
     bigint id PK
     bigint shipping_line_id FK
     bigint provider_id FK
+    date received_at
+    string dispatch_number
+    bigint created_by FK
+  }
+  security_device_lots {
+    bigint id PK
+    bigint security_device_announcement_id FK
     bigint security_device_type_id FK
     string series_prefix
     int min_digits
     bigint series_start
     bigint series_end
     string series_suffix "null"
-  }
-  security_device_lots {
-    bigint id PK
-    bigint security_device_announcement_id FK "UK"
     int quantity
-    date received_at
-    string dispatch_number
     text notes
-    bigint created_by FK
   }
   security_devices {
     bigint id PK
@@ -673,34 +673,38 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 
 ### 5.9 `security_device_announcements` · `en código`
 
-El origen de un lote: de quién viene y cómo se arman sus series. Se crea uno por lote, en el mismo guardado; bodega no lo gestiona aparte (P2, cerrada el 2026-11-10).
+El anuncio de ingreso de lotes (H37, 2026-11-24): la recepción de una guía de un proveedor, para una sola naviera, con los lotes que trae. Se numera en pantalla `AN-000001` desde su `id` (`SecurityDeviceAnnouncement::number()`), sin columna propia. Antes de H37 era el origen de un solo lote y guardaba el tipo y la serie, que pasaron a cada lote.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `shipping_line_id` | bigint FK | Naviera activa al ingresar el lote (H07, criterio 1). |
-| `provider_id` | bigint FK | Proveedor activo. Vive solo aquí: el lote no lo repite. |
-| `security_device_type_id` | bigint FK | Tipo activo (H07, criterio 2). |
-| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. Vacío en un tipo que no utiliza serie (T62). |
-| `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
-| `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
-| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). Null en un tipo que no utiliza serie (T62). |
+| `shipping_line_id` | bigint FK | Naviera activa al ingresar el anuncio. Todos sus lotes son de ella (H37, criterio 1). |
+| `provider_id` | bigint FK | Proveedor activo. |
+| `received_at` | date | Fecha de recepción. ER: `date_reception`. Vino del lote en H37. |
+| `dispatch_number` | varchar(50) | Número de guía. ER: `despatch_number`. Vino del lote en H37. |
+| `created_by` | bigint FK → `users` | Quién ingresó el anuncio; cuándo es `created_at` (H37, criterio 8). Vino del lote en H37. |
 | `timestamps` | | |
 
-La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
+Un anuncio trae como máximo 10 000 dispositivos, sumando todos sus lotes (`SecurityDeviceAnnouncement::MAX_DEVICES`, H37, criterio 6). La cabecera se corrige siempre; los lotes, aparte (H37, criterio 12).
 
 ### 5.10 `security_device_lots` · `en código`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `security_device_announcement_id` | bigint FK | UK: un anuncio, un lote. |
+| `security_device_announcement_id` | bigint FK | Anuncio que trae el lote. Un anuncio trae uno o más lotes (antes de H37 era UK: un anuncio, un lote). |
+| `security_device_type_id` | bigint FK | Tipo activo al ingresar el lote (H07, criterio 2). Vino del anuncio en H37. Un anuncio puede traer lotes de tipos distintos. |
+| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. Vacío en un tipo que no utiliza serie (T62). Vino del anuncio en H37. |
+| `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
+| `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
+| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). Null en un tipo que no utiliza serie (T62). |
 | `quantity` | smallint sin signo | Dispositivos del lote, de 1 a 10 000 (H07, criterio 10). ER: `qty`. |
-| `received_at` | date | Fecha de recepción. ER: `date_reception`. |
-| `dispatch_number` | varchar(50) | Número de guía. ER: `despatch_number`. |
-| `notes` | text (null) | Observaciones, opcionales. ER: `observations`. |
-| `created_by` | bigint FK → `users` | Quién ingresó el lote; cuándo es `created_at` (H07, criterio 9). |
+| `notes` | text (null) | Observaciones del lote, opcionales. ER: `observations`. |
 | `timestamps` | | |
+
+La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceLot::serialNumber()` (antes de H37, en el anuncio).
+
+Un lote se quita de su anuncio, con sus dispositivos, solo si ninguno de ellos cambió de estado y el anuncio conserva otro lote (`RemoveSecurityDeviceLot`, H37, criterio 12).
 
 ### 5.11 `security_devices` · `en código`
 
@@ -719,7 +723,7 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `discard_thumbnail_path` | varchar(255) (null) | Ruta de su miniatura (T77). |
 | `timestamps` | | |
 
-El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
+El anuncio, sus lotes nuevos y sus dispositivos se guardan en una sola transacción: si una serie ya existe, o dos lotes del anuncio traen la misma, no se guarda nada (H07, criterios 6 y 7; H37, criterios 4 y 5; `ReceiveSecurityDeviceLots`). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
 
 ### 5.11b `security_device_lot_approvals` · `en código`
 
@@ -729,7 +733,7 @@ Bitácora de aprobaciones de la naviera por tramos de un lote (H29). Un registro
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del tramo. |
-| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con el anuncio del lote. |
+| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con la serie del lote (antes de H37, con su anuncio). |
 | `approved_count` | smallint sin signo | Cuántos dispositivos Inactivos del tramo pasaron a Disponible. Los ya aprobados no se cuentan. Siempre mayor que 0: si no hay nada que aprobar, no se guarda el registro. |
 | `approved_by` | bigint FK → `users` | Quién registró la aprobación; cuándo es `created_at`. |
 | `timestamps` | | |
