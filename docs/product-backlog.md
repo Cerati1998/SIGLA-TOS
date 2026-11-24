@@ -12,7 +12,7 @@
 
 **Aprobadas el 2026-11-23:** H33 a H36 (E6, checkpoint), armadas con el usuario a partir del video del checkpoint actual. Sus suposiciones se cerraron y el usuario las aprobó ese mismo día (T67).
 
-**Pedida y aprobada por el usuario el 2026-11-24:** H37 (ingresar un anuncio de lotes, E2), que cambia H07, H08, H28 y H29: un anuncio de ingreso trae n lotes y cada lote, n dispositivos. Se construye en el Sprint 4 (T78).
+**Pedida y aprobada por el usuario el 2026-11-24:** H37 (ingresar un anuncio de ingreso de lotes, E2), que cambia H07, H08, H28 y H29: un anuncio de ingreso de lotes trae n lotes y cada lote, n dispositivos. Se construye en el Sprint 4 (T78).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -340,12 +340,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Corrección del 2026-11-20 (T62), pedida por el usuario: la aprobación solo aplica a los lotes cuyo tipo de dispositivo tiene marcada «Requiere aprobación en lote» (H06), que es lo normal. Si el tipo no la requiere, sus dispositivos nacen Disponibles (H07), el detalle del lote no ofrece registrar aprobaciones y el criterio 13 se cumple sin aprobación. En la lista de lotes, su columna «Aprobados» dice «No requiere» en vez de «120 de 200», y el filtro de aprobación suma esa opción: sin aprobar, a medias, todo aprobado y no requiere. En el detalle del lote se ocultan «Registrar aprobación» e «Historial de aprobaciones» (confirmado por el usuario el 2026-11-20).
 - Cambio del 2026-11-24 (H37): la aprobación sigue siendo por tramos de cada lote, desde el detalle del lote, sin cambios. La columna «Aprobados» y su filtro (criterio 12) pasan de la lista de lotes a la tabla de lotes del detalle del anuncio, sin el filtro. Ver H37.
 
-**H37 · Ingresar un anuncio de lotes** (pedida por el usuario el 2026-11-23; armada y aprobada con el usuario el 2026-11-24; cambia H07, H08, H28 y H29)
+**H37 · Ingresar un anuncio de ingreso de lotes** (pedida por el usuario el 2026-11-23; armada y aprobada con el usuario el 2026-11-24; cambia H07, H08, H28 y H29)
 - Como usuario de bodega, quiero ingresar en un solo anuncio la guía de un proveedor con todos los lotes que trae, para registrar de una vez lo que llegó y consultarlo por anuncio, por lote y por dispositivo.
 - Criterios de aceptación:
-  1. Un **anuncio de ingreso** tiene una cabecera con la naviera, el proveedor, la fecha de recepción y el número de guía, todos obligatorios. Un anuncio es de una sola naviera: todos sus lotes son de ella.
+  1. Un **anuncio de ingreso de lotes** tiene una cabecera con la naviera, el proveedor, la fecha de recepción y el número de guía, todos obligatorios. Un anuncio es de una sola naviera: todos sus lotes son de ella.
   2. Debajo de la cabecera, un formulario agrega los **lotes** del anuncio. Cada lote lleva el tipo de dispositivo, la serie (inicio, mínimo de dígitos y final), los correlativos (inicial, cantidad y final) y las observaciones (opcional), con las mismas reglas de H07: solo tipos activos, tipos sin serie y sin aprobación (T62), la cantidad (T75) y la funda (T76).
-  3. Cada lote agregado entra en una lista del anuncio con su tipo, su primera y su última serie y su cantidad. Un lote se puede quitar de la lista antes de guardar. Un anuncio puede traer lotes de tipos distintos.
+  3. Cada lote agregado entra en una lista del anuncio con su tipo, su primera y su última serie y su cantidad. Antes de guardar, cada lote de la lista se puede ver (un modal de solo lectura con sus datos y las series que se van a crear, con un buscador) y quitar (pedido por el usuario el 2026-11-24, al revisar el diseño). Un anuncio puede traer lotes de tipos distintos.
   4. El anuncio se guarda con todos sus lotes juntos, todo o nada. Se necesita al menos un lote.
   5. Si alguna serie ya existe en el sistema, o dos lotes del mismo anuncio traen la misma serie, no se guarda nada y se muestra cuáles chocan (H07, criterio 6, con las reglas de unicidad de T62).
   6. Un anuncio trae como máximo 10 000 series, sumando todos sus lotes. Se guarda en el momento, sin cola, y la pantalla muestra que está guardando.
@@ -358,7 +358,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   13. Por ahora, cualquier usuario con sesión usa estas pantallas. Los roles pasan a H24.
   14. Las pantallas se usan bien desde el celular.
 - Decisiones del usuario del 2026-11-24: la naviera va en la cabecera; todo se guarda junto; el tope de 10 000 es por anuncio; se pueden quitar lotes sin uso; la lista es de anuncios y la serie se busca en el buscador; se parte de cero con `migrate:fresh`, como en T76, y `LocalTestingSeeder` crea anuncios con varios lotes.
-- Suposiciones confirmadas por el usuario el 2026-11-24: el anuncio se numera con su propia secuencia, `AN-000001`; la aprobación de la naviera (H29) sigue por tramos de cada lote, sin cambios; las observaciones van solo en cada lote, no en la cabecera; la entrada del menú sigue en el grupo «Bodega» y se llama «Anuncios de ingreso».
+- Suposiciones confirmadas por el usuario el 2026-11-24: el anuncio se numera con su propia secuencia, `AN-000001`; la aprobación de la naviera (H29) sigue por tramos de cada lote, sin cambios; las observaciones van solo en cada lote, no en la cabecera; la entrada del menú sigue en el grupo «Bodega» y se llama «Anuncios de ingreso de lotes».
+- Término (decisión del usuario del 2026-11-24): en pantalla se dice siempre «anuncio de ingreso de lotes», para no confundirlo con otros anuncios de ingreso que vendrán (de contenedores, de unidades). Al construir se registra en `docs/glossary.md`.
 - Fuera de esta historia: la carga desde Excel, un PDF del anuncio y los roles (H24).
 - Toca lo que usa E6: el lote y su anuncio están debajo de los kits, la certificación y el reparto en secciones. Cuando llegue a `main`, la rama del checkpoint lo trae.
 - Diseño: página «E2 · Dispositivos de seguridad» del lienzo, desde las plantillas «Formulario» y «Lista con tabla». Se dibuja y se aprueba antes de construir.

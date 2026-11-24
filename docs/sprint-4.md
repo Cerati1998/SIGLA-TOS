@@ -23,7 +23,7 @@ Dejar construido el checkpoint: las secciones de checkpoint en el catálogo, el 
 - **H36** · Consultar checkpoints (T72).
 - **Adelanto opcional:** mejora de H20, las marcas numeradas sobre los dibujos del contenedor en el PDF de la certificación (T73).
 - **Corrección del Sprint 3** (agregada el 2026-11-23 a pedido del usuario): la naviera de SIGLA 1.0 en la asignación (H17, T74), la cantidad al ingresar un lote (H07 y H28, T75), la funda como dispositivo del kit (H06, H13 y H14, T76) y la foto al descartar un dispositivo (H08, T77).
-- **H37** · Ingresar un anuncio de lotes (T78), agregada el 2026-11-24 a pedido del usuario: un anuncio de ingreso trae n lotes y cada lote, n dispositivos. Cambia H07, H08, H28 y H29.
+- **H37** · Ingresar un anuncio de ingreso de lotes (T78), agregada el 2026-11-24 a pedido del usuario: un anuncio de ingreso de lotes trae n lotes y cada lote, n dispositivos. Cambia H07, H08, H28 y H29.
 
 Sigue el orden de épicas aprobado: E6 es la última. H24 queda para el Sprint 5.
 
@@ -58,7 +58,7 @@ Pedidas por el usuario el 2026-11-23, al revisar lo construido en el Sprint 3. C
 
 ### Historia nueva (agregada el 2026-11-24)
 Pedida por el usuario el 2026-11-23 como nota del sprint y armada con él el 2026-11-24. Las horas son una propuesta de Claude Code.
-- [ ] **T78** · H37 · Ingresar un anuncio de lotes. El anuncio de ingreso es la cabecera (naviera, proveedor, fecha y guía) y trae uno o más lotes, cada uno con su tipo, su serie, sus correlativos y sus observaciones; todo se guarda junto, con un tope de 10 000 series por anuncio. Bodega consulta la lista de anuncios, el detalle de cada anuncio con sus lotes y el detalle de cada lote con sus dispositivos. Cambia H07, H08, H28 y H29. Se parte de cero con `migrate:fresh` y deja `docs/database.md` y `docs/glossary.md` al día. Incluye diseñar el ingreso, la lista y el detalle del anuncio en la página E2 del lienzo y que el usuario los apruebe antes de construir. Quién: Claude Code. 4 h.
+- [ ] **T78** · H37 · Ingresar un anuncio de ingreso de lotes. El anuncio de ingreso de lotes es la cabecera (naviera, proveedor, fecha y guía) y trae uno o más lotes, cada uno con su tipo, su serie, sus correlativos y sus observaciones; todo se guarda junto, con un tope de 10 000 series por anuncio. Bodega consulta la lista de anuncios, el detalle de cada anuncio con sus lotes y el detalle de cada lote con sus dispositivos. Cambia H07, H08, H28 y H29. Se parte de cero con `migrate:fresh` y deja `docs/database.md` y `docs/glossary.md` al día. Incluye diseñar el ingreso, la lista y el detalle del anuncio en la página E2 del lienzo y que el usuario los apruebe antes de construir. Quién: Claude Code. 4 h.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
