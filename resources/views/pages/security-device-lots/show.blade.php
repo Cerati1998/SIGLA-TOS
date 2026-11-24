@@ -86,6 +86,7 @@
     </x-panel.list-card>
 
     <livewire:security-devices.discard-modal :lot="$lot" />
+    <livewire:security-devices.discard-detail-modal :lot="$lot" />
 
     @if ($lot->requiresApproval())
         <livewire:security-device-lots.approve-modal :lot="$lot" />
