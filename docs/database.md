@@ -544,6 +544,59 @@ erDiagram
   }
 ```
 
+### 4.10 Checkpoint (E6)
+
+El inspector de checkpoint elige una unidad con la certificación cerrada (H34). La primera vez que alguien la abre nace su checkpoint, uno por certificación, que copia las secciones activas de tipo Checkpoint como sus pasos. Un paso de fotos guarda de 1 a n fotos; uno de verificación guarda una marca por cada serie que la certificación dejó en las secciones que verifica (H33), fijadas al nacer el checkpoint. El último paso suma observaciones y fotos extra, sin paso. Con todo completo y todas las series correctas, se cierra.
+
+```mermaid
+erDiagram
+  certifications ||--o| checkpoints : "un solo checkpoint"
+  checkpoints ||--o{ checkpoint_steps : "secciones copiadas"
+  certification_sections ||--o{ checkpoint_steps : "sección del catálogo"
+  checkpoints ||--o{ checkpoint_photos : "fotos"
+  checkpoint_steps |o--o{ checkpoint_photos : "fotos del paso"
+  checkpoint_steps ||--o{ checkpoint_marks : "series a verificar"
+  security_devices ||--o{ checkpoint_marks : "serie"
+  users |o--o{ checkpoints : "foto del contenedor y cerró"
+  users ||--o{ checkpoint_photos : "subió"
+  users |o--o{ checkpoint_marks : "marcó"
+
+  checkpoints {
+    bigint id PK
+    bigint certification_id FK, UK
+    string container_photo_path "null"
+    string container_thumbnail_path "null"
+    bigint container_photo_by FK "null"
+    datetime container_photo_at "null"
+    text observations "null"
+    datetime closed_at "null"
+    bigint closed_by FK "null"
+  }
+  checkpoint_steps {
+    bigint id PK
+    bigint checkpoint_id FK
+    bigint certification_section_id FK
+    string kind "photos, verification"
+    smallint position
+  }
+  checkpoint_photos {
+    bigint id PK
+    bigint checkpoint_id FK
+    bigint checkpoint_step_id FK "null: foto extra"
+    string path
+    string thumbnail_path
+    bigint uploaded_by FK
+  }
+  checkpoint_marks {
+    bigint id PK
+    bigint checkpoint_step_id FK
+    bigint security_device_id FK
+    boolean is_correct "null: sin marcar"
+    bigint marked_by FK "null"
+    datetime marked_at "null"
+  }
+```
+
 ## 5. Diccionario de tablas
 
 Notación: `UK` único · `FK` llave foránea. Todo es `NOT NULL` salvo donde dice «null».
@@ -1079,6 +1132,64 @@ Las fotos de cada paso (H18), de 1 a n, sin máximo. Se toman con la cámara del
 | `thumbnail_path` | varchar(255) | Ruta de la miniatura, en la subcarpeta `thumbnails`. |
 | `uploaded_by` | bigint FK → `users.id` | Quién la subió. Al reemplazarla, quien la reemplazó. |
 | `timestamps` | | `created_at` es la fecha y hora de la subida; al reemplazar la foto, toma la del reemplazo. |
+
+### 5.26 `checkpoints` · `en código`
+
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor. Un checkpoint cerrado no se edita.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | UK: una certificación tiene un solo checkpoint. |
+| `container_photo_path` | varchar(255) null | Foto opcional del contenedor, como evidencia; no lee el número. Una sola: una nueva reemplaza la anterior y borra sus archivos. Va en `storage/app/private/checkpoints/{id}/container`. |
+| `container_thumbnail_path` | varchar(255) null | Su miniatura. |
+| `container_photo_by` | bigint FK → `users.id` null | Quién tomó la foto del contenedor. |
+| `container_photo_at` | datetime null | Cuándo la tomó. |
+| `observations` | text null | Observaciones del último paso, opcionales, hasta 2000 caracteres. Se guardan al salir del campo. |
+| `closed_at` | datetime null | Cuándo se cerró. |
+| `closed_by` | bigint FK → `users.id` null | Quién lo cerró. |
+| `timestamps` | | |
+
+### 5.27 `checkpoint_steps` · `en código`
+
+Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`), copiadas en el checkpoint cuando nace, en su orden (H34). La copia guarda qué pide el paso y su posición, para que un cambio posterior del catálogo no cambie el checkpoint, esté a medias o cerrado.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `checkpoint_id` | bigint FK → `checkpoints.id` | Índice con `position`. |
+| `certification_section_id` | bigint FK → `certification_sections.id` | UK junto con `checkpoint_id`. |
+| `kind` | varchar(20) | Enum de PHP `CheckpointSectionKind`: `photos` o `verification`, copiado de `checkpoint_kind`. |
+| `position` | smallint | Orden del paso. |
+| `timestamps` | | |
+
+### 5.28 `checkpoint_photos` · `en código`
+
+Las fotos del checkpoint (H34): de los pasos de fotos, de 1 a n, y las fotos extra del último paso, sin paso. Siguen las reglas de `certification_photos`: cámara del teléfono, compresión en el navegador con fecha, hora y contenedor impresos, miniatura, disco privado (`storage/app/private/checkpoints/{id}`) y solo con sesión.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `checkpoint_id` | bigint FK → `checkpoints.id` | Índice con `checkpoint_step_id` y `created_at`. |
+| `checkpoint_step_id` | bigint FK → `checkpoint_steps.id` null | Null en una foto extra. |
+| `path` | varchar(255) | Ruta de la foto. |
+| `thumbnail_path` | varchar(255) | Ruta de la miniatura, en la subcarpeta `thumbnails`. |
+| `uploaded_by` | bigint FK → `users.id` | Quién la subió; al reemplazarla, quien la reemplazó. |
+| `timestamps` | | `created_at` es la fecha y hora de la subida o del reemplazo. |
+
+### 5.29 `checkpoint_marks` · `en código`
+
+Una fila por cada serie de un paso de verificación (H34): los dispositivos que la certificación dejó en las secciones que el paso verifica (`certification_section_verifications`), fijados cuando nace el checkpoint, en orden de serie. Se crean sin marca y se marcan al tocarlas; la marca se puede cambiar mientras el checkpoint está a medias.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `checkpoint_step_id` | bigint FK → `checkpoint_steps.id` | |
+| `security_device_id` | bigint FK → `security_devices.id` | UK junto con `checkpoint_step_id`. |
+| `is_correct` | boolean null | Correcta (true), incorrecta (false) o sin marcar (null). |
+| `marked_by` | bigint FK → `users.id` null | Quién la marcó por última vez. |
+| `marked_at` | datetime null | Cuándo la marcó. |
+| `timestamps` | | |
 
 ## 6. Cambios del ER original que ya aplican
 

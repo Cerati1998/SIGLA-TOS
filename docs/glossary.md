@@ -37,3 +37,9 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Sección de checkpoint | `checkpoint` | Tercer tipo de sección del catálogo, junto a interna y externa, en `CertificationSectionType`. No lleva dispositivos propios (H33, aprobado por el usuario el 2026-11-24). |
 | Qué pide el paso (del checkpoint) | `checkpoint_kind` (`photos`, `verification`) | Si el paso pide fotos o verifica series. Enum `CheckpointSectionKind` (H33, aprobado por el usuario el 2026-11-24). |
 | Secciones que verifica | `certification_section_verifications` | Secciones internas o externas cuyas series muestra un paso de verificación. Relación `verifiedSections` (H33, aprobado por el usuario el 2026-11-24). |
+| Checkpoint | `checkpoint` | Tabla `checkpoints`. Uno por certificación: nace la primera vez que alguien abre la unidad y guarda la foto del contenedor, las observaciones y quién lo cerró y cuándo (H34, aprobado por el usuario el 2026-11-24). |
+| Paso del checkpoint | `checkpoint_step` | Copia de una sección de checkpoint del catálogo en el checkpoint, con su orden y lo que pide, fotos o verificación (H34, aprobado por el usuario el 2026-11-24). |
+| Foto del checkpoint | `checkpoint_photo` | Foto de un paso de fotos, o foto extra del último paso, sin paso, con quién la subió y cuándo (H34, aprobado por el usuario el 2026-11-24). |
+| Marca (de una serie) | `checkpoint_mark` (`is_correct`) | Correcta o incorrecta, para cada serie de un paso de verificación, con quién la marcó y cuándo (H34, aprobado por el usuario el 2026-11-24). |
+| Foto del contenedor | `container_photo_path` | Columnas del checkpoint con la foto opcional del contenedor, su miniatura, quién la tomó y cuándo. No lee el número (H34, aprobado por el usuario el 2026-11-24). |
+| Observaciones (del checkpoint) | `observations` | Texto opcional del último paso del checkpoint (H34, aprobado por el usuario el 2026-11-24). |
