@@ -14,6 +14,8 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H37 (ingresar un anuncio de ingreso de lotes, E2), que cambia H07, H08, H28 y H29: un anuncio de ingreso de lotes trae n lotes y cada lote, n dispositivos. Se construye en el Sprint 4 (T78).
 
+**Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
+
 Product Goal: ver `docs/product-goal.md`.
 
 ## Orden de las épicas (aprobado)
@@ -539,6 +541,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Decisiones del usuario del 2026-11-17, al rediseñar con BUMMOCK: tabla y lista propias, sin PDF y con página de detalle (antes iba en la lista de H16 con el chip «A granel»); motivo de salida Venta u Operación; con Venta, el cliente (H31, creada para esto); con Operación, el kit despachado cuya certificación sigue abierta. Si una certificación cerrada necesita otro precinto, por ejemplo por su estado físico, primero se reabre y recién entonces su kit aparece para el despacho por Operación (la reapertura se define en H19 y E6). (Reemplazado el 2026-11-20 en T64: por Operación solo se ofrecen kits Usados, es decir, de certificaciones ya cerradas.) Un solo patio, el de destino; observación opcional; los dispositivos se agregan por escaneo, por rango y por tipo con cantidad; numeración `DG-000001`.
 - Depende de: H31, por el cliente de una venta (2026-11-17).
 - Corrección del 2026-11-20 (T62), decidida por el usuario: como dos tipos que no utilizan serie pueden tener la misma serie (H07), el despacho suma un selector de tipo de dispositivo, opcional, para el escaneo y el rango. Si no se elige el tipo y la serie existe en más de un tipo, no se agrega y se avisa «Elige el tipo de dispositivo». Si se elige, solo se buscan series de ese tipo. La forma por tipo y cantidad no cambia, porque ya lleva el tipo. El selector va arriba de las pestañas y sirve para «Escanear» y «Por rango» (al construir, el 2026-11-20; en el diseño estaba dentro de la columna del escaneo).
+- Cambio del 2026-11-24 (H38), decidido por el usuario: por Operación se ofrecen los contenedores de las certificaciones en curso, reabiertas y cerradas, no las anuladas (criterio 3). Reemplaza la regla de T64, que solo ofrecía kits Usados. Los dispositivos de ese despacho son los extras de la asignación, que el inspector usa para reemplazar los del kit.
 - Fuera de esta historia: editar o anular un despacho, su PDF, y cómo se usan después los dispositivos a granel (cuándo pasan a Usado y cómo los ve el inspector), que se define al revisar E6 y lo posterior a H17.
 - Diseño: el del 2026-11-13 (página "E4 · Kits", T47) se rehace con estas decisiones y se vuelve a aprobar en el lienzo antes de construir.
 
@@ -605,7 +608,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Diseño: aprobado por el usuario el 2026-11-11 en la página "E9 · Transportistas, conductores y vehículos" del lienzo.
 
 ### E5 · Certificación del contenedor
-- Que el inspector certificado certifique el contenedor con su kit. Aprobado: iniciar la certificación (H17), completar las secciones con fotos (H18), cerrarla (H19) y consultarla con su PDF (H20); H18 a H20 se aprobaron el 2026-11-20. La reinspección sigue EN REVISIÓN con E6.
+- Que el inspector certificado certifique el contenedor con su kit. Aprobado: iniciar la certificación (H17), completar las secciones con fotos (H18), cerrarla (H19) y consultarla con su PDF (H20); H18 a H20 se aprobaron el 2026-11-20. Desde el 2026-11-24, reemplazar dispositivos del kit con dispositivos extra (H38). La reinspección sigue EN REVISIÓN con E6.
 - La certificación es opcional (ver decisiones). El inspector decide a qué unidades aplicarla.
 - Fuera: EIR del gate out y fin de lavado (proceso de gate out de SIGLA, aún no se construye).
 - Depende de: E1, E2, E3, E4, E7, E9. La necesita E6.
@@ -653,6 +656,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Versión conversada, a revisar: el inspector recorre las secciones una por una (multi-step form, en el orden de H11), ve qué dispositivos y cuántos lleva cada una (H12) y toma las fotos; cada sección puede llevar más de una foto y necesita al menos una; el avance se guarda en cada paso; puede volver atrás y reemplazar fotos; puede dejar la certificación a medias.
 - Dudas abiertas: cómo se colocan los dispositivos en cada sección (el sistema podría asignarlos por defecto desde el kit y el inspector solo etiquetaría), cuántas fotos por sección y cómo se reducen desde celular (unas 30 por unidad).
 - Decisiones del usuario del 2026-11-19 (T54): el sistema reparte solo los dispositivos del kit entre las secciones, según lo que pide cada una (H12), y el inspector solo toma las fotos. Las fotos se comprimen en el navegador con lo que este ya trae, sin paquete nuevo, de unos 7 MB a unos 700 KB. Cada foto se toma siempre con la cámara, nunca desde la galería. La subida empieza apenas se toma la foto y lo ya subido carga liviano en pantalla. El botón de tomar foto abre la cámara del teléfono, una foto por vez, y no la galería. Cada sección lleva de 1 a n fotos, sin máximo, guardadas en una tabla propia de fotos (una fila por foto). De cada foto queda quién la subió y la fecha y hora de la subida, y al comprimirla se le imprimen encima la fecha, la hora y el contenedor, como marca de agua. Si los dispositivos del kit no alcanzan o sobran para lo que piden las secciones activas, no se puede avanzar: se avisa al entrar a las secciones y el inspector pide otro kit. Se confirma la versión conversada (recorrido por pasos, avance guardado en cada paso, volver atrás, borrar o reemplazar fotos y dejarla a medias), con un multi-step form que muestra una barra de progreso.
+- Cambio del 2026-11-24 (H38): mientras la certificación está en curso o reabierta, la inspección suma la opción «Dispositivos extra», para reemplazar un dispositivo del kit ya colocado por uno despachado a granel para esa asignación. La sección del reemplazo pide al menos una foto nueva (ver H38).
 
 **H19 · Cerrar y reaperturar la certificación** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: se cierra desde el listado de Asignaciones y se puede reaperturar)
 - Como inspector certificado, quiero cerrar la certificación cuando sus dos inspecciones están completas, y reaperturarla si hace falta corregirla, para dejarla terminada con sus dispositivos como usados.
@@ -669,6 +673,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Versión conversada, a revisar: resumen de secciones con y sin foto; todas las secciones obligatorias para cerrar; confirmación antes de cerrar; una certificación cerrada no se edita; el kit y sus dispositivos quedan usados; solo cierra quien la inició (por confirmar).
 - Riesgo: si una sección no se puede fotografiar por una avería, el inspector queda trabado.
 - Decisiones del usuario del 2026-11-19 (T54): cualquier inspector puede seguir y cerrar una certificación, aunque no la haya iniciado, y queda registrado quién la cerró, con la fecha y la hora (reemplaza «solo cierra quien la inició»). No hay excepción para una sección sin foto: sin al menos una foto en cada sección no se cierra, y la certificación queda a medias hasta resolverlo (el riesgo se acepta). Se confirma el resto de lo conversado: resumen de secciones con y sin foto, confirmación antes de cerrar, una cerrada no se edita, y al cerrar el kit y sus dispositivos pasan a Usado. La reapertura para la reinspección queda fuera: se define con E6 en el Sprint 4.
+- Cambio del 2026-11-24 (H38): al reaperturar, además de corregir o sumar fotos (criterio 7), se pueden reemplazar dispositivos del kit por dispositivos extra. Mientras una sección con reemplazo no tenga su foto nueva, la certificación no se cierra.
 
 **H20 · Listado de asignaciones y consulta de certificaciones** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: la consulta es el mismo listado de Asignaciones)
 - Como usuario de la intranet, quiero un listado de las unidades asignadas, para seguir su avance, cerrarlas o reaperturarlas, consultarlas y descargar el PDF de las cerradas.
@@ -684,6 +689,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
 - Decisiones del usuario del 2026-11-19 (T54): por ahora todos los usuarios con sesión ven todas las certificaciones, por la regla de roles vigente; quién ve todas o solo las suyas se define con H24. El PDF se hace con DomPDF y toma como referencia el informe de inspección actual (parecido o mejorado, no igual: ese formato es de Risk Protection S.A.). El bloque de cintas usa tres dibujos propios del contenedor en SVG (interior con puertas abiertas, exterior del lado de las puertas y exterior del lado de la máquina) y, junto a cada uno, sus cintas con la serie y la sección, armadas desde el reparto de H18. Las marcas numeradas sobre el dibujo, en el lugar de cada sección, pasan al Sprint 4 como mejora. La tabla de daños por área del formato de referencia no va: es del EIR del gate out, una inspección previa a la certificación que se construye en otra etapa; cuando exista, se podrá sumar a este PDF. Tampoco van la lista de procedimientos de seguridad ni la trazabilidad GPS (los puntos del recorrido). El PDF lleva solo la cabecera, los dispositivos asignados y las fotos, con el formato de PDF ya estandarizado en el lienzo, y se descarga solo de una certificación cerrada. Se confirma el resto de lo conversado (filtros, búsqueda y detalle de solo consulta).
+- Cambio del 2026-11-24 (H38): el PDF y el detalle muestran el dispositivo nuevo en la sección del reemplazo. El detalle suma la sección «Dispositivos reemplazados» (fecha y hora, quién, motivo, sección, anterior → nuevo y foto del descarte); el PDF no la lleva.
 
 **H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
 - Como inspector o supervisor, quiero anular la asignación de un kit a su certificación cuando se cancela el servicio de despacho, para inhabilitar el kit o reutilizarlo según responda la naviera.
@@ -701,6 +707,29 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Depende de: H18 a H20 (listado de Asignaciones y detalle) y T65 (estado Descartado). Se construye en una rama que parte de la de H20.
 - Diseño: desde las plantillas, sin lienzo propio (decisión del usuario del 2026-11-20): un botón por fila y un modal con el motivo y la decisión, como «Reaperturar» de H19.
 - Corrección del 2026-11-24 (T77): con «Inhabilitar el kit» (criterio 4) se pide además una **foto obligatoria** del kit, una sola, que queda como foto del descarte de cada uno de sus dispositivos y se ve en su «Ver descarte» (H08). Con «Reutilizar» no se pide (decisión del usuario del 2026-11-24). El modal de anular quedó dibujado en el diseño de T77.
+
+**H38 · Reemplazar dispositivos del kit con dispositivos extra** (pedida por el usuario el 2026-11-24 en la reunión de correcciones y aprobada ese mismo día; cambia H18, H19, H20 y H30, y la usa H35)
+- Como inspector certificado, quiero ver los dispositivos extra que bodega despachó a granel para mi asignación y reemplazar con ellos un dispositivo del kit ya colocado, para que el PDF y el detalle muestren lo que de verdad quedó en el contenedor y quede registro de cada cambio.
+- Criterios de aceptación:
+  1. El despacho a granel por Operación (H30, criterio 3) ofrece los contenedores de las certificaciones **en curso, reabiertas y cerradas**, no las anuladas. Cambia la regla de T64, que solo ofrecía kits Usados.
+  2. Los dispositivos de ese despacho son los **dispositivos extra** de esa asignación.
+  3. Mientras la certificación está en curso o reabierta, la inspección (H18) tiene la opción **«Dispositivos extra»**. Lista cada extra con su tipo, su serie, su despacho (`DG-000123`) y si está sin usar o a qué dispositivo reemplazó.
+  4. Para **reemplazar**, el inspector elige un dispositivo del kit ya colocado en una sección y un extra sin usar del **mismo tipo**, escribe un **motivo obligatorio** (texto libre) y toma la **foto del descarte** (T77).
+  5. El extra ocupa la sección del anterior y pasa a Usado al cerrar la certificación, como el resto del kit. El anterior pasa a **Descartado**, con el motivo y la foto.
+  6. La sección del reemplazo pide **al menos una foto nueva**. Las anteriores se conservan marcadas «antes del reemplazo» y ya no cuentan. Mientras falte esa foto, la certificación no se cierra.
+  7. Con la certificación **cerrada**, primero se reapertura (H19) y después se reemplaza. Una certificación anulada no admite reemplazos.
+  8. El PDF y el detalle de la certificación (H20) muestran el dispositivo **nuevo** en su sección. El detalle suma una sección **«Dispositivos reemplazados»** con fecha y hora, quién, el motivo, la sección, el cambio de anterior a nuevo (por ejemplo, PRC0000120 → PRC0000455) y la foto del descarte.
+  9. Los extras sin usar siguen **Despachados** y se ven como «sin usar». Devolverlos a bodega queda fuera.
+  10. Cada reemplazo se guarda todo junto o nada.
+  11. Por ahora, cualquier usuario con sesión reemplaza. Los roles llegan con H24.
+  12. La pantalla se usa bien desde el celular.
+- Caso que la origina (contado por el usuario el 2026-11-24): un inspector colocó el kit y, al cerrar la puerta y poner el precinto, notó que había olvidado dentro del contenedor los documentos del conductor. Tuvo que romper el precinto, abrir la puerta y sacarlos, y el kit quedó con un precinto roto. Bodega le despachó otro a granel para esa asignación, y el inspector lo colocó y siguió. Hoy SIGLA solo registra el despacho a granel hacia la operación: no cuándo se reemplazó, por qué ni a qué dispositivo.
+- Decisiones del usuario del 2026-11-24: los extras se despachan con la inspección en curso y también con la certificación cerrada; si está cerrada, primero se reapertura para reemplazar y, si sigue en curso, se reemplaza directo. El que sale pasa a Descartado con la foto obligatoria del descarte (T77). La sección pide foto nueva, como en H35. Los sobrantes quedan Despachados. Los extras solo reemplazan: no se agregan sin sacar uno. El extra es del mismo tipo que el que sale. El motivo es texto libre obligatorio. Se construye en el Sprint 4, antes de T71.
+- Suposiciones confirmadas por el usuario el 2026-11-24: la funda no se reemplaza con esta opción, porque no está en ninguna sección (T76); el PDF no lleva la lista de reemplazos, solo el dispositivo nuevo en su sección, y la lista queda en el detalle.
+- H35 reusa este reemplazo y su registro en su criterio 5 (el dispositivo con ✗ se reemplaza por un extra).
+- Fuera: agregar un extra sin sacar ninguno, devolver extras a bodega y editar o anular un reemplazo.
+- Depende de: H18 a H20, H30 y T77 (foto del descarte).
+- Diseño: en la página «E5 · Certificación» del lienzo. Se aprueba antes de construir.
 
 ### E6 · Checkpoint (historias aprobadas el 2026-11-23)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.
@@ -773,6 +802,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   11. Por ahora, cualquier usuario con sesión inicia y cierra reinspecciones; los roles llegan con H24.
   12. La pantalla se usa bien desde el celular.
 - Reemplaza la historia de E4 que faltaba («reasignar dispositivos a una unidad en reinspección»): los dispositivos llegan por H30.
+- Cambio del 2026-11-24 (H38): el reemplazo del criterio 5 usa el de H38 y queda en el mismo registro de «Dispositivos reemplazados», con el motivo de la reinspección.
 
 - Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y ronda 2 el 2026-11-24): el motivo al finalizar, la sección reabierta para el inspector certificado, el listado de Asignaciones con «En reinspección» y su cierre, y la segunda vuelta del checkpoint. En las listas de Inspección interna y externa, la unidad en reinspección lleva la etiqueta «Reinspección», sobre el diseño de H18.
 
