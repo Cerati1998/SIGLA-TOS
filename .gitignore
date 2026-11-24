@@ -39,4 +39,3 @@ yarn-error.log
 # Configuración personal de Claude Code (la del proyecto sí se versiona)
 /.claude/settings.local.json
 /documentation/
-package.json
