@@ -7,7 +7,7 @@ use App\Enums\SecurityDeviceKind;
 use App\Enums\SecurityDeviceStatus;
 use App\Livewire\BulkDispatches\CreateModal as BulkDispatchCreateModal;
 use App\Livewire\Kits\DeviceScanner;
-use App\Livewire\SecurityDeviceLots\CreateForm;
+use App\Livewire\SecurityDeviceAnnouncements\CreateForm;
 use App\Livewire\SecurityDeviceLots\EditForm;
 use App\Livewire\SecurityDevices\SerialNumberSearch;
 use App\Livewire\SecurityDeviceTypes\CreateModal;
@@ -114,17 +114,15 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
 
     public function test_a_lot_of_a_type_without_series_is_its_padded_correlatives_and_needs_no_start_of_series(): void
     {
-        $this->lotForm($this->seal, '6', '25', '30')
-            ->set('form.seriesPrefix', 'GSW')
-            ->set('form.seriesSuffix', 'A')
+        $this->lotForm($this->seal, '6', '25', '30', prefix: 'GSW', suffix: 'A')
             ->call('save')
             ->assertHasNoErrors();
 
         $lot = SecurityDeviceLot::query()->sole();
 
-        $this->assertSame('', $lot->announcement->series_prefix);
-        $this->assertNull($lot->announcement->series_suffix);
-        $this->assertSame('000025 – 000030', $lot->announcement->lotName());
+        $this->assertSame('', $lot->series_prefix);
+        $this->assertNull($lot->series_suffix);
+        $this->assertSame('000025 – 000030', $lot->name());
         $this->assertSame(
             ['000025', '000026', '000027', '000028', '000029', '000030'],
             $lot->devices()->orderBy('serial_number')->pluck('serial_number')->all(),
@@ -138,7 +136,8 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
 
         $this->lotForm($iso, '6', '1', '3')
             ->call('save')
-            ->assertHasErrors(['form.seriesPrefix' => 'required']);
+            ->assertHasErrors('form.lots')
+            ->assertSeeText('Lote 1: El campo inicio de serie es obligatorio.');
     }
 
     public function test_the_devices_of_a_type_without_approval_are_born_available(): void
@@ -147,7 +146,6 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
 
         $lot = SecurityDeviceLot::query()->sole();
 
-        $this->assertSame('Se registraron 4 dispositivos disponibles: su tipo no requiere aprobación en lote.', session('toast.text'));
         $this->assertSame(4, $lot->devices()->where('status', SecurityDeviceStatus::Available->value)->count());
     }
 
@@ -159,7 +157,7 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
 
         $this->lotForm($this->padlock, '6', '49', '51')
             ->call('save')
-            ->assertHasErrors('form.serialNumbers');
+            ->assertHasErrors('form.lots');
 
         $this->assertSame(2, SecurityDeviceLot::query()->count());
         $this->assertSame(2, SecurityDevice::query()->where('serial_number', '000050')->count());
@@ -181,14 +179,13 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
 
         $this->lotForm($this->padlock, '7', '1', '3')
             ->call('save')
-            ->assertHasErrors('form.serialNumbers');
+            ->assertHasErrors('form.lots');
 
         $this->receiveLot($this->seal, 10, 12);
 
-        $this->lotForm($iso, '2', '10', '12')
-            ->set('form.seriesPrefix', '0000')
+        $this->lotForm($iso, '2', '10', '12', prefix: '0000')
             ->call('save')
-            ->assertHasErrors('form.serialNumbers');
+            ->assertHasErrors('form.lots');
     }
 
     public function test_a_lot_changes_its_type_only_to_one_with_the_same_boxes(): void
@@ -207,7 +204,7 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame($otherPadlock->id, $lot->announcement->refresh()->security_device_type_id);
+        $this->assertSame($otherPadlock->id, $lot->refresh()->security_device_type_id);
         $this->assertSame([$otherPadlock->id], $lot->devices()->distinct()->pluck('serial_number_scope')->all());
     }
 
@@ -222,7 +219,7 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
             ->call('save')
             ->assertHasErrors('form.serialNumbers');
 
-        $this->assertSame($this->padlock->id, $lot->announcement->refresh()->security_device_type_id);
+        $this->assertSame($this->padlock->id, $lot->refresh()->security_device_type_id);
     }
 
     public function test_the_series_of_a_lot_without_approval_is_corrected_while_its_devices_are_still_available(): void
@@ -247,18 +244,11 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
         $withoutApproval = $this->receiveLot($this->padlock, 1, 3);
         $withApproval = $this->receiveLot($this->seal, 1, 2);
 
-        Livewire::test(SecurityDeviceLotsTable::class)
-            ->assertSeeText('No requiere')
+        Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $withoutApproval->security_device_announcement_id])
+            ->assertSeeText('No requiere');
+
+        Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $withApproval->security_device_announcement_id])
             ->assertSeeText('0 de 2');
-
-        Livewire::test(SecurityDeviceLotsTable::class)
-            ->set('filterComponents.approval', 'not_required')
-            ->assertSeeText('000001 – 000003')
-            ->assertDontSeeText('000001 – 000002');
-
-        Livewire::test(SecurityDeviceLotsTable::class)
-            ->set('filterComponents.approval', 'full')
-            ->assertDontSeeText('000001 – 000003');
 
         $this->get(route('intranet.security-device-lots.show', $withoutApproval))
             ->assertOk()
@@ -316,23 +306,29 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
             ->call('add', Kit::slotKey($padlockForKit->id, null), '000050')
             ->assertReturned(['ok' => true, 'message' => 'Candado de kit · agregado']);
 
-        $this->assertSame($padlockForKit->id, $kit->devices()->sole()->lot->announcement->security_device_type_id);
+        $this->assertSame($padlockForKit->id, $kit->devices()->sole()->lot->security_device_type_id);
     }
 
     /**
-     * Fill the lot form with the given type and range. The start and the end of series stay empty.
+     * Fill a new announcement with one lot of the given type and range. The start and the end of series stay empty
+     * unless they are given.
      */
-    private function lotForm(SecurityDeviceType $type, string $minDigits, string $seriesStart, string $seriesEnd): Testable
+    private function lotForm(SecurityDeviceType $type, string $minDigits, string $seriesStart, string $seriesEnd, string $prefix = '', string $suffix = ''): Testable
     {
         return Livewire::test(CreateForm::class)
             ->set('form.shippingLineId', (string) $this->shippingLine->id)
             ->set('form.providerId', (string) $this->provider->id)
-            ->set('form.securityDeviceTypeId', (string) $type->id)
             ->set('form.receivedAt', '2026-11-20')
             ->set('form.dispatchNumber', 'T001-000123')
-            ->set('form.minDigits', $minDigits)
-            ->set('form.seriesStart', $seriesStart)
-            ->set('form.seriesEnd', $seriesEnd);
+            ->set('form.lots', [[
+                'securityDeviceTypeId' => (string) $type->id,
+                'seriesPrefix' => $prefix,
+                'minDigits' => $minDigits,
+                'seriesStart' => $seriesStart,
+                'seriesEnd' => $seriesEnd,
+                'seriesSuffix' => $suffix,
+                'notes' => '',
+            ]]);
     }
 
     /**
@@ -340,8 +336,7 @@ class SecurityDeviceTypesWithoutSeriesOrApprovalTest extends TestCase
      */
     private function receiveLot(SecurityDeviceType $type, int $start, int $end, string $prefix = 'GSW'): SecurityDeviceLot
     {
-        $this->lotForm($type, '6', (string) $start, (string) $end)
-            ->set('form.seriesPrefix', $prefix)
+        $this->lotForm($type, '6', (string) $start, (string) $end, prefix: $prefix)
             ->call('save')
             ->assertHasNoErrors();
 

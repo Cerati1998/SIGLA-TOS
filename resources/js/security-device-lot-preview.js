@@ -9,18 +9,25 @@ const isWholeNumber = (value) => /^\d+$/.test(String(value ?? '').trim());
  * The preview of a lot of security devices (H07): how many devices the range brings and its first and last serial numbers, built as prefix + zero-padded correlative + optional suffix.
  * A type that does not use a series has neither prefix nor suffix, and one that does not require approval has its devices born Available (T62): the form hides the series and warns about it.
  * The quantity is not saved: typing it fills the final correlative from the initial one, and typing the final one counts it again (T75).
- * It reads the fields of the Livewire form in the browser, without asking the server. The server checks the same rules on save.
+ * It reads the fields of the lot in the browser, without asking the server. The server checks the same rules on save.
  */
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('securityDeviceLotPreview', (maxDevices, typeBoxes) => ({
         quantity: '',
 
+        /**
+         * The fields of the lot: the draft of a lot of an announcement, when the page has one (H37), or the Livewire form.
+         */
+        get fields() {
+            return this.draft ?? this.$wire.form;
+        },
+
         init() {
-            this.countQuantity(this.$wire.form.seriesStart, this.$wire.form.seriesEnd);
+            this.countQuantity(this.fields.seriesStart, this.fields.seriesEnd);
         },
 
         get selectedTypeBoxes() {
-            return typeBoxes[this.$wire.form.securityDeviceTypeId] ?? { usesSeries: true, requiresApproval: true };
+            return typeBoxes[this.fields.securityDeviceTypeId] ?? { usesSeries: true, requiresApproval: true };
         },
 
         get usesSeries() {
@@ -45,29 +52,36 @@ document.addEventListener('alpine:init', () => {
          */
         fillEnd(start) {
             if (isWholeNumber(start) && isWholeNumber(this.quantity) && Number(this.quantity) >= 1) {
-                this.$wire.form.seriesEnd = String(Number(start) + Number(this.quantity) - 1);
+                this.fields.seriesEnd = String(Number(start) + Number(this.quantity) - 1);
             }
+        },
+
+        /**
+         * Empty the quantity, when the draft lot was added to its announcement and starts again (H37).
+         */
+        clearQuantity() {
+            this.quantity = '';
         },
 
         quantityChanged(event) {
             this.quantity = event.target.value.replace(/\D/g, '');
-            this.fillEnd(this.$wire.form.seriesStart);
+            this.fillEnd(this.fields.seriesStart);
         },
 
         startChanged(event) {
             if (isWholeNumber(this.quantity)) {
                 this.fillEnd(event.target.value);
             } else {
-                this.countQuantity(event.target.value, this.$wire.form.seriesEnd);
+                this.countQuantity(event.target.value, this.fields.seriesEnd);
             }
         },
 
         endChanged(event) {
-            this.countQuantity(this.$wire.form.seriesStart, event.target.value);
+            this.countQuantity(this.fields.seriesStart, event.target.value);
         },
 
         get preview() {
-            const form = this.$wire.form;
+            const form = this.fields;
             const prefix = this.usesSeries ? String(form.seriesPrefix ?? '').trim().toUpperCase() : '';
             const suffix = this.usesSeries ? String(form.seriesSuffix ?? '').trim().toUpperCase() : '';
             const empty = { quantity: null, first: null, last: null, error: null };

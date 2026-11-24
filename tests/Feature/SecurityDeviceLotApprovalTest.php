@@ -8,7 +8,6 @@ use App\Livewire\SecurityDevices\SerialNumberSearch;
 use App\Livewire\Tables\SecurityDeviceLotsTable;
 use App\Livewire\Tables\SecurityDevicesTable;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceLotApproval;
 use App\Models\User;
@@ -31,16 +30,16 @@ class SecurityDeviceLotApprovalTest extends TestCase
         $this->user = User::factory()->create(['name' => 'Bodeguero Uno']);
         $this->actingAs($this->user);
 
-        $announcement = SecurityDeviceAnnouncement::factory()->create([
+        $this->lot = SecurityDeviceLot::factory()->create([
             'series_prefix' => 'GSW',
             'min_digits' => 7,
             'series_start' => 200,
             'series_end' => 209,
             'series_suffix' => null,
+            'quantity' => 10,
         ]);
-        $this->lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create(['quantity' => 10]);
 
-        foreach ($announcement->serialNumbers() as $serialNumber) {
+        foreach ($this->lot->serialNumbers() as $serialNumber) {
             SecurityDevice::factory()->for($this->lot, 'lot')->create(['serial_number' => $serialNumber]);
         }
     }
@@ -167,30 +166,15 @@ class SecurityDeviceLotApprovalTest extends TestCase
             ->assertSeeText('12/11/2026 09:15 · Bodeguero Uno');
     }
 
-    public function test_the_list_of_lots_shows_and_filters_by_how_many_devices_were_approved(): void
+    public function test_the_lots_of_the_announcement_show_how_many_devices_were_approved(): void
     {
         $this->approve(200, 203);
-        $untouched = SecurityDeviceLot::factory()->for(SecurityDeviceAnnouncement::factory()->state(['series_prefix' => 'AAA']), 'announcement')->create(['quantity' => 1]);
+        $untouched = SecurityDeviceLot::factory()->for($this->lot->announcement, 'announcement')->create(['series_prefix' => 'AAA', 'quantity' => 1]);
         SecurityDevice::factory()->for($untouched, 'lot')->create();
-        $finished = SecurityDeviceLot::factory()->for(SecurityDeviceAnnouncement::factory()->state(['series_prefix' => 'ZZZ']), 'announcement')->create(['quantity' => 1]);
-        SecurityDevice::factory()->for($finished, 'lot')->create(['status' => SecurityDeviceStatus::Available]);
 
-        Livewire::test(SecurityDeviceLotsTable::class)
+        Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $this->lot->security_device_announcement_id])
             ->assertSeeText('4 de 10')
-            ->assertSeeText('0 de 1')
-            ->assertSeeText('1 de 1');
-
-        $prefixes = ['none' => 'AAA', 'partial' => 'GSW', 'full' => 'ZZZ'];
-
-        foreach ($prefixes as $approval => $prefix) {
-            $table = Livewire::test(SecurityDeviceLotsTable::class)
-                ->set('filterComponents.approval', $approval)
-                ->assertSeeText($prefix);
-
-            foreach (array_diff($prefixes, [$prefix]) as $otherPrefix) {
-                $table->assertDontSeeText($otherPrefix);
-            }
-        }
+            ->assertSeeText('0 de 1');
     }
 
     /**
@@ -208,7 +192,7 @@ class SecurityDeviceLotApprovalTest extends TestCase
         ]);
 
         $this->lot->devices()
-            ->whereIn('serial_number', array_map($this->lot->announcement->serialNumber(...), range($correlativeStart, $correlativeEnd)))
+            ->whereIn('serial_number', array_map($this->lot->serialNumber(...), range($correlativeStart, $correlativeEnd)))
             ->update(['status' => SecurityDeviceStatus::Available->value, 'security_device_lot_approval_id' => $approval->id]);
     }
 }

@@ -1,10 +1,10 @@
-<x-layouts::app title="Lotes de dispositivos" :breadcrumbs="[
+<x-layouts::app title="Anuncios de ingreso de lotes" :breadcrumbs="[
     ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
-    ['name' => 'Lotes de dispositivos'],
+    ['name' => 'Anuncios de ingreso de lotes'],
 ]">
     <livewire:security-devices.serial-number-search />
 
     <x-panel.list-card>
-        <livewire:tables.security-device-lots-table />
+        <livewire:tables.security-device-announcements-table />
     </x-panel.list-card>
 </x-layouts::app>

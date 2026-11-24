@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\SecurityDeviceStatus;
 use App\Livewire\SecurityDevices\SerialNumberSearch;
+use App\Livewire\Tables\SecurityDeviceAnnouncementsTable;
 use App\Livewire\Tables\SecurityDeviceLotsTable;
 use App\Livewire\Tables\SecurityDevicesTable;
 use App\Models\Provider;
@@ -33,18 +34,18 @@ class SecurityDeviceLotsQueryTest extends TestCase
         $announcement = SecurityDeviceAnnouncement::factory()->create([
             'shipping_line_id' => ShippingLine::factory()->create(['code' => 'MSK', 'name' => 'Maersk']),
             'provider_id' => Provider::factory()->create(['business_name' => 'Proveedor de Precintos S.A.C.']),
+            'received_at' => '2026-11-09',
+            'dispatch_number' => 'T001-000123',
+            'created_by' => User::factory()->create(['name' => 'Bodeguero Uno']),
+        ]);
+
+        $this->lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create([
             'security_device_type_id' => SecurityDeviceType::factory()->create(['name' => 'Precinto ISO']),
             'series_prefix' => 'GSW',
             'min_digits' => 7,
             'series_start' => 200,
             'series_end' => 203,
-        ]);
-
-        $this->lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create([
             'quantity' => 4,
-            'received_at' => '2026-11-09',
-            'dispatch_number' => 'T001-000123',
-            'created_by' => User::factory()->create(['name' => 'Bodeguero Uno']),
         ]);
 
         foreach ([
@@ -57,61 +58,100 @@ class SecurityDeviceLotsQueryTest extends TestCase
         }
     }
 
-    public function test_guests_cannot_open_the_lots_nor_their_detail(): void
+    public function test_guests_cannot_open_the_announcements_nor_their_lots(): void
     {
         auth()->logout();
 
-        $this->get(route('intranet.security-device-lots.index'))->assertRedirect(route('login'));
+        $this->get(route('intranet.security-device-announcements.index'))->assertRedirect(route('login'));
+        $this->get(route('intranet.security-device-announcements.show', $this->lot->announcement))->assertRedirect(route('login'));
         $this->get(route('intranet.security-device-lots.show', $this->lot))->assertRedirect(route('login'));
     }
 
-    public function test_the_warehouse_menu_leads_to_the_list_of_lots(): void
+    public function test_the_warehouse_menu_leads_to_the_list_of_announcements(): void
     {
-        $this->get(route('intranet.security-device-lots.index'))
+        $this->get(route('intranet.security-device-announcements.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Bodega', 'Lotes de dispositivos', 'Administración'])
-            ->assertSee(route('intranet.security-device-lots.index'))
+            ->assertSee('<title>Anuncios de ingreso de lotes | ', false)
+            ->assertSeeInOrder(['Bodega', 'Anuncios de ingreso de lotes', 'Administración'])
+            ->assertSee(route('intranet.security-device-announcements.index'))
             ->assertSeeText('Buscar un dispositivo');
     }
 
-    public function test_the_list_shows_each_lot_with_its_origin_range_quantity_and_reception(): void
+    public function test_the_list_shows_each_announcement_with_its_origin_and_how_many_lots_and_devices_it_brings(): void
     {
-        Livewire::test(SecurityDeviceLotsTable::class)
-            ->assertSeeText('Precinto ISO')
+        $announcement = $this->lot->announcement;
+        SecurityDeviceLot::factory()->for($announcement, 'announcement')->create(['series_prefix' => 'CTA', 'quantity' => 10]);
+
+        Livewire::test(SecurityDeviceAnnouncementsTable::class)
+            ->assertSeeText($announcement->number())
             ->assertSeeText('MSK')
             ->assertSeeText('Proveedor de Precintos S.A.C.')
-            ->assertSeeText('GSW')
-            ->assertSeeText('0000200 – 0000203')
+            ->assertSeeText('T001-000123')
             ->assertSeeText('09/11/2026')
-            ->assertSee(route('intranet.security-device-lots.show', $this->lot))
-            ->assertSee(route('intranet.security-device-lots.create'));
+            ->assertSeeInOrder([$announcement->number(), 'T001-000123', '09/11/2026', '2', '14'])
+            ->assertSee(route('intranet.security-device-announcements.show', $announcement))
+            ->assertSee(route('intranet.security-device-announcements.edit', $announcement))
+            ->assertSee(route('intranet.security-device-announcements.create'));
     }
 
-    public function test_the_list_filters_by_shipping_line_provider_type_and_reception_date(): void
+    public function test_the_list_filters_by_shipping_line_provider_and_reception_date(): void
     {
-        $otherLot = SecurityDeviceLot::factory()
-            ->for(SecurityDeviceAnnouncement::factory()->state(['series_prefix' => 'ZZZ']), 'announcement')
-            ->create(['received_at' => '2026-10-01']);
-        $otherAnnouncement = $otherLot->announcement;
+        $other = SecurityDeviceAnnouncement::factory()->create(['received_at' => '2026-10-01', 'dispatch_number' => 'E001-000777']);
+        SecurityDeviceLot::factory()->for($other, 'announcement')->create(['series_prefix' => 'ZZZ']);
 
         $filters = [
-            'shipping_line' => $otherAnnouncement->shipping_line_id,
-            'provider' => $otherAnnouncement->provider_id,
-            'security_device_type' => $otherAnnouncement->security_device_type_id,
+            'shipping_line' => $other->shipping_line_id,
+            'provider' => $other->provider_id,
             'received_until' => '2026-10-31',
         ];
 
         foreach ($filters as $filter => $value) {
-            Livewire::test(SecurityDeviceLotsTable::class)
+            Livewire::test(SecurityDeviceAnnouncementsTable::class)
                 ->set("filterComponents.{$filter}", (string) $value)
-                ->assertSeeText('ZZZ')
-                ->assertDontSeeText('0000200 – 0000203');
+                ->assertSeeText('E001-000777')
+                ->assertDontSeeText('T001-000123');
         }
 
-        Livewire::test(SecurityDeviceLotsTable::class)
+        Livewire::test(SecurityDeviceAnnouncementsTable::class)
             ->set('filterComponents.received_from', '2026-11-01')
-            ->assertSeeText('0000200 – 0000203')
-            ->assertDontSeeText('ZZZ');
+            ->assertSeeText('T001-000123')
+            ->assertDontSeeText('E001-000777');
+    }
+
+    public function test_the_search_finds_an_announcement_by_its_dispatch_number_or_the_series_of_its_lots(): void
+    {
+        $other = SecurityDeviceAnnouncement::factory()->create(['dispatch_number' => 'E001-000777']);
+        SecurityDeviceLot::factory()->for($other, 'announcement')->create(['series_prefix' => 'ZZZ']);
+
+        foreach (['T001-000123', 'GSW0000202', 'gsw', 'GS'] as $search) {
+            Livewire::test(SecurityDeviceAnnouncementsTable::class)
+                ->set('search', $search)
+                ->assertSeeText('T001-000123')
+                ->assertDontSeeText('E001-000777');
+        }
+
+        Livewire::test(SecurityDeviceAnnouncementsTable::class)
+            ->set('search', 'GSW0000999')
+            ->assertDontSeeText('T001-000123');
+    }
+
+    public function test_the_detail_of_the_announcement_shows_its_header_and_its_lots(): void
+    {
+        $announcement = $this->lot->announcement;
+
+        $this->get(route('intranet.security-device-announcements.show', $announcement))
+            ->assertOk()
+            ->assertSee('<title>Anuncio de ingreso de lotes '.$announcement->number().' | ', false)
+            ->assertSeeText('MSK · Maersk')
+            ->assertSeeText('T001-000123')
+            ->assertSeeText('Bodeguero Uno')
+            ->assertSeeText('Lotes del anuncio');
+
+        Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $announcement->id])
+            ->assertSeeText('Precinto ISO')
+            ->assertSeeText('GSW0000200 – GSW0000203')
+            ->assertSeeText('4 de 4')
+            ->assertSee(route('intranet.security-device-lots.show', $this->lot));
     }
 
     public function test_the_detail_shows_the_lot_who_entered_it_and_how_many_devices_are_in_each_status(): void
@@ -119,6 +159,8 @@ class SecurityDeviceLotsQueryTest extends TestCase
         $this->get(route('intranet.security-device-lots.show', $this->lot))
             ->assertOk()
             ->assertSee('<title>Lote GSW 0000200 – 0000203 | ', false)
+            ->assertSeeInOrder(['Anuncios de ingreso de lotes', $this->lot->announcement->number(), 'GSW 0000200 – 0000203'])
+            ->assertSee(route('intranet.security-device-announcements.show', $this->lot->announcement))
             ->assertSeeText('MSK · Maersk')
             ->assertSeeText('T001-000123')
             ->assertSeeText('GSW0000200 – GSW0000203')
