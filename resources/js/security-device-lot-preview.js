@@ -8,10 +8,17 @@ const isWholeNumber = (value) => /^\d+$/.test(String(value ?? '').trim());
 /**
  * The preview of a lot of security devices (H07): how many devices the range brings and its first and last serial numbers, built as prefix + zero-padded correlative + optional suffix.
  * A type that does not use a series has neither prefix nor suffix, and one that does not require approval has its devices born Available (T62): the form hides the series and warns about it.
+ * The quantity is not saved: typing it fills the final correlative from the initial one, and typing the final one counts it again (T75).
  * It reads the fields of the Livewire form in the browser, without asking the server. The server checks the same rules on save.
  */
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('securityDeviceLotPreview', (maxDevices, typeBoxes) => ({
+        quantity: '',
+
+        init() {
+            this.countQuantity(this.$wire.form.seriesStart, this.$wire.form.seriesEnd);
+        },
+
         get selectedTypeBoxes() {
             return typeBoxes[this.$wire.form.securityDeviceTypeId] ?? { usesSeries: true, requiresApproval: true };
         },
@@ -24,8 +31,39 @@ document.addEventListener('alpine:init', () => {
             return this.selectedTypeBoxes.requiresApproval;
         },
 
-        get correlativeColumns() {
-            return this.usesSeries ? 'md:col-span-3' : 'md:col-span-2';
+        /**
+         * Count the devices of the range, or leave the quantity empty while the range is not complete or is backwards.
+         */
+        countQuantity(start, end) {
+            const quantity = Number(end) - Number(start) + 1;
+
+            this.quantity = isWholeNumber(start) && isWholeNumber(end) && quantity >= 1 ? String(quantity) : '';
+        },
+
+        /**
+         * Fill the final correlative from the initial one and the quantity, when both are written.
+         */
+        fillEnd(start) {
+            if (isWholeNumber(start) && isWholeNumber(this.quantity) && Number(this.quantity) >= 1) {
+                this.$wire.form.seriesEnd = String(Number(start) + Number(this.quantity) - 1);
+            }
+        },
+
+        quantityChanged(event) {
+            this.quantity = event.target.value.replace(/\D/g, '');
+            this.fillEnd(this.$wire.form.seriesStart);
+        },
+
+        startChanged(event) {
+            if (isWholeNumber(this.quantity)) {
+                this.fillEnd(event.target.value);
+            } else {
+                this.countQuantity(event.target.value, this.$wire.form.seriesEnd);
+            }
+        },
+
+        endChanged(event) {
+            this.countQuantity(this.$wire.form.seriesStart, event.target.value);
         },
 
         get preview() {
