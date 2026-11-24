@@ -65,7 +65,7 @@ class KitTypesManagementTest extends TestCase
 
         $this->get(route('intranet.kit-types.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Bodega', 'Anuncios de ingreso de lotes', 'Tipos de kit', 'Certificación'])
+            ->assertSeeInOrder(['Bodega', 'Ingreso de lotes', 'Tipos de kit', 'Certificación'])
             ->assertSee(route('intranet.kit-types.index'))
             ->assertSeeText('Kit de seguridad reefer')
             ->assertSeeText("40RF · 40'-RFHC Reefer High Cube")

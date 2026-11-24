@@ -72,7 +72,7 @@ class SecurityDeviceLotsQueryTest extends TestCase
         $this->get(route('intranet.security-device-announcements.index'))
             ->assertOk()
             ->assertSee('<title>Anuncios de ingreso de lotes | ', false)
-            ->assertSeeInOrder(['Bodega', 'Anuncios de ingreso de lotes', 'Administración'])
+            ->assertSeeInOrder(['Bodega', 'Ingreso de lotes', 'Administración'])
             ->assertSee(route('intranet.security-device-announcements.index'))
             ->assertSeeText('Buscar un dispositivo');
     }

@@ -58,7 +58,7 @@ class SecurityDeviceAnnouncementReceptionTest extends TestCase
 
         $this->get(route('intranet.security-device-announcements.create'))
             ->assertOk()
-            ->assertSeeInOrder(['Inicio', 'Bodega', 'Anuncios de ingreso de lotes', 'Administración'])
+            ->assertSeeInOrder(['Inicio', 'Bodega', 'Ingreso de lotes', 'Administración'])
             ->assertSee('<title>Nuevo anuncio de ingreso de lotes | ', false)
             ->assertSeeInOrder(['Anuncio', 'Agregar lote', 'Lotes del anuncio'])
             ->assertSee('securityDeviceLotPreview')

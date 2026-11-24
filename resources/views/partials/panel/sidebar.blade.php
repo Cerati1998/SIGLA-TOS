@@ -8,7 +8,7 @@
         ],
         ['header' => 'Bodega'],
         [
-            'name' => 'Anuncios de ingreso de lotes',
+            'name' => 'Ingreso de lotes',
             'icon' => 'package',
             'route' => route('intranet.security-device-announcements.index'),
             'active' => request()->routeIs('intranet.security-device-announcements.*', 'intranet.security-device-lots.*'),
