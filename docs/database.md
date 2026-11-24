@@ -220,17 +220,26 @@ erDiagram
 
 Cada sección dice qué tipos de dispositivo lleva y cuántos de cada uno (H12). Puede no llevar ninguno: solo pide fotos. Las puertas no son un tipo de sección: son una sección externa más (decisión del usuario del 2026-11-12, cierra P1).
 
+Desde H33 (2026-11-24) el catálogo suma el tipo `checkpoint`: los pasos del checkpoint. Una sección de checkpoint no lleva dispositivos propios: pide fotos o verifica las series de secciones internas o externas, enlazadas en `certification_section_verifications`. Las certificaciones solo copian las internas y externas.
+
 ```mermaid
 erDiagram
   certification_sections ||--o{ certification_section_security_device_type : "lo que lleva"
   security_device_types ||--o{ certification_section_security_device_type : "tipo de dispositivo"
+  certification_sections ||--o{ certification_section_verifications : "paso de verificación"
+  certification_sections ||--o{ certification_section_verifications : "sección que verifica"
 
   certification_sections {
     bigint id PK
     string name "UK con type"
-    string type "internal, external"
+    string type "internal, external, checkpoint"
+    string checkpoint_kind "photos, verification; null si no es checkpoint"
     smallint sort_order "null si está desactivada"
     datetime deleted_at
+  }
+  certification_section_verifications {
+    bigint checkpoint_section_id PK, FK
+    bigint verified_section_id PK, FK
   }
   certification_section_security_device_type {
     bigint certification_section_id PK, FK
@@ -736,8 +745,9 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
-| `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna) o `external` (Externa). Las puertas no son un tipo (P1). |
-| `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos de la certificación, uno solo para internas y externas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
+| `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna), `external` (Externa) o `checkpoint` (Checkpoint, H33). Las puertas no son un tipo (P1). Las certificaciones solo copian las internas y externas. |
+| `checkpoint_kind` | varchar(20) (null) | Enum de PHP `CheckpointSectionKind`, solo en las de checkpoint (H33): `photos` (pide al menos una foto) o `verification` (marca cada serie de las secciones que verifica, sin fotos). Null en las internas y externas. |
+| `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos, uno solo para internas, externas y de checkpoint (H33); cada inspección y el checkpoint toman solo las suyas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
 ### 5.12b `certification_section_security_device_type` · `planeada (T38/H12)`
@@ -751,6 +761,17 @@ Lo que el inspector coloca en cada sección: cuántos dispositivos de cada tipo 
 | `quantity` | smallint sin signo | Entero de 1 a 999 (criterio 5). |
 
 Una sección sin filas aquí solo pide fotos («Solo foto», criterio 4). Cambiar lo que lleva no toca las certificaciones cerradas (criterio 9): H17 guardará en cada certificación lo que pidió cada sección.
+
+### 5.12c `certification_section_verifications` · `en código`
+
+Las secciones internas o externas cuyas series muestra un paso de verificación del checkpoint (H33). Tabla puente pura, sin marcas de tiempo. Se escribe junto con `certification_sections`, en una transacción, al crear o editar la sección.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `checkpoint_section_id` | bigint FK | Sección de checkpoint de verificación (`certification_sections`). PK compuesta con `verified_section_id`: una sección va una sola vez en la verificación. Llaves con nombre corto, por el límite de 64 caracteres de MariaDB. |
+| `verified_section_id` | bigint FK | Sección interna o externa (`certification_sections`). Solo se eligen las activas, pero se conserva una desactivada que el paso ya verificaba, hasta que el admin la quita (H33, criterio 8). Una sección enlazada aquí no se puede cambiar al tipo checkpoint. |
+
+El catálogo acordado (17 internas y 16 externas del documento «Proceso de certificación de contenedores» y 12 de checkpoint del video, con sus enlaces) lo carga la migración `load_certification_section_catalog`, porque el despliegue corre migraciones y no seeders (decisión del usuario del 2026-11-24). Llama a `CertificationSectionCatalogSeeder`, que no duplica una sección con el mismo nombre y tipo, y las pruebas automáticas la saltan.
 
 ### 5.13 `carriers` · `en código`
 
