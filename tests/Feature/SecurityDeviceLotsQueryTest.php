@@ -151,7 +151,8 @@ class SecurityDeviceLotsQueryTest extends TestCase
             ->assertSeeText('Precinto ISO')
             ->assertSeeText('GSW0000200 – GSW0000203')
             ->assertSeeText('4 de 4')
-            ->assertSee(route('intranet.security-device-lots.show', $this->lot));
+            ->assertSee(route('intranet.security-device-lots.show', $this->lot))
+            ->assertSeeHtml('wire:key="lot-card-'.$this->lot->id.'"');
     }
 
     public function test_the_detail_shows_the_lot_who_entered_it_and_how_many_devices_are_in_each_status(): void

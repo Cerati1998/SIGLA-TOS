@@ -7,6 +7,7 @@ use App\Enums\SecurityDeviceStatus;
 use App\Models\SecurityDeviceLot;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Locked;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 
@@ -17,6 +18,11 @@ class SecurityDeviceLotsTable extends BaseTable
 {
     #[Locked]
     public int $announcementId;
+
+    /**
+     * How many lots the announcement has, counted once per render.
+     */
+    private ?int $lotsCount = null;
 
     /**
      * Configure the table.
@@ -38,9 +44,33 @@ class SecurityDeviceLotsTable extends BaseTable
             ->setSearchDisabled()
             ->setFiltersDisabled()
             ->setEmptyMessage('Este anuncio no tiene lotes.')
+            ->setToolsAttributes(['default-styling' => false, 'class' => 'border-b border-line p-5.25 max-md:hidden'])
+            ->setTableWrapperAttributes(['default' => false, 'class' => 'overflow-x-auto max-md:hidden'])
             ->setConfigurableAreas([
-                'after-wrapper' => 'partials.panel.table-footer',
+                'before-wrapper' => 'pages.security-device-lots.partials.cards',
+                'after-wrapper' => 'pages.security-device-lots.partials.table-footer',
             ]);
+    }
+
+    /**
+     * Get every lot of the announcement for the cards shown on a phone instead of the table (H37, decided by the user on
+     * 2026-11-24 for this screen).
+     *
+     * @return Collection<int, SecurityDeviceLot>
+     */
+    public function cardLots(): Collection
+    {
+        return $this->builder()->get();
+    }
+
+    /**
+     * Check whether the lot can be removed: none of its devices changed status and the announcement keeps another lot.
+     */
+    public function canRemove(SecurityDeviceLot $lot): bool
+    {
+        $this->lotsCount ??= SecurityDeviceLot::query()->where('security_device_announcement_id', $this->announcementId)->count();
+
+        return $this->lotsCount > 1 && $lot->seriesCanBeCorrected();
     }
 
     /**
@@ -65,8 +95,6 @@ class SecurityDeviceLotsTable extends BaseTable
      */
     public function columns(): array
     {
-        $canRemove = SecurityDeviceLot::query()->where('security_device_announcement_id', $this->announcementId)->count() > 1;
-
         return [
             Column::make('Tipo')
                 ->label(fn (SecurityDeviceLot $row): string => $row->securityDeviceType->name),
@@ -87,7 +115,7 @@ class SecurityDeviceLotsTable extends BaseTable
             Column::make('Acciones')
                 ->label(fn (SecurityDeviceLot $row): View => view('pages.security-device-lots.partials.actions', [
                     'lot' => $row,
-                    'canRemove' => $canRemove && $row->seriesCanBeCorrected(),
+                    'canRemove' => $this->canRemove($row),
                 ])),
         ];
     }
