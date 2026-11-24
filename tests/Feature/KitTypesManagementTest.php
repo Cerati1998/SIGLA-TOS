@@ -25,6 +25,8 @@ class KitTypesManagementTest extends TestCase
 
     private SecurityDeviceType $seal;
 
+    private SecurityDeviceType $pouch;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -34,6 +36,7 @@ class KitTypesManagementTest extends TestCase
         $this->reefer = ContainerType::factory()->reefer()->create(['code' => '40RF']);
         $this->tape = SecurityDeviceType::factory()->create(['name' => 'Cinta puerta full', 'kind' => SecurityDeviceKind::Tape]);
         $this->seal = SecurityDeviceType::factory()->create(['name' => 'Sello botella', 'kind' => SecurityDeviceKind::Seal]);
+        $this->pouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
     }
 
     public function test_the_seeder_loads_the_container_types_without_repeating_them(): void
@@ -111,12 +114,15 @@ class KitTypesManagementTest extends TestCase
         Livewire::test(CreateModal::class)
             ->assertSet('form.devices', [
                 $this->tape->id => ['on' => false, 'quantity' => 1],
+                $this->pouch->id => ['on' => false, 'quantity' => 1],
                 $this->seal->id => ['on' => false, 'quantity' => 1],
             ])
             ->assertDontSeeText($deactivated->name)
             ->set('form.openModal', true)
             ->set('form.name', ' Kit de seguridad reefer ')
             ->set('form.containerTypeId', (string) $this->reefer->id)
+            ->set("form.devices.{$this->pouch->id}.on", true)
+            ->set("form.devices.{$this->pouch->id}.quantity", '5')
             ->set("form.devices.{$this->tape->id}.on", true)
             ->set("form.devices.{$this->tape->id}.quantity", '6')
             ->call('save')
@@ -130,8 +136,32 @@ class KitTypesManagementTest extends TestCase
 
         $this->assertSame('Kit de seguridad reefer', $kitType->name);
         $this->assertTrue($kitType->containerType->is($this->reefer));
-        $this->assertDatabaseCount('kit_type_security_device_type', 1);
+        $this->assertDatabaseCount('kit_type_security_device_type', 2);
         $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $this->tape->id, 'quantity' => 6]);
+        $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $this->pouch->id, 'quantity' => 1]);
+    }
+
+    public function test_a_kit_type_carries_exactly_one_pouch_that_always_goes_once(): void
+    {
+        $bigPouch = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda grande']);
+
+        $component = Livewire::test(CreateModal::class)
+            ->assertSeeText('1 por kit')
+            ->set('form.name', 'Kit de prueba')
+            ->set('form.containerTypeId', (string) $this->reefer->id)
+            ->set("form.devices.{$this->seal->id}.on", true)
+            ->call('save')
+            ->assertHasErrors(['form.devices'])
+            ->assertSeeText('Todo tipo de kit lleva una funda: enciende una.');
+
+        $component
+            ->set("form.devices.{$this->pouch->id}.on", true)
+            ->set("form.devices.{$bigPouch->id}.on", true)
+            ->call('save')
+            ->assertHasErrors(['form.devices'])
+            ->assertSeeText('Un tipo de kit lleva una sola funda: deja encendida solo una.');
+
+        $this->assertDatabaseCount('kit_types', 0);
     }
 
     public function test_the_inspection_tape_is_split_between_the_internal_and_the_external_assignment(): void
@@ -147,6 +177,7 @@ class KitTypesManagementTest extends TestCase
             ->set("form.devices.{$inspectionTape->id}.internal", '4')
             ->set("form.devices.{$inspectionTape->id}.external", '2')
             ->set("form.devices.{$this->seal->id}.on", true)
+            ->set("form.devices.{$this->pouch->id}.on", true)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -156,7 +187,7 @@ class KitTypesManagementTest extends TestCase
         $this->assertDatabaseHas('kit_type_security_device_type', ['kit_type_id' => $kitType->id, 'security_device_type_id' => $this->seal->id, 'quantity' => 1, 'internal_quantity' => null, 'external_quantity' => null]);
 
         $this->get(route('intranet.kit-types.index'))
-            ->assertSeeText('7 dispositivos · 2 tipos')
+            ->assertSeeText('8 dispositivos · 3 tipos')
             ->assertSeeText('(4 interna · 2 externa)');
 
         Livewire::test(EditModal::class)
@@ -273,7 +304,7 @@ class KitTypesManagementTest extends TestCase
     public function test_a_kit_type_is_edited_and_its_deactivated_device_type_is_kept_until_it_is_turned_off(): void
     {
         $oldSeal = SecurityDeviceType::factory()->create(['name' => 'Sello plástico']);
-        $kitType = KitType::factory()->for($this->reefer)->carrying($this->tape, 6)->carrying($oldSeal, 2)->create(['name' => 'Kit de seguridad reefer']);
+        $kitType = KitType::factory()->for($this->reefer)->carrying($this->pouch, 1)->carrying($this->tape, 6)->carrying($oldSeal, 2)->create(['name' => 'Kit de seguridad reefer']);
         $oldSeal->delete();
 
         $component = Livewire::test(EditModal::class)
@@ -293,7 +324,7 @@ class KitTypesManagementTest extends TestCase
             ->assertSet('form.openModal', false)
             ->assertDispatched('toast', icon: 'success', title: 'Tipo de kit actualizado');
 
-        $this->assertEquals([$this->seal->id => 1, $oldSeal->id => 2, $this->tape->id => 4], $this->carried($kitType));
+        $this->assertEquals([$this->seal->id => 1, $oldSeal->id => 2, $this->tape->id => 4, $this->pouch->id => 1], $this->carried($kitType));
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-kit-type', kitTypeId: $kitType->id)
@@ -301,7 +332,7 @@ class KitTypesManagementTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertEquals([$this->seal->id => 1, $this->tape->id => 4], $this->carried($kitType));
+        $this->assertEquals([$this->seal->id => 1, $this->tape->id => 4, $this->pouch->id => 1], $this->carried($kitType));
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-kit-type', kitTypeId: $kitType->id)
@@ -311,7 +342,7 @@ class KitTypesManagementTest extends TestCase
 
     public function test_a_kit_type_keeps_its_deactivated_container_type_when_edited(): void
     {
-        $kitType = KitType::factory()->for($this->reefer)->carrying($this->tape, 6)->create();
+        $kitType = KitType::factory()->for($this->reefer)->carrying($this->pouch, 1)->carrying($this->tape, 6)->create();
         $this->reefer->delete();
 
         Livewire::test(EditModal::class)
