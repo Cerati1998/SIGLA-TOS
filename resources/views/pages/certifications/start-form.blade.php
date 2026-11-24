@@ -96,7 +96,11 @@
                             <flux:button variant="primary" :href="route('intranet.certifications.show', $existingCertification)" wire:navigate class="max-md:h-13 max-md:w-full">Abrir certificación</flux:button>
                         </div>
                     @else
-                        @include('pages.certifications.partials.request-summary', ['gateOutRequest' => $gateOutRequest, 'value' => $value])
+                        @include('pages.certifications.partials.request-summary', ['gateOutRequest' => $gateOutRequest, 'matchedShippingLine' => $this->matchedShippingLine, 'value' => $value])
+
+                        @if ($this->matchedShippingLine === null)
+                            @include('pages.certifications.partials.shipping-line-choice', ['sigla1Name' => $gateOutRequest['shipping_line'], 'candidateIds' => $shippingLineCandidateIds, 'options' => $this->shippingLineOptions])
+                        @endif
                     @endif
                     @break
 
@@ -128,12 +132,12 @@
         <flux:card class="flex flex-col gap-4 p-5.25! max-md:p-4!" x-bind:class="stepClass(2)" wire:key="step-kit">
             <x-panel.form-step number="2" title="Kit" text="Escanea o escribe el código de la funda y pulsa Enter. Sirve un kit Despachado de la misma naviera de la solicitud." />
 
-            <div class="flex flex-col gap-3.5 md:hidden">
+            <fieldset x-bind:disabled="! shippingLineChosen" class="m-0 flex flex-col gap-3.5 border-0 p-0 md:hidden">
                 <x-camera-scanner title="Escanear la funda" label="Escanear la funda con la cámara" x-on:barcode-detected="scannedPouch" />
                 <span class="flex items-center gap-2.5 text-sm text-ink-muted before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">o escribe el código</span>
-            </div>
+            </fieldset>
 
-            <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+            <fieldset x-bind:disabled="! shippingLineChosen" x-bind:class="! shippingLineChosen && 'opacity-60'" class="m-0 grid grid-cols-1 items-start gap-4 border-0 p-0 md:grid-cols-2">
                 <div class="flex min-w-0 flex-col gap-1.5">
                     <flux:label for="pouch-code">Código de barras de la funda</flux:label>
                     <div class="flex gap-2">
@@ -143,7 +147,7 @@
                                 x-ref="pouchCode"
                                 wire:model="form.pouchCode"
                                 :invalid="$errors->has('form.pouchCode')"
-                                placeholder="Escanea o escribe"
+                                x-bind:placeholder="shippingLineChosen ? 'Escanea o escribe' : 'Elige primero la naviera'"
                                 enterkeyhint="search"
                                 x-on:keydown.enter.prevent="findKit"
                             />
@@ -173,7 +177,7 @@
                     <span class="text-sm text-ink-muted">Si el kit trae formato de inspección, escanéalo aquí. No se repite en otra certificación.</span>
                     <flux:error name="form.inspectionSheetCode" />
                 </div>
-            </div>
+            </fieldset>
 
             <p wire:loading.flex wire:target="findKit" role="status" class="m-0 items-center gap-2 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
                 <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -291,9 +295,13 @@
             return `Iniciar certificación · Paso ${this.step} de 3`;
         },
 
+        get shippingLineChosen() {
+            return this.$wire.matchedShippingLineId !== null || this.$wire.form.shippingLineId !== '';
+        },
+
         get canGoNext() {
             if (this.step === 1) {
-                return this.$wire.gateOutRequest !== null && this.$wire.existingCertificationId === null;
+                return this.$wire.gateOutRequest !== null && this.$wire.existingCertificationId === null && this.shippingLineChosen;
             }
 
             return this.$wire.kitId !== null;

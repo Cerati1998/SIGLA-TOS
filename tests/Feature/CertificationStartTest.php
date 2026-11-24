@@ -226,6 +226,9 @@ class CertificationStartTest extends TestCase
 
         $this->lookedUp()
             ->assertSet('matchedShippingLineId', $chiquita->id)
+            ->assertSeeText('CHQT · Chiquita Brands International')
+            ->assertSeeText('En SIGLA 1.0: CHIQUITA')
+            ->assertDontSeeText('Elige a qué naviera corresponde.')
             ->set('form.pouchCode', $kit->pouch_code)
             ->call('findKit')
             ->assertHasNoErrors()
@@ -243,9 +246,12 @@ class CertificationStartTest extends TestCase
 
         $form = $this->lookedUp()
             ->assertSet('matchedShippingLineId', null)
+            ->assertSeeText('SIGLA 1.0 indica la naviera HAPAG LLOYD AG y no la encontramos en Líneas navieras. Elige a qué naviera corresponde.')
+            ->assertSeeText('Tu elección se recuerda: las próximas solicitudes de HAPAG LLOYD AG se cuadran solas.')
             ->set('form.pouchCode', $kit->pouch_code)
             ->call('findKit')
             ->assertHasErrors(['form.shippingLineId' => 'required'])
+            ->assertSeeText('Elige la línea naviera de la solicitud.')
             ->assertSet('kitId', null);
 
         $form->set('form.shippingLineId', (string) $this->requestLine->id)
@@ -272,7 +278,10 @@ class CertificationStartTest extends TestCase
         $banana = ShippingLine::factory()->create(['code' => 'BANF', 'name' => 'Banana Fleet']);
         $greatWhite = ShippingLine::factory()->create(['code' => 'GREX', 'name' => 'Great White Fleet (Del Monte)']);
 
-        $form = $this->lookedUp()->assertSet('matchedShippingLineId', null);
+        $form = $this->lookedUp()
+            ->assertSet('matchedShippingLineId', null)
+            ->assertSeeText('SIGLA 1.0 indica la naviera FLEET y coincide con más de una línea. Elige la que corresponde.')
+            ->assertSeeHtml('<optgroup label="Coinciden con FLEET">');
 
         $this->assertSame(['BANF', 'GREX', 'APLU', 'NDE'], $form->instance()->shippingLineOptions->pluck('code')->all());
         $this->assertEqualsCanonicalizing([$banana->id, $greatWhite->id], $form->get('shippingLineCandidateIds'));
