@@ -9,8 +9,12 @@ use App\Models\Certification;
 use App\Models\Kit;
 use App\Models\SecurityDevice;
 use App\Models\User;
+use App\Services\PhotoStorage;
+use App\Services\StoredPhoto;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Annul the assignment of the kit of a certification that is not closed, when the dispatch service is cancelled (H32).
@@ -19,14 +23,40 @@ use Illuminate\Validation\ValidationException;
  */
 class AnnulCertification
 {
+    public function __construct(private PhotoStorage $photoStorage) {}
+
     /**
-     * Annul the certification and keep who annulled it, when, why and what was done with the kit.
+     * Annul the certification and keep who annulled it, when, why and what was done with the kit. When the kit is
+     * disabled, the photo of the kit, already compressed in the browser, becomes the photo of the discard of each of its
+     * devices (T77). A photo of an annulment that did not happen is not kept.
      *
      * @throws ValidationException With the key "certification", when it is closed or annulled already.
      */
-    public function handle(Certification $certification, string $reason, CertificationKitDecision $decision, User $user): void
+    public function handle(Certification $certification, string $reason, CertificationKitDecision $decision, User $user, ?UploadedFile $photo = null, ?UploadedFile $thumbnail = null): void
     {
-        DB::transaction(function () use ($certification, $reason, $decision, $user): void {
+        $storedPhoto = $decision === CertificationKitDecision::Disable && $photo !== null && $thumbnail !== null
+            ? $this->photoStorage->store($photo, $thumbnail, 'certifications/'.$certification->id.'/annulment')
+            : null;
+
+        try {
+            $this->annul($certification, $reason, $decision, $user, $storedPhoto);
+        } catch (Throwable $exception) {
+            if ($storedPhoto !== null) {
+                $this->photoStorage->delete($storedPhoto);
+            }
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * Annul the certification and act on its kit, all or nothing.
+     *
+     * @throws ValidationException With the key "certification", when it is closed or annulled already.
+     */
+    private function annul(Certification $certification, string $reason, CertificationKitDecision $decision, User $user, ?StoredPhoto $storedPhoto): void
+    {
+        DB::transaction(function () use ($certification, $reason, $decision, $user, $storedPhoto): void {
             $locked = Certification::query()->whereKey($certification->id)->lockForUpdate()->firstOrFail();
 
             if ($locked->isAnnulled()) {
@@ -61,6 +91,8 @@ class AnnulCertification
                 'discarded_at' => now(),
                 'discarded_by' => $user->id,
                 'discard_reason' => mb_substr('Asignación anulada: '.$reason, 0, 255),
+                'discard_photo_path' => $storedPhoto?->path,
+                'discard_thumbnail_path' => $storedPhoto?->thumbnailPath,
             ]);
         });
     }

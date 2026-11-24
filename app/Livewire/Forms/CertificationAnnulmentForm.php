@@ -8,6 +8,7 @@ use App\Models\Certification;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
 /**
@@ -33,6 +34,16 @@ class CertificationAnnulmentForm extends Form
     public string $kitDecision = '';
 
     /**
+     * The photo of the kit, already compressed in the browser: required when the kit is disabled (T77).
+     */
+    public ?TemporaryUploadedFile $photo = null;
+
+    /**
+     * The thumbnail of the photo, made in the browser.
+     */
+    public ?TemporaryUploadedFile $thumbnail = null;
+
+    /**
      * Fix the certification whose assignment is annulled.
      */
     public function setCertification(Certification $certification): void
@@ -55,6 +66,8 @@ class CertificationAnnulmentForm extends Form
             $this->reason,
             CertificationKitDecision::from($this->kitDecision),
             $user,
+            $this->photo,
+            $this->thumbnail,
         );
     }
 
@@ -68,6 +81,8 @@ class CertificationAnnulmentForm extends Form
         return [
             'reason' => ['required', 'string', 'max:'.self::REASON_MAX],
             'kitDecision' => ['required', Rule::enum(CertificationKitDecision::class)],
+            'photo' => ['required_if:kitDecision,'.CertificationKitDecision::Disable->value, 'nullable', 'image', 'mimes:jpg,jpeg', 'max:3072'],
+            'thumbnail' => ['required_if:kitDecision,'.CertificationKitDecision::Disable->value, 'nullable', 'image', 'mimes:jpg,jpeg', 'max:512'],
         ];
     }
 
@@ -83,6 +98,10 @@ class CertificationAnnulmentForm extends Form
             'reason.max' => 'El motivo puede tener hasta '.self::REASON_MAX.' caracteres.',
             'kitDecision.required' => 'Elige qué se hace con el kit, según responda la naviera.',
             'kitDecision.enum' => 'Elige qué se hace con el kit, según responda la naviera.',
+            'photo.required_if' => 'Toma la foto del kit inhabilitado.',
+            'thumbnail.required_if' => 'Toma la foto del kit inhabilitado.',
+            'photo.*' => 'La foto no es válida. Tómala otra vez.',
+            'thumbnail.*' => 'La foto no es válida. Tómala otra vez.',
         ];
     }
 }

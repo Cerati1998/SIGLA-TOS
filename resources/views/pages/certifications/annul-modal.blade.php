@@ -1,4 +1,4 @@
-<div>
+<div x-data="photoField('form.photo', 'form.thumbnail', () => $wire.form.pouchCode + ' · ' + @js(auth()->user()?->name ?? ''))">
     <x-wire-modal-card :title="'Anular la asignación de '.$form->container" wire:model="form.openModal">
         <form id="certification-annul-form" wire:submit="annul" class="grid gap-4">
             <p class="m-0 text-base text-ink-muted">Úsalo cuando se cancela el servicio de despacho. La certificación queda Anulada: se conserva, pero ya no se edita ni se cierra. <strong>No se deshace.</strong></p>
@@ -18,12 +18,17 @@
                 @endforeach
                 <flux:error name="form.kitDecision" />
             </fieldset>
+
+            <div x-show="$wire.form.kitDecision === @js(\App\Enums\CertificationKitDecision::Disable->value)" x-cloak class="flex flex-col gap-1.5">
+                <x-photo-field label="Foto del kit inhabilitado" name="form.photo" :title="'Foto del kit '.$form->pouchCode" />
+                <span class="text-sm text-ink-muted">Queda como foto del descarte de cada dispositivo del kit.</span>
+            </div>
         </form>
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
                 <flux:button type="button" x-on:click="close">Cancelar</flux:button>
-                <flux:button variant="danger" type="submit" form="certification-annul-form" wire:loading.attr="disabled" wire:target="annul">Anular asignación</flux:button>
+                <flux:button variant="danger" type="submit" form="certification-annul-form" wire:loading.attr="disabled" wire:target="annul" x-bind:disabled="uploading">Anular asignación</flux:button>
             </div>
         </x-slot:footer>
     </x-wire-modal-card>
