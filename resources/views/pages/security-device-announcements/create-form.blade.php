@@ -143,7 +143,35 @@
             Aún no agregas lotes.<br>Agrega al menos uno para guardar el anuncio.
         </p>
 
-        <div x-show="lots.length > 0 || savedLotsCount > 0" class="overflow-x-auto">
+        <ul x-show="lots.length > 0 || savedLotsCount > 0" class="m-0 flex list-none flex-col gap-2.5 p-5.25 md:hidden">
+            @foreach ($savedLots as $savedLot)
+                <li wire:key="saved-lot-card-{{ $savedLot->id }}" class="flex flex-col gap-0.5 rounded-card border border-line bg-surface p-3 text-sm text-ink-muted">
+                    <strong class="text-[0.9375rem]">{{ $loop->iteration }} · {{ $savedLot->securityDeviceType->name }}</strong>
+                    <span>{{ $savedLot->serialNumber($savedLot->series_start) }} a {{ $savedLot->serialNumber($savedLot->series_end) }}</span>
+                    <span>{{ number_format($savedLot->quantity, 0, ',', ' ') }} dispositivos · Guardado</span>
+                </li>
+            @endforeach
+
+            <template x-for="(lot, index) in lots" x-bind:key="'card-' + index">
+                <li class="flex items-center gap-3 rounded-card border border-line p-3 text-sm" x-bind:class="{ 'bg-badge-danger': isColliding(index) }">
+                    <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <strong class="text-[0.9375rem]" x-text="(savedLotsCount + index + 1) + ' · ' + typeName(lot)"></strong>
+                        <span x-text="serialNumber(lot, lot.seriesStart) + ' a ' + serialNumber(lot, lot.seriesEnd)"></span>
+                        <span class="text-ink-muted" x-text="quantityLabel(lot) + ' dispositivos' + (lot.notes ? ' · ' + lot.notes : '')"></span>
+                    </span>
+                    <span class="flex gap-2 [&_button]:size-11">
+                        <x-wire-button primary x-on:click="view(index)" title="Ver lote" aria-label="Ver lote" xs>
+                            <i class="fa-solid fa-eye text-sm" aria-hidden="true"></i>
+                        </x-wire-button>
+                        <x-wire-button negative x-on:click="remove(index)" title="Quitar lote" aria-label="Quitar lote" xs>
+                            <i class="fa-solid fa-trash text-sm" aria-hidden="true"></i>
+                        </x-wire-button>
+                    </span>
+                </li>
+            </template>
+        </ul>
+
+        <div x-show="lots.length > 0 || savedLotsCount > 0" class="overflow-x-auto max-md:hidden">
             <table class="w-full border-collapse text-sm">
                 <thead>
                     <tr class="bg-table-head text-left text-xs font-medium tracking-wider text-ink-muted uppercase">
@@ -152,7 +180,7 @@
                         <th class="border-b border-line px-5 py-3 font-medium">Primera serie</th>
                         <th class="border-b border-line px-5 py-3 font-medium">Última serie</th>
                         <th class="border-b border-line px-5 py-3 text-right font-medium">Cantidad</th>
-                        <th class="border-b border-line px-5 py-3 font-medium max-md:hidden">Observaciones</th>
+                        <th class="border-b border-line px-5 py-3 font-medium">Observaciones</th>
                         <th class="border-b border-line px-5 py-3 font-medium">Acciones</th>
                     </tr>
                 </thead>
@@ -164,7 +192,7 @@
                             <td class="px-5 py-3.5 whitespace-nowrap">{{ $savedLot->serialNumber($savedLot->series_start) }}</td>
                             <td class="px-5 py-3.5 whitespace-nowrap">{{ $savedLot->serialNumber($savedLot->series_end) }}</td>
                             <td class="px-5 py-3.5 text-right">{{ number_format($savedLot->quantity, 0, ',', ' ') }}</td>
-                            <td class="px-5 py-3.5 max-md:hidden">{{ $savedLot->notes ?? '—' }}</td>
+                            <td class="px-5 py-3.5">{{ $savedLot->notes ?? '—' }}</td>
                             <td class="px-5 py-3.5">Guardado</td>
                         </tr>
                     @endforeach
@@ -176,7 +204,7 @@
                             <td class="px-5 py-3.5 whitespace-nowrap" x-text="serialNumber(lot, lot.seriesStart)"></td>
                             <td class="px-5 py-3.5 whitespace-nowrap" x-text="serialNumber(lot, lot.seriesEnd)"></td>
                             <td class="px-5 py-3.5 text-right" x-text="quantityLabel(lot)"></td>
-                            <td class="px-5 py-3.5 max-md:hidden" x-text="lot.notes || '—'"></td>
+                            <td class="px-5 py-3.5" x-text="lot.notes || '—'"></td>
                             <td class="px-5 py-3.5">
                                 <div class="flex items-center gap-1 [&_button]:max-md:size-11">
                                     <x-wire-button primary x-on:click="view(index)" title="Ver lote" aria-label="Ver lote" xs>
@@ -285,13 +313,13 @@
                 return types[lot.securityDeviceTypeId]?.name ?? '—';
             },
 
-            usesSeries(lot) {
+            lotUsesSeries(lot) {
                 return types[lot.securityDeviceTypeId]?.usesSeries ?? true;
             },
 
             serialNumber(lot, correlative) {
-                const prefix = this.usesSeries(lot) ? lot.seriesPrefix : '';
-                const suffix = this.usesSeries(lot) ? lot.seriesSuffix : '';
+                const prefix = this.lotUsesSeries(lot) ? lot.seriesPrefix : '';
+                const suffix = this.lotUsesSeries(lot) ? lot.seriesSuffix : '';
 
                 return prefix + String(correlative).padStart(Number(lot.minDigits), '0') + suffix;
             },
@@ -318,7 +346,7 @@
              * The serial numbers of a lot, kept by type scope: two types that do not use a series may share one (T62).
              */
             collides(lot, other) {
-                if (this.usesSeries(lot) === false && this.usesSeries(other) === false && lot.securityDeviceTypeId !== other.securityDeviceTypeId) {
+                if (this.lotUsesSeries(lot) === false && this.lotUsesSeries(other) === false && lot.securityDeviceTypeId !== other.securityDeviceTypeId) {
                     return null;
                 }
 
@@ -412,7 +440,7 @@
                 this.viewedIndex = index;
                 this.viewedSearch = '';
                 this.viewedPage = 0;
-                this.$openModal('announcement-lot-view');
+                window.$openModal('announcement-lot-view');
             },
 
             get viewedTitle() {
