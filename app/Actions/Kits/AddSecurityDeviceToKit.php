@@ -52,7 +52,7 @@ class AddSecurityDeviceToKit
     private function device(string $serialNumber, ?int $securityDeviceTypeId = null): ?SecurityDevice
     {
         return SecurityDevice::query()
-            ->with(['lot.announcement.securityDeviceType', 'lot.announcement.shippingLine', 'kits'])
+            ->with(['lot.securityDeviceType', 'lot.announcement.shippingLine', 'kits'])
             ->where('serial_number', $serialNumber)
             ->when($securityDeviceTypeId, fn ($query, int $typeId) => $query->ofType($typeId))
             ->lockForUpdate()
@@ -80,19 +80,19 @@ class AddSecurityDeviceToKit
             return sprintf('Está %s; solo se agregan dispositivos disponibles.', $device->status->label());
         }
 
-        $announcement = $device->lot->announcement;
+        $lot = $device->lot;
 
-        if ($announcement->shipping_line_id !== $kit->shipping_line_id) {
-            return sprintf('Es de la naviera %s; este kit es de %s.', $announcement->shippingLine->code, $kit->shippingLine->code);
+        if ($lot->announcement->shipping_line_id !== $kit->shipping_line_id) {
+            return sprintf('Es de la naviera %s; este kit es de %s.', $lot->announcement->shippingLine->code, $kit->shippingLine->code);
         }
 
-        $deviceTypeName = $announcement->securityDeviceType->name;
+        $deviceTypeName = $lot->securityDeviceType->name;
 
-        if (! $kit->securityDeviceTypes->contains('id', $announcement->security_device_type_id)) {
+        if (! $kit->securityDeviceTypes->contains('id', $lot->security_device_type_id)) {
             return sprintf('El tipo %s no va en este tipo de kit.', $deviceTypeName);
         }
 
-        if ($announcement->security_device_type_id !== $slot['securityDeviceTypeId']) {
+        if ($lot->security_device_type_id !== $slot['securityDeviceTypeId']) {
             return sprintf('Es %s, no %s. Escanéalo en su campo.', $deviceTypeName, $slot['name']);
         }
 

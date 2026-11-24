@@ -55,8 +55,8 @@ class SelectBulkDispatchDevices
         }
 
         $lot = $first->lot;
-        $start = (int) $lot->announcement->correlativeOf($first->serial_number);
-        $end = (int) $lot->announcement->correlativeOf($last->serial_number);
+        $start = (int) $lot->correlativeOf($first->serial_number);
+        $end = (int) $lot->correlativeOf($last->serial_number);
 
         if ($start > $end) {
             return $this->rejected('La serie inicial no puede ser mayor que la final.');
@@ -86,7 +86,7 @@ class SelectBulkDispatchDevices
             ));
         }
 
-        return $this->chosen($devices, $lot->announcement->securityDeviceType->name);
+        return $this->chosen($devices, $lot->securityDeviceType->name);
     }
 
     /**
@@ -103,24 +103,24 @@ class SelectBulkDispatchDevices
             return $this->rejected(sprintf('La cantidad debe estar entre 1 y %s.', self::format(self::MAX_DEVICES)));
         }
 
-        $first = SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->ofType($type->id)->first()
-            ?? SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->first();
+        $first = SecurityDevice::query()->with('lot.securityDeviceType')->where('serial_number', $start)->ofType($type->id)->first()
+            ?? SecurityDevice::query()->with('lot.securityDeviceType')->where('serial_number', $start)->first();
         $lots = $first === null ? $this->lotsOfPrefix($start) : collect([$first->lot]);
-        $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->announcement->security_device_type_id !== $type->id);
+        $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->security_device_type_id !== $type->id);
 
         if ($lots->isEmpty()) {
             return $this->rejected(sprintf('No encontramos un dispositivo ni una serie %s. Escribe la serie completa (por ejemplo HLS0000009) o solo su prefijo (HLS).', $start));
         }
 
         if ($lotOfAnotherType !== null) {
-            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $start, $lotOfAnotherType->announcement->securityDeviceType->name, $type->name));
+            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $start, $lotOfAnotherType->securityDeviceType->name, $type->name));
         }
 
-        $from = $first === null ? null : $first->lot->announcement->correlativeOf($first->serial_number);
+        $from = $first === null ? null : $first->lot->correlativeOf($first->serial_number);
         $devices = $lots
             ->flatMap(fn (SecurityDeviceLot $lot): array => $this->dispatchableDevices($lot)
                 ->reject(fn (SecurityDevice $device): bool => in_array($device->id, $chosenIds, true))
-                ->map(fn (SecurityDevice $device): array => ['device' => $device, 'lot' => $lot->id, 'correlative' => $lot->announcement->correlativeOf($device->serial_number)])
+                ->map(fn (SecurityDevice $device): array => ['device' => $device, 'lot' => $lot->id, 'correlative' => $lot->correlativeOf($device->serial_number)])
                 ->all())
             ->filter(fn (array $item): bool => $item['correlative'] !== null && ($from === null || $item['correlative'] >= $from))
             ->sortBy([['correlative', 'asc'], ['lot', 'asc']])
@@ -148,8 +148,8 @@ class SelectBulkDispatchDevices
     private function lotsOfPrefix(string $prefix): Collection
     {
         return SecurityDeviceLot::query()
-            ->with('announcement.securityDeviceType')
-            ->whereHas('announcement', fn ($query) => $query->where('series_prefix', $prefix))
+            ->with('securityDeviceType')
+            ->where('series_prefix', $prefix)
             ->orderBy('id')
             ->get()
             ->collect();
@@ -165,7 +165,7 @@ class SelectBulkDispatchDevices
     {
         $devices = collect();
 
-        foreach (array_chunk(array_map($lot->announcement->serialNumber(...), range($start, $end)), self::CHUNK_SIZE) as $chunk) {
+        foreach (array_chunk(array_map($lot->serialNumber(...), range($start, $end)), self::CHUNK_SIZE) as $chunk) {
             $found = $lot->devices()->with(['kits', 'bulkDispatches'])->whereIn('serial_number', $chunk)->get()->keyBy('serial_number');
 
             foreach ($chunk as $serialNumber) {

@@ -79,7 +79,7 @@ class CreateKit
     private function pouch(string $code, SecurityDeviceType $pouchType): ?SecurityDevice
     {
         $query = fn () => SecurityDevice::query()
-            ->with(['lot.announcement.securityDeviceType', 'lot.announcement.shippingLine'])
+            ->with(['lot.securityDeviceType', 'lot.announcement.shippingLine'])
             ->where('serial_number', $code)
             ->lockForUpdate();
 
@@ -92,7 +92,7 @@ class CreateKit
     private function rejectionReason(SecurityDevice $device, SecurityDeviceType $pouchType, ShippingLine $shippingLine): ?string
     {
         $announcement = $device->lot->announcement;
-        $deviceType = $announcement->securityDeviceType;
+        $deviceType = $device->lot->securityDeviceType;
 
         if ($deviceType->kind !== SecurityDeviceKind::Pouch) {
             return sprintf('%s es un dispositivo %s, no una funda.', $device->serial_number, $deviceType->name);

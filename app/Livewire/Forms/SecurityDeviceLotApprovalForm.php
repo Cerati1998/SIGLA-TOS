@@ -41,8 +41,8 @@ class SecurityDeviceLotApprovalForm extends Form
     public function setLot(SecurityDeviceLot $lot): void
     {
         $this->lotId = $lot->id;
-        $this->seriesStart = $lot->announcement->series_start;
-        $this->seriesEnd = $lot->announcement->series_end;
+        $this->seriesStart = $lot->series_start;
+        $this->seriesEnd = $lot->series_end;
     }
 
     /**
@@ -107,6 +107,6 @@ class SecurityDeviceLotApprovalForm extends Form
      */
     public function lot(): SecurityDeviceLot
     {
-        return SecurityDeviceLot::query()->with('announcement')->findOrFail($this->lotId);
+        return SecurityDeviceLot::query()->findOrFail($this->lotId);
     }
 }

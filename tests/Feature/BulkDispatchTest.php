@@ -13,7 +13,6 @@ use App\Models\Client;
 use App\Models\Kit;
 use App\Models\KitDispatch;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\User;
@@ -402,17 +401,16 @@ class BulkDispatchTest extends TestCase
      */
     private function lot(string $prefix, int $start, int $end, ?int $last = null): SecurityDeviceLot
     {
-        $announcement = SecurityDeviceAnnouncement::factory()->for($this->bottleSeal)->create([
+        $lot = SecurityDeviceLot::factory()->for($this->bottleSeal)->create([
             'series_prefix' => $prefix,
             'min_digits' => 6,
             'series_start' => $start,
             'series_end' => $last ?? $end,
         ]);
-        $lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create();
 
         foreach ($last === null ? range($start, $end) : [$start, $last] as $correlative) {
             SecurityDevice::factory()->for($lot, 'lot')->create([
-                'serial_number' => $announcement->serialNumber($correlative),
+                'serial_number' => $lot->serialNumber($correlative),
                 'status' => SecurityDeviceStatus::Available,
             ]);
         }
@@ -422,7 +420,7 @@ class BulkDispatchTest extends TestCase
 
     private function deviceOf(SecurityDeviceLot $lot, int $correlative): SecurityDevice
     {
-        return SecurityDevice::query()->where('serial_number', $lot->announcement->serialNumber($correlative))->sole();
+        return SecurityDevice::query()->where('serial_number', $lot->serialNumber($correlative))->sole();
     }
 
     private function setStatus(SecurityDeviceLot $lot, int $correlative, SecurityDeviceStatus $status): void

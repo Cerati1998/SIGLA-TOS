@@ -120,6 +120,6 @@ class ApproveSecurityDeviceLotRange
      */
     private function serialNumbers(SecurityDeviceLot $lot, int $correlativeStart, int $correlativeEnd): array
     {
-        return array_map($lot->announcement->serialNumber(...), range($correlativeStart, $correlativeEnd));
+        return array_map($lot->serialNumber(...), range($correlativeStart, $correlativeEnd));
     }
 }

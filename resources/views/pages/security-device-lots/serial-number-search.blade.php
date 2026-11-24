@@ -34,7 +34,7 @@
             <dl @class(['m-0 grid grid-cols-2 gap-4 md:grid-cols-4', 'border-t border-line pt-4' => ! $loop->first])>
                 <div class="flex flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">Serie</dt>
-                    <dd class="m-0"><strong>{{ $device->serial_number }}</strong> · {{ $device->lot->announcement->securityDeviceType->name }}</dd>
+                    <dd class="m-0"><strong>{{ $device->serial_number }}</strong> · {{ $device->lot->securityDeviceType->name }}</dd>
                 </div>
                 <div class="flex flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">Estado</dt>
@@ -43,7 +43,7 @@
                 <div class="flex flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">Lote</dt>
                     <dd class="m-0">
-                        <a href="{{ route('intranet.security-device-lots.show', $device->lot) }}" wire:navigate class="text-brand hover:text-highlight">{{ $device->lot->announcement->lotName() }}</a>
+                        <a href="{{ route('intranet.security-device-lots.show', $device->lot) }}" wire:navigate class="text-brand hover:text-highlight">{{ $device->lot->name() }}</a>
                     </dd>
                 </div>
                 <div class="flex flex-col gap-0.5">

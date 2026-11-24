@@ -15,7 +15,6 @@ use App\Models\CertificationSection;
 use App\Models\CertificationStep;
 use App\Models\Kit;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
@@ -265,9 +264,7 @@ class CertificationInspectionTest extends TestCase
         $kit = Kit::factory()->create(['pouch_code' => 'KIT-000046', 'status' => KitStatus::Dispatched, 'shipping_line_id' => $this->shippingLine->id]);
 
         foreach ($devices as $serialNumber => [$type, $assignment]) {
-            $lot = SecurityDeviceLot::factory()->create([
-                'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create(['security_device_type_id' => $type->id])->id,
-            ]);
+            $lot = SecurityDeviceLot::factory()->create(['security_device_type_id' => $type->id]);
             $device = SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => $serialNumber]);
 
             $kit->devices()->attach($device->id, ['assignment' => $assignment?->value]);

@@ -49,7 +49,7 @@ class CreateModal extends Component
 
         $this->form->resetValidation('deviceIds');
 
-        return ['ok' => true, 'message' => $device->lot->announcement->securityDeviceType->name.' · agregado'];
+        return ['ok' => true, 'message' => $device->lot->securityDeviceType->name.' · agregado'];
     }
 
     /**

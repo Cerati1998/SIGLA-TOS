@@ -57,7 +57,7 @@ class StepForm extends Component
     {
         return $this->certification->steps()
             ->where('type', $this->type)
-            ->with(['section', 'devices.lot.announcement.securityDeviceType', 'photos.uploader'])
+            ->with(['section', 'devices.lot.securityDeviceType', 'photos.uploader'])
             ->get();
     }
 

@@ -12,7 +12,6 @@ use App\Models\Driver;
 use App\Models\Kit;
 use App\Models\KitDispatch;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
@@ -297,9 +296,7 @@ class CertificationStartTest extends TestCase
         $pouchType = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
         $kit = $this->dispatchedKit('FMK0000012');
         $kit->securityDeviceTypes()->attach($pouchType->id, ['quantity' => 1]);
-        $lot = SecurityDeviceLot::factory()->create([
-            'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create(['security_device_type_id' => $pouchType->id])->id,
-        ]);
+        $lot = SecurityDeviceLot::factory()->create(['security_device_type_id' => $pouchType->id]);
         $kit->devices()->attach(SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => 'FMK0000012'])->id);
 
         $this->lookedUp()
