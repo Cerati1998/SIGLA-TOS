@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\CertificationSectionType;
+use App\Enums\CheckpointSectionKind;
 use App\Models\CertificationSection;
 use App\Models\SecurityDeviceType;
 use App\Services\CertificationSectionOrder;
@@ -39,6 +40,27 @@ class CertificationSectionForm extends Form
     public string $type = '';
 
     /**
+     * What a checkpoint section asks for: photos or verification (H33). Only for the checkpoint type.
+     */
+    public string $checkpointKind = '';
+
+    /**
+     * The internal or external sections a checkpoint section of verification shows (H33).
+     *
+     * @var list<int|string>
+     */
+    public array $verifiedSectionIds = [];
+
+    /**
+     * The sections a checkpoint section verified when it was opened for editing: they can be kept even if they were
+     * deactivated (H33, criterion 8).
+     *
+     * @var array<int, int>
+     */
+    #[Locked]
+    public array $savedVerifiedSectionIds = [];
+
+    /**
      * The security device types the inspector places in the section and how many of each (H12). It can be empty.
      *
      * @var list<array{id: int|string, quantity: int|string}>
@@ -53,6 +75,9 @@ class CertificationSectionForm extends Form
         $this->certificationSectionId = $certificationSection->id;
         $this->name = $certificationSection->name;
         $this->type = $certificationSection->type->value;
+        $this->checkpointKind = $certificationSection->checkpoint_kind->value ?? '';
+        $this->savedVerifiedSectionIds = $certificationSection->verifiedSections->modelKeys();
+        $this->verifiedSectionIds = array_values($this->savedVerifiedSectionIds);
         $this->savedDeviceTypeIds = $certificationSection->securityDeviceTypes->modelKeys();
         $this->devices = array_values($certificationSection->securityDeviceTypes
             ->map(fn (SecurityDeviceType $deviceType): array => [
@@ -93,6 +118,59 @@ class CertificationSectionForm extends Form
     }
 
     /**
+     * Get the sections a checkpoint section can verify: the active internal and external ones, plus the ones it
+     * already verifies.
+     *
+     * @return Collection<int, CertificationSection>
+     */
+    public function verifiableSections(): Collection
+    {
+        return CertificationSection::withTrashed()
+            ->with('securityDeviceTypes')
+            ->whereIn('type', CertificationSectionType::inspectionTypes())
+            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhereIn('id', $this->savedVerifiedSectionIds))
+            ->orderByRaw('sort_order is null')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * Get the sections a checkpoint section can verify, as the browser needs them to add rows and show their names.
+     *
+     * @return list<array{id: int, name: string, type: string, typeLabel: string, carries: string, trashed: bool}>
+     */
+    public function verifiableSectionOptions(): array
+    {
+        return array_values($this->verifiableSections()
+            ->map(fn (CertificationSection $section): array => [
+                'id' => $section->id,
+                'name' => $section->name,
+                'type' => $section->type->value,
+                'typeLabel' => $section->type->label(),
+                'carries' => $this->carriesText($section),
+                'trashed' => $section->trashed(),
+            ])
+            ->all());
+    }
+
+    /**
+     * Whether the form is for a checkpoint section.
+     */
+    public function isCheckpoint(): bool
+    {
+        return $this->type === CertificationSectionType::Checkpoint->value;
+    }
+
+    /**
+     * Whether the form is for a checkpoint section of verification.
+     */
+    public function isVerification(): bool
+    {
+        return $this->isCheckpoint() && $this->checkpointKind === CheckpointSectionKind::Verification->value;
+    }
+
+    /**
      * Get the validation rules of the form. The name is unique within the type of the section, even among the
      * deactivated sections: an internal and an external section can be called the same (T63). A security
      * device type appears once, and its quantity is a whole number greater than zero.
@@ -103,7 +181,10 @@ class CertificationSectionForm extends Form
     {
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique(CertificationSection::class)->where('type', $this->type)->ignore($this->certificationSectionId)],
-            'type' => ['required', Rule::enum(CertificationSectionType::class)],
+            'type' => ['required', Rule::enum(CertificationSectionType::class), $this->notVerifiedWhenCheckpoint(...)],
+            'checkpointKind' => [Rule::requiredIf($this->isCheckpoint()), 'nullable', Rule::enum(CheckpointSectionKind::class)],
+            'verifiedSectionIds' => [Rule::requiredIf($this->isVerification()), 'array', $this->onlyVerifiableSections(...)],
+            'verifiedSectionIds.*' => ['integer', 'distinct'],
             'devices' => ['array', $this->onlyChoosableDevices(...)],
             'devices.*.id' => ['required', 'integer', 'distinct'],
             'devices.*.quantity' => ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY],
@@ -118,8 +199,11 @@ class CertificationSectionForm extends Form
     protected function messages(): array
     {
         return [
-            'name.unique' => sprintf('Ya existe una sección %s con este nombre, aunque esté desactivada.', mb_strtolower(CertificationSectionType::tryFrom($this->type)?->label() ?? '')),
-            'type.required' => 'Elige si la sección es interna o externa.',
+            'name.unique' => sprintf('Ya existe una sección %s con este nombre, aunque esté desactivada.', $this->isCheckpoint() ? 'de checkpoint' : mb_strtolower(CertificationSectionType::tryFrom($this->type)?->label() ?? '')),
+            'type.required' => 'Elige si la sección es interna, externa o de checkpoint.',
+            'checkpointKind.required' => 'Elige si el paso pide fotos o verifica series.',
+            'verifiedSectionIds.required' => 'Elige al menos una sección que este paso verifique.',
+            'verifiedSectionIds.*.distinct' => 'Una sección va una sola vez en la verificación.',
             'devices.*.id.distinct' => 'Un tipo de dispositivo va una sola vez en la sección: cambia su cantidad.',
             'devices.*.quantity.required' => 'Escribe una cantidad entera mayor que cero.',
             'devices.*.quantity.integer' => 'Escribe una cantidad entera mayor que cero.',
@@ -138,6 +222,8 @@ class CertificationSectionForm extends Form
         return [
             'name' => 'nombre',
             'type' => 'tipo',
+            'checkpointKind' => 'qué pide el paso',
+            'verifiedSectionIds' => 'secciones que verifica',
             'devices' => 'dispositivos',
             'devices.*.id' => 'tipo de dispositivo',
             'devices.*.quantity' => 'cantidad',
@@ -155,10 +241,11 @@ class CertificationSectionForm extends Form
             $certificationSection = CertificationSection::create([
                 'name' => $this->name,
                 'type' => $this->type,
+                'checkpoint_kind' => $this->storedCheckpointKind(),
                 'sort_order' => $order->nextPosition(),
             ]);
 
-            $certificationSection->securityDeviceTypes()->sync($this->pivotRows());
+            $this->syncContents($certificationSection);
         });
     }
 
@@ -173,9 +260,10 @@ class CertificationSectionForm extends Form
             $certificationSection->update([
                 'name' => $this->name,
                 'type' => $this->type,
+                'checkpoint_kind' => $this->storedCheckpointKind(),
             ]);
 
-            $certificationSection->securityDeviceTypes()->sync($this->pivotRows());
+            $this->syncContents($certificationSection);
         });
     }
 
@@ -189,6 +277,76 @@ class CertificationSectionForm extends Form
         if (array_diff($chosenIds, $this->deviceTypes()->modelKeys()) !== []) {
             $fail('Elige solo tipos de dispositivo activos.');
         }
+    }
+
+    /**
+     * Fail when a chosen section cannot be verified: it is not internal or external, or it is deactivated and the
+     * checkpoint section did not verify it already.
+     */
+    private function onlyVerifiableSections(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (! $this->isVerification()) {
+            return;
+        }
+
+        $chosenIds = array_map(fn (mixed $id): int => (int) $id, $this->verifiedSectionIds);
+
+        if (array_diff($chosenIds, $this->verifiableSections()->modelKeys()) !== []) {
+            $fail('Elige solo secciones internas o externas activas.');
+        }
+    }
+
+    /**
+     * Fail when a section that a checkpoint section verifies is turned into a checkpoint section: the link would point
+     * to a step of the checkpoint.
+     */
+    private function notVerifiedWhenCheckpoint(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (! $this->isCheckpoint() || $this->certificationSectionId === null) {
+            return;
+        }
+
+        $isVerified = DB::table('certification_section_verifications')
+            ->where('verified_section_id', $this->certificationSectionId)
+            ->exists();
+
+        if ($isVerified) {
+            $fail('Un paso del checkpoint verifica esta sección: quítala de ese paso antes de cambiarla a Checkpoint.');
+        }
+    }
+
+    /**
+     * Get what the checkpoint section asks for, as it is stored: null for the other types.
+     */
+    private function storedCheckpointKind(): ?string
+    {
+        return $this->isCheckpoint() ? $this->checkpointKind : null;
+    }
+
+    /**
+     * Save what the section carries (H12) and what it verifies (H33). A checkpoint section carries no devices of its
+     * own, and only a verification links sections.
+     */
+    private function syncContents(CertificationSection $certificationSection): void
+    {
+        $certificationSection->securityDeviceTypes()->sync($this->isCheckpoint() ? [] : $this->pivotRows());
+        $certificationSection->verifiedSections()->sync(
+            $this->isVerification() ? array_map(fn (mixed $id): int => (int) $id, $this->verifiedSectionIds) : [],
+        );
+    }
+
+    /**
+     * Get what an internal or external section carries, in a few words: the inspector sees it when choosing it.
+     */
+    private function carriesText(CertificationSection $section): string
+    {
+        if ($section->securityDeviceTypes->isEmpty()) {
+            return 'Solo foto';
+        }
+
+        return 'Lleva '.$section->securityDeviceTypes
+            ->map(fn (SecurityDeviceType $deviceType): string => $deviceType->getRelationValue('pivot')->getAttribute('quantity').' × '.$deviceType->name)
+            ->join(', ');
     }
 
     /**

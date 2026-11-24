@@ -1,4 +1,9 @@
-@if ($certificationSection->securityDeviceTypes->isEmpty())
+@if ($certificationSection->verifiedSections->isNotEmpty())
+    <span class="inline-flex max-w-xs items-start gap-1.5 text-[13px] whitespace-normal text-ink">
+        <i class="fa-solid fa-check mt-0.5 text-brand" aria-hidden="true"></i>
+        <span><span class="font-semibold text-brand">Verifica:</span> {{ $certificationSection->verifiedSections->map(fn ($verified) => $verified->name.($verified->trashed() ? ' (desactivada)' : ''))->join(', ') }}</span>
+    </span>
+@elseif ($certificationSection->securityDeviceTypes->isEmpty())
     <span class="inline-flex items-center gap-1.5 text-[13px] text-ink-muted">
         <x-feather name="camera" class="size-4" />
         Solo foto

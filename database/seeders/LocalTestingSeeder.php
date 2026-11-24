@@ -8,11 +8,9 @@ use App\Actions\Kits\AddSecurityDeviceToKit;
 use App\Actions\Kits\CreateKit;
 use App\Actions\SecurityDevices\ApproveSecurityDeviceLotRange;
 use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
-use App\Enums\CertificationSectionType;
 use App\Enums\SecurityDeviceStatus;
 use App\Enums\VehicleKind;
 use App\Models\Carrier;
-use App\Models\CertificationSection;
 use App\Models\ContainerType;
 use App\Models\Kit;
 use App\Models\KitType;
@@ -30,7 +28,7 @@ use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
- * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, sections, carriers with their
+ * Sample data to try the modules locally, up to the dispatch of kits: providers, workers, carriers with their
  * drivers and vehicles, lots received and activated, kit types, kits Armados and Armando, and two dispatches.
  * It goes through the same actions as the screens. Run it on its own, never in production:
  * php artisan db:seed --class=LocalTestingSeeder
@@ -65,7 +63,6 @@ class LocalTestingSeeder extends Seeder
 
         $providers = $this->providers();
         $workers = $this->workers($providers);
-        $this->certificationSections();
         $this->carriers();
 
         $maersk = ShippingLine::query()->where('code', 'MAEU')->firstOrFail();
@@ -136,25 +133,6 @@ class LocalTestingSeeder extends Seeder
         )->create(['is_own' => false, 'position' => 'Técnico']);
 
         return [...$own->all(), ...$fromProvider->all()];
-    }
-
-    /**
-     * Create the sections of the container, external and internal.
-     */
-    private function certificationSections(): void
-    {
-        $sections = [
-            ['Lado derecho', CertificationSectionType::External],
-            ['Lado izquierdo', CertificationSectionType::External],
-            ['Puertas', CertificationSectionType::External],
-            ['Techo', CertificationSectionType::External],
-            ['Piso', CertificationSectionType::Internal],
-            ['Panel frontal', CertificationSectionType::Internal],
-        ];
-
-        foreach ($sections as $order => [$name, $type]) {
-            CertificationSection::factory()->create(['name' => $name, 'type' => $type, 'sort_order' => $order + 1]);
-        }
     }
 
     /**
