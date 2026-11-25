@@ -402,6 +402,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   10. Esta regla es igual para todos los contenedores de 40'.
   11. Solo el admin usa esta pantalla. Hasta H24, cualquier usuario con sesión.
   12. La pantalla se puede usar bien desde el celular.
+  13. Un tipo de dispositivo que se reparte entre interna y externa, como la cinta de inspección, se ve con el lado que le da el tipo de la sección: «Cinta de inspección · Interna» en una sección interna y «· Externa» en una externa, al elegirlo, en la vista previa del inspector y en la lista. La sección lleva una sola cantidad de ese tipo, del lado de su tipo (T84, decisión del usuario del 2026-11-25).
 - Resuelto el 2026-11-12 (T34): no hay un punto único del contenedor. La puerta es una sección externa más y lleva sus dispositivos como cualquier otra.
 - Decisiones del usuario del 2026-11-12: una sección puede ir sin dispositivos (criterio 4); el paso de los dispositivos va también al crear la sección, no solo al editar (criterio 1); desactivar un tipo de dispositivo no se bloquea aunque una sección lo use: la sección lo conserva, marcado, hasta que lo quiten.
 - Diseño: página "E3 · Secciones del contenedor" del lienzo (T34, aprobado por el usuario el 2026-11-12): paso 2 en los modales de H11, con filas de tipo y cantidad, vista previa de lo que verá el inspector y columna «Lleva» en la lista.
@@ -490,7 +491,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Como usuario de bodega, quiero despachar uno o más kits a un trabajador, para dejarlos disponibles para certificar.
 - Criterios de aceptación:
   1. Se elige el trabajador que recibe los kits, de la lista de trabajadores activos (H25). Quién entrega es el usuario de bodega que despacha, y queda registrado solo; se muestra en el despacho en solo lectura (decisión del usuario del 2026-11-17).
-  2. Los kits se agregan escaneando la funda de cada uno: cada escaneo llena el campo y marca el kit solo, sin botón de guardar. También se marcan con su casilla en una tabla de kits Armados y sin despachar, que se filtra por tipo de kit, naviera y funda (cambio del usuario del 2026-11-17, tomado del despacho de BUMMOCK). Un despacho puede llevar kits de distintos tipos.
+  2. Los kits se agregan escaneando la funda de cada uno: cada escaneo llena el campo y marca el kit solo, sin botón de guardar. También se marcan con su casilla en una tabla de kits Armados y sin despachar, que se filtra por tipo de kit, naviera y funda (cambio del usuario del 2026-11-17, tomado del despacho de BUMMOCK). El filtro de naviera muestra su código y su nombre (T84, 2026-11-25). Un despacho puede llevar kits de distintos tipos.
   3. Solo se pueden despachar kits que no estén ya despachados; si ya lo está, se muestra en qué despacho.
   4. Solo se despacha un kit Armado, es decir, completo. Un kit vacío o incompleto (Armando) no se despacha, y se muestra qué le falta (T46, 2026-11-13).
   5. Cada kit queda en un solo despacho.
