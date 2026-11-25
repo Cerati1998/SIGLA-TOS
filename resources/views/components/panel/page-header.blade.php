@@ -7,7 +7,7 @@
     <x-page-title>{{ $title }}</x-page-title>
 
     @if (count($breadcrumbs) > 1)
-        <flux:breadcrumbs>
+        <flux:breadcrumbs class="min-w-0 flex-wrap">
             @foreach ($breadcrumbs as $breadcrumb)
                 @isset($breadcrumb['route'])
                     <flux:breadcrumbs.item :href="$breadcrumb['route']" separator="minus" wire:navigate>{{ $breadcrumb['name'] }}</flux:breadcrumbs.item>
