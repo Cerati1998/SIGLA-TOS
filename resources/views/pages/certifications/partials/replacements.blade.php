@@ -35,7 +35,7 @@
                         <td class="px-3.5 py-3">
                             @if ($replacement->removedDevice->discard_photo_path !== null)
                                 <x-wire-button xs primary title="Ver la foto del descarte" aria-label="Ver la foto del descarte de {{ $replacement->removedDevice->serial_number }}"
-                                    x-on:click="show(@js(route('intranet.security-devices.discard-photo', $replacement->removedDevice)), @js($replacement->replacer->name), @js($replacedAt?->format('d/m/Y H:i')))">
+                                    x-on:click="show({{ \Illuminate\Support\Js::from(route('intranet.security-devices.discard-photo', $replacement->removedDevice)) }}, {{ \Illuminate\Support\Js::from($replacement->replacer->name) }}, {{ \Illuminate\Support\Js::from($replacedAt?->format('d/m/Y H:i')) }})">
                                     <i class="fa-solid fa-eye text-sm" aria-hidden="true"></i>
                                 </x-wire-button>
                             @endif
