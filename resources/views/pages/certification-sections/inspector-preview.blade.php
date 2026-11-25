@@ -17,7 +17,7 @@
                 <template x-for="device in rows" x-bind:key="'preview-' + device.id">
                     <div class="flex items-center gap-2 text-sm">
                         <span class="min-w-6.5 font-heading font-medium text-brand" x-text="(parseInt(device.quantity) || 0) + ' ×'"></span>
-                        <span x-text="find(device.id).name"></span>
+                        <span x-text="nameOf(find(device.id))"></span>
                     </div>
                 </template>
             </div>

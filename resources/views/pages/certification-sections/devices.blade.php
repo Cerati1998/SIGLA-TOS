@@ -6,7 +6,7 @@
             x-bind:class="find(device.id).trashed ? 'border-dashed border-highlight bg-badge-warning' : 'border-brand bg-badge-info'"
         >
             <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span class="text-sm font-semibold text-ink" x-text="find(device.id).name"></span>
+                <span class="text-sm font-semibold text-ink" x-text="nameOf(find(device.id))"></span>
                 <span
                     class="text-xs"
                     x-bind:class="find(device.id).trashed ? 'text-badge-warning-ink' : 'text-ink-muted'"
@@ -19,7 +19,7 @@
                     type="button"
                     x-on:click="device.quantity = Math.max(1, (parseInt(device.quantity) || 1) - 1)"
                     x-bind:disabled="(parseInt(device.quantity) || 1) <= 1"
-                    x-bind:aria-label="'Quitar uno de ' + find(device.id).name"
+                    x-bind:aria-label="'Quitar uno de ' + nameOf(find(device.id))"
                     class="inline-flex size-8 cursor-pointer items-center justify-center text-brand disabled:cursor-not-allowed disabled:text-control max-md:size-11"
                 >
                     <i class="fa-solid fa-minus text-xs" aria-hidden="true"></i>
@@ -31,20 +31,20 @@
                     step="1"
                     inputmode="numeric"
                     x-model="device.quantity"
-                    x-bind:aria-label="'Cantidad de ' + find(device.id).name"
+                    x-bind:aria-label="'Cantidad de ' + nameOf(find(device.id))"
                     class="h-8 w-12 border-x border-line text-center font-heading text-base font-medium text-ink [appearance:textfield] focus:outline-none max-md:h-11 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 >
                 <button
                     type="button"
                     x-on:click="device.quantity = Math.min({{ \App\Livewire\Forms\CertificationSectionForm::MAX_QUANTITY }}, (parseInt(device.quantity) || 0) + 1)"
-                    x-bind:aria-label="'Agregar uno de ' + find(device.id).name"
+                    x-bind:aria-label="'Agregar uno de ' + nameOf(find(device.id))"
                     class="inline-flex size-8 cursor-pointer items-center justify-center text-brand max-md:size-11"
                 >
                     <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
                 </button>
             </span>
 
-            <x-wire-button negative x-on:click="remove(index)" title="Quitar" x-bind:aria-label="'Quitar ' + find(device.id).name + ' de la sección'" class="max-md:size-11" xs>
+            <x-wire-button negative x-on:click="remove(index)" title="Quitar" x-bind:aria-label="'Quitar ' + nameOf(find(device.id)) + ' de la sección'" class="max-md:size-11" xs>
                 <i class="fa-solid fa-trash text-sm" aria-hidden="true"></i>
             </x-wire-button>
         </div>
@@ -73,7 +73,7 @@
             >
                 <option value="">Elige un tipo de dispositivo</option>
                 <template x-for="type in available" x-bind:key="type.id">
-                    <option x-bind:value="type.id" x-text="type.name"></option>
+                    <option x-bind:value="type.id" x-text="nameOf(type)"></option>
                 </template>
             </select>
         </div>
@@ -84,5 +84,5 @@
         </flux:button>
     </div>
 
-    <p class="text-sm text-ink-muted">Solo tipos activos que la sección todavía no lleva. Entra con cantidad 1.</p>
+    <p class="text-sm text-ink-muted">Solo tipos activos que la sección todavía no lleva. Entra con cantidad 1. La cinta de inspección va con el lado del tipo de la sección.</p>
 </div>

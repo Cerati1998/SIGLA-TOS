@@ -103,7 +103,7 @@ class CertificationSectionForm extends Form
     /**
      * Get the security device types that can be chosen, as the browser needs them to add rows and show their names.
      *
-     * @return list<array{id: int, name: string, kind: string, trashed: bool}>
+     * @return list<array{id: int, name: string, kind: string, splits: bool, trashed: bool}>
      */
     public function deviceTypeOptions(): array
     {
@@ -112,6 +112,7 @@ class CertificationSectionForm extends Form
                 'id' => $deviceType->id,
                 'name' => $deviceType->name,
                 'kind' => $deviceType->kind->label(),
+                'splits' => $deviceType->splits_internal_external,
                 'trashed' => $deviceType->trashed(),
             ])
             ->all());
@@ -345,7 +346,7 @@ class CertificationSectionForm extends Form
         }
 
         return 'Lleva '.$section->securityDeviceTypes
-            ->map(fn (SecurityDeviceType $deviceType): string => $deviceType->getRelationValue('pivot')->getAttribute('quantity').' × '.$deviceType->name)
+            ->map(fn (SecurityDeviceType $deviceType): string => $deviceType->getRelationValue('pivot')->getAttribute('quantity').' × '.$section->deviceTypeName($deviceType))
             ->join(', ');
     }
 

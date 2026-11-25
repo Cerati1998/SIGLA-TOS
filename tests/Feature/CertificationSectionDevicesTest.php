@@ -44,6 +44,24 @@ class CertificationSectionDevicesTest extends TestCase
             ->assertSeeInOrder(['Placa de datos', 'Solo foto']);
     }
 
+    public function test_a_device_type_split_between_internal_and_external_shows_the_side_of_its_section(): void
+    {
+        $this->tape->update(['splits_internal_external' => true]);
+        CertificationSection::factory()->carrying($this->tape, 2)->create(['name' => 'Piso', 'type' => CertificationSectionType::Internal]);
+        CertificationSection::factory()->carrying($this->tape, 1)->carrying($this->seal, 1)->create(['name' => 'Puertas', 'type' => CertificationSectionType::External]);
+
+        Livewire::test(CertificationSectionsTable::class)
+            ->assertSeeInOrder(['Piso', '2', 'Cinta de inspección · Interna'])
+            ->assertSeeInOrder(['Puertas', '1', 'Cinta de inspección · Externa', '1', 'Sello botella']);
+
+        Livewire::test(CreateModal::class)
+            ->assertViewHas('deviceTypes', fn (array $options): bool => array_column($options, 'splits', 'name') === ['Cinta de inspección' => true, 'Sello botella' => false])
+            ->assertViewHas('verifiableSections', fn (array $options): bool => array_column($options, 'carries', 'name') == [
+                'Piso' => 'Lleva 2 × Cinta de inspección · Interna',
+                'Puertas' => 'Lleva 1 × Cinta de inspección · Externa, 1 × Sello botella',
+            ]);
+    }
+
     public function test_a_new_section_is_created_with_the_device_types_it_carries(): void
     {
         Livewire::test(CreateModal::class)
@@ -134,7 +152,7 @@ class CertificationSectionDevicesTest extends TestCase
 
         Livewire::test(EditModal::class)
             ->dispatch('edit-certification-section', certificationSectionId: $section->id)
-            ->assertViewHas('deviceTypes', fn (array $options): bool => in_array(['id' => $plastic->id, 'name' => 'Sello plástico', 'kind' => $plastic->kind->label(), 'trashed' => true], $options, true))
+            ->assertViewHas('deviceTypes', fn (array $options): bool => in_array(['id' => $plastic->id, 'name' => 'Sello plástico', 'kind' => $plastic->kind->label(), 'splits' => false, 'trashed' => true], $options, true))
             ->set('form.name', 'Sección renombrada')
             ->call('save')
             ->assertHasNoErrors();
