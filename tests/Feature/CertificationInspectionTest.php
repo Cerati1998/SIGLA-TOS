@@ -76,7 +76,7 @@ class CertificationInspectionTest extends TestCase
         $this->assertSame(['CLIENTE DE EJEMPLO', 'PRODUCTO DE EJEMPLO'], [$certification->client, $certification->product]);
     }
 
-    public function test_a_kit_that_does_not_fit_the_active_sections_is_rejected_saying_what_is_missing_and_what_is_left_over(): void
+    public function test_a_kit_that_lacks_devices_for_the_active_sections_is_rejected_saying_what_is_missing(): void
     {
         $kit = $this->kitWith(['CTA0000001' => [$this->tape, KitAssignment::Internal], 'CTA0000002' => [$this->tape, KitAssignment::Internal],
             'SLL0000001' => [$this->seal, null], 'SLL0000002' => [$this->seal, null]]);
@@ -84,9 +84,27 @@ class CertificationInspectionTest extends TestCase
         $reason = app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine);
 
         $this->assertSame(
-            'El kit KIT-000046 no calza con lo que piden las secciones activas: Falta 1 · Cinta de inspección · Externa; Sobra 1 · Sello botella. Escanea otra funda o pide otro kit en bodega.',
+            'El kit KIT-000046 no calza con lo que piden las secciones activas: Falta 1 · Cinta de inspección · Externa. Escanea otra funda o pide otro kit en bodega.',
             $reason,
         );
+    }
+
+    public function test_the_devices_left_over_stay_in_the_kit_without_a_section_and_each_section_takes_the_lowest_correlatives(): void
+    {
+        $kit = $this->kitWith(['CTA10' => [$this->tape, KitAssignment::Internal], 'CTA9' => [$this->tape, KitAssignment::Internal],
+            'CTA11' => [$this->tape, KitAssignment::Internal], 'CTA12' => [$this->tape, KitAssignment::External], 'SLL20' => [$this->seal, null], 'SLL3' => [$this->seal, null]]);
+
+        $this->assertNull(app(FindKitToCertify::class)->rejectionReason($kit, $this->shippingLine));
+
+        $certification = app(StartCertification::class)->handle($this->gateOutRequest(), $this->shippingLine, $kit, null, YardZone::factory()->create(), $this->inspector);
+
+        $this->assertSame(
+            ['Techo' => ['CTA9', 'CTA10'], 'Panel frontal' => ['CTA12', 'SLL3'], 'Fotografía del EIR' => []],
+            $certification->steps()->with(['section', 'devices'])->get()
+                ->mapWithKeys(fn (CertificationStep $step): array => [$step->section->name => $step->devices->pluck('serial_number')->sortBy(fn (string $serialNumber): string => $serialNumber, SORT_NATURAL)->values()->all()])
+                ->all(),
+        );
+        $this->assertSame(6, $kit->devices()->count());
     }
 
     public function test_the_menu_opens_the_panel_with_its_cards_and_the_pending_units_of_each_inspection(): void
@@ -264,7 +282,7 @@ class CertificationInspectionTest extends TestCase
         $kit = Kit::factory()->create(['pouch_code' => 'KIT-000046', 'status' => KitStatus::Dispatched, 'shipping_line_id' => $this->shippingLine->id]);
 
         foreach ($devices as $serialNumber => [$type, $assignment]) {
-            $lot = SecurityDeviceLot::factory()->create(['security_device_type_id' => $type->id]);
+            $lot = SecurityDeviceLot::factory()->create(['security_device_type_id' => $type->id, 'series_prefix' => preg_replace('/\d+$/', '', $serialNumber)]);
             $device = SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => $serialNumber]);
 
             $kit->devices()->attach($device->id, ['assignment' => $assignment?->value]);
