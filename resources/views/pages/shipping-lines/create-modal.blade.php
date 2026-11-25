@@ -3,7 +3,7 @@
         title="Nueva línea naviera"
         name="shipping-line-create"
         wire:model="form.openModal"
-        x-on:open="$wire.form.code = ''; $wire.form.name = ''"
+        x-on:open="$wire.form.code = ''; $wire.form.name = ''; $wire.form.dispatchMode = 'random'"
         x-on:close="$wire.$errors.any() && $wire.clearErrors()"
     >
         <form id="shipping-line-create-form" wire:submit="save" class="grid gap-4">

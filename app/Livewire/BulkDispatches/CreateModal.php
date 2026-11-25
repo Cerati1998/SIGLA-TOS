@@ -37,7 +37,7 @@ class CreateModal extends Component
             return ['ok' => false, 'message' => 'Escanea o escribe una serie de hasta 50 caracteres.'];
         }
 
-        $device = $findDevice->handle($serialNumber, $this->chosenType($typeId));
+        $device = $findDevice->handle($serialNumber, $this->chosenType($typeId), $this->form->chosenDeviceIds());
 
         if (is_string($device)) {
             return ['ok' => false, 'message' => $device];
@@ -67,7 +67,7 @@ class CreateModal extends Component
             return ['ok' => false, 'message' => 'Escribe la serie inicial y la final.', 'count' => 0];
         }
 
-        return $this->answer($selectDevices->byRange($first, $last, $this->chosenType($typeId)), $add);
+        return $this->answer($selectDevices->byRange($first, $last, $this->chosenType($typeId), $this->form->chosenDeviceIds()), $add);
     }
 
     /**

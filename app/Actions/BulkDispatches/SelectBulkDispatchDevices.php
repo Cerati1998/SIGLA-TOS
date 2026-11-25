@@ -2,6 +2,7 @@
 
 namespace App\Actions\BulkDispatches;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\SecurityDeviceStatus;
 use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceLot;
@@ -29,15 +30,20 @@ class SelectBulkDispatchDevices
      */
     private const int CHUNK_SIZE = 1000;
 
-    public function __construct(private FindDeviceToBulkDispatch $findDeviceToBulkDispatch) {}
+    public function __construct(
+        private FindDeviceToBulkDispatch $findDeviceToBulkDispatch,
+        private FindSkippedSecurityDevice $findSkippedDevice,
+    ) {}
 
     /**
      * Choose the devices from the first serial number to the last one, both of the same lot. The correlatives without
-     * a device are skipped. When given, only the devices of the type are looked up (T62).
+     * a device are skipped. When given, only the devices of the type are looked up (T62). When the shipping line
+     * dispatches in order, the range starts at the next device, counting the ones already chosen as taken (T82).
      *
+     * @param  list<int>  $chosenIds  The devices already in the dispatch.
      * @return array{deviceIds: list<int>, error: string|null, summary: string|null}
      */
-    public function byRange(string $firstSerialNumber, string $lastSerialNumber, ?SecurityDeviceType $type = null): array
+    public function byRange(string $firstSerialNumber, string $lastSerialNumber, ?SecurityDeviceType $type = null, array $chosenIds = []): array
     {
         $first = $this->findDeviceToBulkDispatch->find($firstSerialNumber, $type);
         $last = $this->findDeviceToBulkDispatch->find($lastSerialNumber, $type);
@@ -86,7 +92,7 @@ class SelectBulkDispatchDevices
             ));
         }
 
-        return $this->chosen($devices, $lot->securityDeviceType->name);
+        return $this->keepingTheOrder($devices, $chosenIds) ?? $this->chosen($devices, $lot->securityDeviceType->name);
     }
 
     /**
@@ -137,7 +143,25 @@ class SelectBulkDispatchDevices
             ));
         }
 
-        return $this->chosen($devices->take($quantity)->values(), $type->name);
+        $devices = $devices->take($quantity)->values();
+
+        return $this->keepingTheOrder($devices, $chosenIds) ?? $this->chosen($devices, $type->name);
+    }
+
+    /**
+     * Get the answer that adds nothing when the devices skip the next one of a shipping line that dispatches in order,
+     * or null when they keep it (T82).
+     *
+     * @param  Collection<int, SecurityDevice>  $devices
+     * @param  list<int>  $chosenIds
+     * @return array{deviceIds: list<int>, error: string, summary: null}|null
+     */
+    private function keepingTheOrder(Collection $devices, array $chosenIds): ?array
+    {
+        $deviceIds = array_values($devices->map(fn (SecurityDevice $device): int => $device->id)->all());
+        $skipped = $this->findSkippedDevice->handle($deviceIds, $chosenIds);
+
+        return $skipped === null ? null : $this->rejected(FindSkippedSecurityDevice::rangeMessage($skipped));
     }
 
     /**

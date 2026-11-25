@@ -652,9 +652,10 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `code` | varchar(20) | UK (criterio 2). Se guarda sin espacios a los lados y en mayúsculas. |
 | `name` | varchar(100) | |
 | `sigla1_name` | varchar(100) (null) | UK. Cómo escribe SIGLA 1.0 esta naviera (por ejemplo `CHIQUITA`), en mayúsculas y sin espacios de más. Es la caché con que la asignación (H17) cuadra la naviera de una solicitud sin volver a buscarla: la llena el seeder y, si no hubo una única coincidencia, la elección del inspector (T74, 2026-11-23). |
+| `dispatch_mode` | varchar(20) | Enum de PHP `DispatchMode`: `random` (Aleatorio, por defecto) o `linear` (Lineal). Con `linear`, sus dispositivos salen en orden de correlativo, sin saltarse ninguno, al armar un kit (H14) y al despachar a granel (H30): el siguiente es el dispositivo `available` con el correlativo más bajo de la misma naviera, el mismo tipo y la misma serie (inicio y final). Lo revisa `FindSkippedSecurityDevice` (T82, 2026-11-25). Se elige al crear y al editar la naviera. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Si un código ya existe, aunque esté desactivado, no lo toca.
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Todas nacen en `random`, salvo Chiquita Brands International (`CHQT`), en `linear` (T82). Si un código ya existe, aunque esté desactivado, no lo toca.
 
 ### 5.7 `providers` · `en código`
 

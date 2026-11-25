@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\DispatchMode;
 use App\Livewire\ShippingLines\CreateModal;
 use App\Livewire\ShippingLines\EditModal;
 use App\Livewire\Tables\ShippingLinesTable;
@@ -33,6 +34,43 @@ class ShippingLinesManagementTest extends TestCase
         $this->assertDatabaseCount('shipping_lines', count(ShippingLineSeeder::LINES));
         $this->assertDatabaseHas('shipping_lines', ['code' => 'HAMB', 'name' => 'Hamburg Süd']);
         $this->assertSoftDeleted('shipping_lines', ['code' => 'MAEU', 'name' => 'Maersk antigua']);
+    }
+
+    public function test_the_seeder_leaves_chiquita_in_linear_mode_and_the_other_lines_in_random_mode(): void
+    {
+        $this->seed(ShippingLineSeeder::class);
+
+        $this->assertSame(['CHQT'], ShippingLine::query()->where('dispatch_mode', DispatchMode::Linear)->pluck('code')->all());
+        $this->assertSame(count(ShippingLineSeeder::LINES) - 1, ShippingLine::query()->where('dispatch_mode', DispatchMode::Random)->count());
+    }
+
+    public function test_the_dispatch_mode_is_random_by_default_and_can_be_changed_when_creating_or_editing(): void
+    {
+        $this->app->setLocale('es');
+
+        Livewire::test(CreateModal::class)
+            ->assertSet('form.dispatchMode', 'random')
+            ->set('form.code', 'CHQT')
+            ->set('form.name', 'Chiquita Brands International')
+            ->set('form.dispatchMode', 'linear')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $shippingLine = ShippingLine::query()->where('code', 'CHQT')->sole();
+        $this->assertSame(DispatchMode::Linear, $shippingLine->dispatch_mode);
+
+        Livewire::test(EditModal::class)
+            ->dispatch('edit-shipping-line', shippingLineId: $shippingLine->id)
+            ->assertSet('form.dispatchMode', 'linear')
+            ->set('form.dispatchMode', 'other')
+            ->call('save')
+            ->assertHasErrors(['form.dispatchMode'])
+            ->assertSeeText('El valor seleccionado en modo de despacho no es válido.')
+            ->set('form.dispatchMode', 'random')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(DispatchMode::Random, $shippingLine->refresh()->dispatch_mode);
     }
 
     public function test_guests_cannot_open_the_screen(): void
