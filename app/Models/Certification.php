@@ -6,6 +6,7 @@ use App\Enums\BulkDispatchReason;
 use App\Enums\CertificationKitDecision;
 use App\Enums\CertificationSectionType;
 use App\Enums\CertificationStatus;
+use App\Enums\GateOutRequestSource;
 use Database\Factories\CertificationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -20,13 +21,15 @@ use Illuminate\Support\Carbon;
 
 /**
  * The certification of a unit, started by an inspector with a gate out request of SIGLA 1.0 and a dispatched kit
- * (H17), which is the assignment of the kit to the unit. It keeps the reference, the booking, the container, the
- * client and the product of the request (the client and the product since T58, so the detail and the PDF do not
- * depend on SIGLA 1.0), and the links to the catalogs; the driver's DNI and license stay in the drivers catalog. Its
+ * (H17), which is the assignment of the kit to the unit. It keeps where the request comes from (T81), and the
+ * reference, the booking, the container, the client and the product of the request (the client and the product since
+ * T58, so the detail and the PDF do not depend on SIGLA 1.0), and the links to the catalogs; the driver's DNI and
+ * license stay in the drivers catalog. Its
  * sections, with the devices of the kit, are its steps, split in the internal and the external inspection (H18). It is
  * closed by hand once both inspections are complete, and it can be reopened with a reason to correct its photos (H19).
  *
  * @property int $id
+ * @property GateOutRequestSource $source
  * @property string $gate_out_request_reference
  * @property string $booking
  * @property string $container
@@ -66,7 +69,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, SecurityDeviceReplacement> $replacements
  */
 #[Fillable([
-    'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
+    'source', 'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
     'semi_trailer_id', 'kit_id', 'inspection_sheet_code', 'yard_zone_id', 'certified_by', 'started_at', 'closed_at', 'closed_by',
     'annulled_at', 'annulled_by', 'annulment_reason', 'kit_decision',
 ])]
@@ -87,6 +90,7 @@ class Certification extends Model
             'closed_at' => 'datetime',
             'annulled_at' => 'datetime',
             'kit_decision' => CertificationKitDecision::class,
+            'source' => GateOutRequestSource::class,
         ];
     }
 
@@ -276,6 +280,17 @@ class Certification extends Model
     public function isClosed(): bool
     {
         return $this->closed_at !== null;
+    }
+
+    /**
+     * Keep only the certification of a gate out request, whose reference is unique within its source (T81).
+     *
+     * @param  Builder<Certification>  $query
+     */
+    #[Scope]
+    protected function whereGateOutRequest(Builder $query, GateOutRequestSource $source, string $reference): void
+    {
+        $query->where('source', $source)->where('gate_out_request_reference', $reference);
     }
 
     /**

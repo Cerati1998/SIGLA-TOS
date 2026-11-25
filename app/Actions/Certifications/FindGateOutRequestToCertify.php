@@ -2,6 +2,7 @@
 
 namespace App\Actions\Certifications;
 
+use App\Enums\GateOutRequestSource;
 use App\Models\Certification;
 use App\Services\Sigla1LookupResult;
 use App\Services\Sigla1LookupStatus;
@@ -17,7 +18,8 @@ class FindGateOutRequestToCertify
     /**
      * Look up the gate out request of a booking and a container in SIGLA 1.0 (H17, criterion 1). When SIGLA 1.0
      * sends more than one, the one dispatched last is taken (decision of the user of 2026-11-17). The certification
-     * that the request already has comes along, so the screen offers it instead of starting another (criterion 6).
+     * that the request already has comes along, so the screen offers it instead of starting another (criterion 6); it
+     * is looked up among the certifications of SIGLA 1.0 requests, since the reference is unique within its source (T81).
      *
      * @return array{status: Sigla1LookupStatus, gateOutRequest: GateOutRequest|null, certification: Certification|null}
      */
@@ -31,7 +33,7 @@ class FindGateOutRequestToCertify
             'gateOutRequest' => $gateOutRequest,
             'certification' => $gateOutRequest === null
                 ? null
-                : Certification::query()->where('gate_out_request_reference', $gateOutRequest['reference'])->first(),
+                : Certification::query()->whereGateOutRequest(GateOutRequestSource::Api, $gateOutRequest['reference'])->first(),
         ];
     }
 

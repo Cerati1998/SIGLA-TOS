@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\GateOutRequestSource;
 use App\Enums\KitStatus;
 use App\Models\Certification;
 use App\Models\Kit;
@@ -23,6 +24,7 @@ class CertificationFactory extends Factory
     public function definition(): array
     {
         return [
+            'source' => GateOutRequestSource::Api,
             'gate_out_request_reference' => (string) fake()->unique()->numberBetween(10000, 99999),
             'booking' => fake()->bothify('BKG#########'),
             'container' => fake()->bothify('????#######'),
