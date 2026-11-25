@@ -66,6 +66,10 @@ Pedida por el usuario el 2026-11-23 como nota del sprint y armada con él el 202
 Encontrada por Claude Code al revisar H38 en el navegador y agregada al sprint a pedido del usuario el 2026-11-25. Las horas son una propuesta de Claude Code.
 - [x] **T80** · Plantilla del panel · Migas de pan en el celular. A 390 px, las migas de pan del encabezado de la pantalla (`x-panel.page-header`) no se acomodan al ancho cuando son largas y la página se desplaza de lado: en el detalle de una certificación («Certificaciones — Asignaciones — ABCU3800001») se salen unos 24 px. Que bajen de línea o se recorten sin desplazar la página, en todas las pantallas que las usan, revisadas en el navegador a 390 px y en escritorio. Si cambia cómo se ven, primero se corrige la plantilla del panel en el lienzo y se aprueba. Quién: Claude Code. 0.5 h. (Hecho el 2026-11-25, PR #114, unas 0.2 h reales: del primer commit, a las 09:03, al visto bueno, a las 09:13. Las migas bajan de línea con `flex-wrap` en el encabezado común, sin cambiar su aspecto, así que la plantilla del lienzo no cambió. Revisadas a 390 px las 35 pantallas de la intranet con migas: ninguna se desplaza de lado y en 8 bajan a una segunda línea.)
 
+### Corrección encontrada el 2026-11-25
+Pedida por el usuario el 2026-11-25: la columna `source` del primer ER no se construyó. Las horas son una propuesta de Claude Code.
+- [x] **T81** · H17 · Origen de la solicitud en la asignación. La certificación guarda de dónde vino su solicitud de retiro, `source`: `api` para SIGLA 1.0 y `web` para las solicitudes que tenga SIGLA 2.0 cuando exista su módulo. Las certificaciones que ya existen quedan como `api`. La llave única de la solicitud pasa a ser el origen con su número, para que un mismo número en SIGLA 1.0 y en SIGLA 2.0 no choque. Por ahora la asignación solo busca en SIGLA 1.0 y guarda `api`: sin switch en la asignación ni en la configuración de la empresa, ni cambios en pantalla (decisión del usuario del 2026-11-25). Cómo se elige el origen lo decide la historia del módulo de solicitudes de SIGLA 2.0. Deja `docs/database.md` al día. Quién: Claude Code. 0.75 h. (Hecho el 2026-11-25, PR #115, unas 0.25 h reales: del primer commit, a las 09:28, al visto bueno, a las 09:42. La pantalla no cambió, así que no hubo diseño en el lienzo. Lo que falta para pasar a `web` queda para la historia del módulo de solicitudes de SIGLA 2.0: su tabla, una búsqueda que devuelva la solicitud igual que SIGLA 1.0, cómo se elige el origen y usar ese origen en vez de `api` en `FindGateOutRequestToCertify` y `StartCertification`.)
+
 ## Total estimado
 | Bloque | Tareas | Horas |
 | --- | --- | --- |
@@ -73,10 +77,11 @@ Encontrada por Claude Code al revisar H38 en el navegador y agregada al sprint a
 | Corrección del Sprint 3 (agregada el 2026-11-23) | T74, T75, T76, T77 | 7.5 h |
 | Historia nueva (agregada el 2026-11-24) | T78, T79 | 8.5 h |
 | Corrección encontrada al revisar H38 (agregada el 2026-11-25) | T80 | 0.5 h |
+| Corrección encontrada el 2026-11-25 | T81 | 0.75 h |
 | Adelanto opcional | T73 | 2 h |
-| **Total** | | **31.5 h** |
+| **Total** | | **32.25 h** |
 
-Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5. T74 a T77 suman 7.5 h (20.5 h sin el adelanto opcional, 22.5 h con él), por decisión del usuario del 2026-11-23: el compromiso con las correcciones pasa la capacidad en unas 2.5 h. Si el tiempo no alcanza, el usuario decide qué se corta. T78 suma 4 h más (24.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; las correcciones T74 a T77 llevaron unas 3 h reales de las 7.5 h estimadas. T79 suma 4.5 h más (29 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; si el tiempo no alcanza, T72 (H36) pasa al Sprint 5. T80 suma 0.5 h más (29.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-25.
+Capacidad para tareas: unas 18 h. El compromiso deja unas 5 h de margen, por el acuerdo 1 y porque H35 (la reinspección) toca la certificación ya construida. Si el tiempo no alcanza, se corta desde abajo: T72 (H36) es la primera en pasar al Sprint 5. T74 a T77 suman 7.5 h (20.5 h sin el adelanto opcional, 22.5 h con él), por decisión del usuario del 2026-11-23: el compromiso con las correcciones pasa la capacidad en unas 2.5 h. Si el tiempo no alcanza, el usuario decide qué se corta. T78 suma 4 h más (24.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; las correcciones T74 a T77 llevaron unas 3 h reales de las 7.5 h estimadas. T79 suma 4.5 h más (29 h sin el adelanto opcional), por decisión del usuario del 2026-11-24; si el tiempo no alcanza, T72 (H36) pasa al Sprint 5. T80 suma 0.5 h más (29.5 h sin el adelanto opcional), por decisión del usuario del 2026-11-25. T81 suma 0.75 h más (30.25 h sin el adelanto opcional), por decisión del usuario del 2026-11-25.
 
 ## Orden de trabajo
 Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión pendiente (T67), un diseño sin aprobar (T68) o el visto bueno de la prueba de una historia.
@@ -97,6 +102,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | — | T78 · H37 · Anuncio de lotes | `fix/T78-anuncio-de-lotes` | `main` | diseño aprobado |
 | — | T79 · H38 · Reemplazo con extras | `feature/H38-reemplazo-dispositivos` | `main` | diseño aprobado; antes de T71 |
 | — | T80 · Migas de pan en el celular | `fix/T80-migas-celular` | `main` | nada, salvo que cambie el diseño de la plantilla |
+| — | T81 · H17 · Origen de la solicitud | `fix/T81-H17-source-solicitud` | `main` | nada: no cambia la pantalla |
 
 - **Ramas encadenadas.** Cada historia de E6 parte de la anterior porque usa lo que esta deja: las secciones de checkpoint de H33, el checkpoint de H34 y la reinspección de H35. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
 - **Orden de merge:** T69, T70, T71 y T72, en ese orden.

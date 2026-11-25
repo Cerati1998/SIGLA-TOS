@@ -471,7 +471,7 @@ erDiagram
 
 ### 4.9 Certificaciones (E5)
 
-El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19). Mientras la certificación está en curso o reaperturada, un dispositivo del kit ya colocado se puede reemplazar por un dispositivo extra del mismo tipo, uno que un despacho a granel por Operación mandó a su kit (H38): el reemplazo queda en `security_device_replacements` y las fotos que la sección tenía dejan de contar.
+El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su origen (`source`, T81), su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19). Mientras la certificación está en curso o reaperturada, un dispositivo del kit ya colocado se puede reemplazar por un dispositivo extra del mismo tipo, uno que un despacho a granel por Operación mandó a su kit (H38): el reemplazo queda en `security_device_replacements` y las fotos que la sección tenía dejan de contar.
 
 ```mermaid
 erDiagram
@@ -501,7 +501,8 @@ erDiagram
 
   certifications {
     bigint id PK
-    string gate_out_request_reference UK
+    string source UK "con gate_out_request_reference"
+    string gate_out_request_reference UK "con source"
     string booking
     string container
     string client
@@ -1027,7 +1028,8 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `gate_out_request_reference` | varchar(50) | UK: el id de la solicitud de SIGLA 1.0 (`id_solicitud`). Una solicitud tiene una sola certificación (criterio 6). |
+| `source` | varchar(10) | Enum de PHP `GateOutRequestSource`: de dónde viene la solicitud de retiro. `api` es SIGLA 1.0; `web` será el módulo de solicitudes de SIGLA 2.0, que todavía no existe (T81, 2026-11-25). Por defecto `api`: las certificaciones anteriores a T81 vienen todas de SIGLA 1.0. Por ahora la asignación solo busca en SIGLA 1.0 y guarda `api`; cómo se elige el origen lo decide la historia del módulo de solicitudes. |
+| `gate_out_request_reference` | varchar(50) | El id de la solicitud en su origen: en SIGLA 1.0, `id_solicitud`. UK junto con `source` (antes UK sola; cambiado el 2026-11-25 en T81), para que un mismo número en SIGLA 1.0 y en SIGLA 2.0 no choque. Una solicitud tiene una sola certificación (criterio 6). |
 | `booking` | varchar(50) | El booking de la solicitud, para volver a consultarla. |
 | `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
 | `client` | varchar(255) (null) | El cliente (operador) de la solicitud, como lo manda SIGLA 1.0 (T58). |
@@ -1146,5 +1148,5 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | --- | --- | --- |
 | P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
 | P3 | Fotos | Cerrada el 2026-11-20 en H18: una tabla, `certification_photos`, con la foto y su miniatura en la misma fila. |
-| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
+| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. La reinspección se agrega con su historia. `source` (`api`/`web`) se agregó el 2026-11-25 en T81. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |
