@@ -18,6 +18,7 @@ use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\PhotoStorage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -90,7 +91,7 @@ class CertificationConsultationTest extends TestCase
         $open = $this->certification('TGHU5550123');
         $closed = $this->certification('ABCU1234567', ['driver_id' => Driver::factory()->create(['full_name' => 'CONDUCTOR DE EJEMPLO', 'document_number' => '12345678'])->id], closed: true);
         CertificationPhoto::query()->each(function (CertificationPhoto $photo): void {
-            Storage::disk('local')->put($photo->thumbnail_path, (string) UploadedFile::fake()->image('miniatura.jpg')->get());
+            Storage::disk('local')->put($photo->path, (string) UploadedFile::fake()->image('foto.jpg')->get());
         });
 
         $this->actingAs($this->inspector)->get(route('intranet.certifications.pdf', $open))->assertNotFound();
@@ -111,6 +112,18 @@ class CertificationConsultationTest extends TestCase
         $this->assertStringContainsString('CTA1234567', $html);
         $this->assertStringContainsString('Interior · puertas abiertas', $html);
         $this->assertStringContainsString('Inspección externa', $html);
+    }
+
+    public function test_the_pdf_takes_each_photo_from_the_whole_photo_shrunk_to_at_most_1024_px(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('certifications/1/grande.jpg', (string) UploadedFile::fake()->image('grande.jpg', 1920, 1440)->get());
+        Storage::disk('local')->put('certifications/1/chica.jpg', (string) UploadedFile::fake()->image('chica.jpg', 800, 600)->get());
+        $photoStorage = app(PhotoStorage::class);
+
+        $this->assertSame([1024, 768], $this->sizeOf($photoStorage->resizedDataUri('certifications/1/grande.jpg', 1024)));
+        $this->assertSame([800, 600], $this->sizeOf($photoStorage->resizedDataUri('certifications/1/chica.jpg', 1024)));
+        $this->assertSame('', $photoStorage->resizedDataUri('certifications/1/no-existe.jpg', 1024));
     }
 
     public function test_guests_cannot_open_the_detail_or_the_pdf(): void
@@ -155,5 +168,18 @@ class CertificationConsultationTest extends TestCase
         }
 
         return $certification;
+    }
+
+    /**
+     * The width and the height of the JPEG inside a data URI.
+     *
+     * @return array{int, int}
+     */
+    private function sizeOf(string $dataUri): array
+    {
+        $size = getimagesizefromstring((string) base64_decode(substr($dataUri, strlen('data:image/jpeg;base64,'))));
+        $this->assertNotFalse($size);
+
+        return [$size[0], $size[1]];
     }
 }

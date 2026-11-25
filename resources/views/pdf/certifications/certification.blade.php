@@ -123,16 +123,16 @@
                         </span>
                     </div>
                     <table>
-                        @foreach ($currentPhotos->chunk(4) as $row)
+                        @foreach ($currentPhotos->chunk(3) as $row)
                             <tr class="sin-corte">
                                 @foreach ($row as $photo)
-                                    <td style="width: 25%; vertical-align: top; padding: 0 4px 8px;">
+                                    <td style="width: 33.33%; vertical-align: top; padding: 0 5px 10px;">
                                         <img src="{{ $photoData($photo) }}" alt="" style="width: 100%; border: 1px solid #c9ced6;">
                                         <div style="font-size: 8px; color: #4b5563; margin-top: 2px;">{{ $photo->uploader->name }} · {{ $lima($photo->created_at)?->format('d/m/Y H:i') }}</div>
                                     </td>
                                 @endforeach
-                                @for ($empty = $row->count(); $empty < 4; $empty++)
-                                    <td style="width: 25%;"></td>
+                                @for ($empty = $row->count(); $empty < 3; $empty++)
+                                    <td style="width: 33.33%;"></td>
                                 @endfor
                             </tr>
                         @endforeach

@@ -58,4 +58,43 @@ class PhotoStorage
 
         return $contents === null ? '' : 'data:image/jpeg;base64,'.base64_encode($contents);
     }
+
+    /**
+     * Get a stored JPEG as a data URI shrunk to at most `maxSide` px on its longest side, so a PDF shows it sharp
+     * without carrying the whole photo (T85). Without GD, or when it is already small, it goes as it is.
+     */
+    public function resizedDataUri(string $path, int $maxSide): string
+    {
+        $contents = Storage::disk(self::DISK)->get($path);
+
+        if ($contents === null) {
+            return '';
+        }
+
+        $image = function_exists('imagecreatefromstring') ? @imagecreatefromstring($contents) : false;
+
+        if ($image === false) {
+            return 'data:image/jpeg;base64,'.base64_encode($contents);
+        }
+
+        $longestSide = max(imagesx($image), imagesy($image));
+
+        if ($longestSide > $maxSide) {
+            $scaled = imagescale($image, (int) round(imagesx($image) * $maxSide / $longestSide), (int) round(imagesy($image) * $maxSide / $longestSide));
+            $contents = $scaled === false ? $contents : $this->jpeg($scaled);
+        }
+
+        return 'data:image/jpeg;base64,'.base64_encode($contents);
+    }
+
+    /**
+     * Encode an image as a JPEG.
+     */
+    private function jpeg(\GdImage $image): string
+    {
+        ob_start();
+        imagejpeg($image, null, 80);
+
+        return (string) ob_get_clean();
+    }
 }
