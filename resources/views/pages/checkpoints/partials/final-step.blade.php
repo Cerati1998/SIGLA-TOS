@@ -54,7 +54,7 @@
     @if ($closed)
         <p class="m-0 pt-2.5 text-sm text-ink-muted">Checkpoint cerrado: no se edita.</p>
     @elseif ($incorrect->isNotEmpty())
-        <p class="m-0 pt-2.5 text-sm text-badge-warning-ink">Hay series incorrectas: el checkpoint no se cierra y pasa a reinspección, que llega con H35. Queda a medias, con sus marcas guardadas.</p>
+        <p class="m-0 pt-2.5 text-sm text-badge-warning-ink">Hay series incorrectas: el checkpoint no se cierra y pasa a reinspección. Queda a medias, con sus marcas guardadas.</p>
     @elseif (! $complete)
         <p class="m-0 pt-2.5 text-sm text-ink-muted">Para finalizar falta completar pasos: cada paso de fotos necesita al menos una foto y cada serie, su marca.</p>
     @else
