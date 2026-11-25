@@ -199,6 +199,15 @@ class KitDispatchTest extends TestCase
             ->assertDontSee('KIT-000046');
     }
 
+    public function test_the_shipping_line_filter_shows_the_code_and_the_name_of_each_shipping_line(): void
+    {
+        $hapag = ShippingLine::factory()->create(['code' => 'HPL', 'name' => 'Hapag-Lloyd']);
+
+        Livewire::test(CreateModal::class)
+            ->assertViewHas('shippingLines', fn ($shippingLines): bool => $shippingLines->all() === [$hapag->id => 'HPL · Hapag-Lloyd', $this->maersk->id => 'MSK · Maersk'])
+            ->assertSeeInOrder(['Todas', 'HPL · Hapag-Lloyd', 'MSK · Maersk']);
+    }
+
     public function test_closing_the_window_without_dispatching_forgets_what_was_chosen(): void
     {
         Livewire::test(CreateModal::class)

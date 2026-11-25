@@ -187,7 +187,8 @@ class CreateModal extends Component
             'markedCount' => $markedKits->count(),
             'markedSummary' => KitDispatch::summarize($markedKits),
             'kitTypes' => KitType::query()->orderBy('name')->pluck('name', 'id'),
-            'shippingLines' => ShippingLine::query()->orderBy('code')->pluck('code', 'id'),
+            'shippingLines' => ShippingLine::query()->orderBy('code')->get(['id', 'code', 'name'])
+                ->mapWithKeys(fn (ShippingLine $shippingLine): array => [$shippingLine->id => "{$shippingLine->code} · {$shippingLine->name}"]),
             'delivererName' => $user->name,
         ]);
     }

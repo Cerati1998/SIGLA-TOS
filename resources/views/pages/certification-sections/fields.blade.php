@@ -7,7 +7,12 @@
         pick: '',
         sectionPick: '',
         find(id) {
-            return this.types.find((type) => type.id === Number(id)) ?? { name: '', kind: '', trashed: false };
+            return this.types.find((type) => type.id === Number(id)) ?? { name: '', kind: '', splits: false, trashed: false };
+        },
+        nameOf(type) {
+            const side = ['internal', 'external'].includes($wire.form.type) ? this.typeLabels[$wire.form.type] : null;
+
+            return type.splits && side ? type.name + ' · ' + side : type.name;
         },
         findSection(id) {
             return this.sections.find((section) => section.id === Number(id)) ?? { name: '', typeLabel: '', carries: '', trashed: false };
