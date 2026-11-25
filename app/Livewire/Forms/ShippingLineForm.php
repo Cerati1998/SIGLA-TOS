@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\DispatchMode;
 use App\Models\ShippingLine;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,8 @@ class ShippingLineForm extends Form
 
     public string $name = '';
 
+    public string $dispatchMode = DispatchMode::Random->value;
+
     /**
      * Fill the form with the shipping line being edited.
      */
@@ -27,6 +30,7 @@ class ShippingLineForm extends Form
         $this->shippingLineId = $shippingLine->id;
         $this->code = $shippingLine->code;
         $this->name = $shippingLine->name;
+        $this->dispatchMode = $shippingLine->dispatch_mode->value;
     }
 
     /**
@@ -39,6 +43,7 @@ class ShippingLineForm extends Form
         return [
             'code' => ['required', 'string', 'max:20', Rule::unique(ShippingLine::class)->ignore($this->shippingLineId)],
             'name' => ['required', 'string', 'max:100'],
+            'dispatchMode' => ['required', Rule::enum(DispatchMode::class)],
         ];
     }
 
@@ -52,6 +57,7 @@ class ShippingLineForm extends Form
         return [
             'code' => 'código',
             'name' => 'nombre',
+            'dispatchMode' => 'modo de despacho',
         ];
     }
 
@@ -95,6 +101,7 @@ class ShippingLineForm extends Form
         return [
             'code' => $this->code,
             'name' => $this->name,
+            'dispatch_mode' => $this->dispatchMode,
         ];
     }
 }

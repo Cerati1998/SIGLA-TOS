@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DispatchMode;
 use App\Models\ShippingLine;
 use Illuminate\Database\Seeder;
 
@@ -11,6 +12,8 @@ class ShippingLineSeeder extends Seeder
      * The initial shipping lines, as code => [name, how SIGLA 1.0 writes it]. The first 29 were given by the user on
      * 2026-11-16; SEAB, CSP, SVC and MLS come from the lines of SIGLA 1.0, with its code and their trade name (T74,
      * 2026-11-23). The SIGLA 1.0 name is null when SIGLA 1.0 does not have the line.
+     *
+     * Every line dispatches its devices in any order, except the ones in LINEAR_LINES (T82).
      *
      * @var array<string, array{0: string, 1: string|null}>
      */
@@ -51,12 +54,24 @@ class ShippingLineSeeder extends Seeder
     ];
 
     /**
+     * The codes of the lines whose devices leave in the order of their correlatives (T82, asked by the user on
+     * 2026-11-25).
+     *
+     * @var list<string>
+     */
+    public const array LINEAR_LINES = ['CHQT'];
+
+    /**
      * Load the initial shipping lines. A line whose code already exists, even deactivated, is left as it is.
      */
     public function run(): void
     {
         foreach (self::LINES as $code => [$name, $sigla1Name]) {
-            ShippingLine::withTrashed()->firstOrCreate(['code' => $code], ['name' => $name, 'sigla1_name' => $sigla1Name]);
+            ShippingLine::withTrashed()->firstOrCreate(['code' => $code], [
+                'name' => $name,
+                'sigla1_name' => $sigla1Name,
+                'dispatch_mode' => in_array($code, self::LINEAR_LINES, true) ? DispatchMode::Linear : DispatchMode::Random,
+            ]);
         }
     }
 }
