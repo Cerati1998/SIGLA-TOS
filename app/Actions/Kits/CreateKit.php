@@ -2,6 +2,7 @@
 
 namespace App\Actions\Kits;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\KitStatus;
 use App\Enums\SecurityDeviceKind;
 use App\Enums\SecurityDeviceStatus;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class CreateKit
 {
+    public function __construct(private FindSkippedSecurityDevice $findSkippedDevice) {}
+
     /**
      * Create a kit in Armando, with a copy of what its kit type carries and its pouch already inside, all or nothing
      * (H14). The pouch is the device scanned in the header: of the pouch type of the kit type, of a lot of the shipping
@@ -43,6 +46,12 @@ class CreateKit
 
             if ($reason !== null) {
                 return $reason;
+            }
+
+            $skipped = $this->findSkippedDevice->handle([$pouch->id]);
+
+            if ($skipped !== null) {
+                return FindSkippedSecurityDevice::message($skipped);
             }
 
             $kit = Kit::query()->create([

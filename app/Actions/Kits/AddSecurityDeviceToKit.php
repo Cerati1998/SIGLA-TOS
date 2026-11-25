@@ -2,6 +2,7 @@
 
 namespace App\Actions\Kits;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\KitAssignment;
 use App\Enums\SecurityDeviceStatus;
 use App\Models\Kit;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class AddSecurityDeviceToKit
 {
+    public function __construct(private FindSkippedSecurityDevice $findSkippedDevice) {}
+
     /**
      * Add the device with the given serial number to a slot of the kit, and update the status of both (H14). Return
      * the reason it was not added, to show it on screen, or null when it was added.
@@ -35,6 +38,12 @@ class AddSecurityDeviceToKit
 
             if ($reason !== null || $device === null) {
                 return $reason;
+            }
+
+            $skipped = $this->findSkippedDevice->handle([$device->id]);
+
+            if ($skipped !== null) {
+                return FindSkippedSecurityDevice::message($skipped);
             }
 
             $kit->devices()->attach($device->id, ['assignment' => $slot['assignment']?->value]);
