@@ -76,6 +76,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `certification_step_security_device` | E5 · H18 | `en código` | (nueva) |
 | `certification_photos` | E5 · H18 | `en código` | (nueva; cierra P3) |
 | `certification_reopenings` | E5 · H19 | `en código` | (nueva; con `closed_at` y `closed_by` en `certifications`, cierra P4) |
+| `security_device_replacements` | E5 · H38 | `en código` | (nueva) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -470,7 +471,7 @@ erDiagram
 
 ### 4.9 Certificaciones (E5)
 
-El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19).
+El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19). Mientras la certificación está en curso o reaperturada, un dispositivo del kit ya colocado se puede reemplazar por un dispositivo extra del mismo tipo, uno que un despacho a granel por Operación mandó a su kit (H38): el reemplazo queda en `security_device_replacements` y las fotos que la sección tenía dejan de contar.
 
 ```mermaid
 erDiagram
@@ -490,6 +491,13 @@ erDiagram
   users |o--o{ certifications : "cerró"
   certifications ||--o{ certification_reopenings : "reaperturas"
   users ||--o{ certification_reopenings : "reaperturó"
+  certifications ||--o{ security_device_replacements : "reemplazos"
+  certification_steps ||--o{ security_device_replacements : "en la sección"
+  security_devices ||--o{ security_device_replacements : "sale"
+  security_devices ||--o| security_device_replacements : "entra"
+  bulk_dispatches ||--o{ security_device_replacements : "llegó en"
+  users ||--o{ security_device_replacements : "reemplazó"
+  security_device_replacements |o--o{ certification_photos : "dejó sin valor"
 
   certifications {
     bigint id PK
@@ -541,6 +549,17 @@ erDiagram
     string path
     string thumbnail_path
     bigint uploaded_by FK
+    bigint superseded_by_replacement_id FK "null"
+  }
+  security_device_replacements {
+    bigint id PK
+    bigint certification_id FK
+    bigint certification_step_id FK
+    bigint removed_device_id FK
+    bigint installed_device_id FK, UK
+    bigint bulk_dispatch_id FK
+    string reason
+    bigint replaced_by FK
   }
 ```
 
@@ -1082,7 +1101,24 @@ Las fotos de cada paso (H18), de 1 a n, sin máximo. Se toman con la cámara del
 | `path` | varchar(255) | Ruta de la foto en el disco privado. |
 | `thumbnail_path` | varchar(255) | Ruta de la miniatura, en la subcarpeta `thumbnails`. |
 | `uploaded_by` | bigint FK → `users.id` | Quién la subió. Al reemplazarla, quien la reemplazó. |
+| `superseded_by_replacement_id` | bigint FK → `security_device_replacements.id`, null | El reemplazo de un dispositivo de la sección que dejó la foto sin valor (H38). Se conserva y se ve como «antes del reemplazo», pero no cuenta: la sección necesita una foto con este campo en null. |
 | `timestamps` | | `created_at` es la fecha y hora de la subida; al reemplazar la foto, toma la del reemplazo. |
+
+### 5.26 `security_device_replacements` · `en código`
+
+Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un dispositivo extra del mismo tipo (H38). Un dispositivo extra es uno de un despacho a granel con motivo Operación cuyo `kit_id` es el kit de la certificación. Al reemplazar, el extra ocupa el lugar del que sale en `certification_step_security_device` y en `kit_security_device`, con su estado (`in_kit`, o `used` si la certificación se reaperturó); el que sale pasa a `discarded`, con el motivo y la foto en sus columnas de descarte (T77); y las fotos de la sección quedan con `superseded_by_replacement_id`. Todo junto o nada.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | Índice con `created_at`. |
+| `certification_step_id` | bigint FK → `certification_steps.id` | La sección donde estaba el dispositivo. |
+| `removed_device_id` | bigint FK → `security_devices.id` | El dispositivo del kit que sale, ahora `discarded`. |
+| `installed_device_id` | bigint FK → `security_devices.id` | UK: un extra entra una sola vez. |
+| `bulk_dispatch_id` | bigint FK → `bulk_dispatches.id` | El despacho a granel en que llegó el extra. |
+| `reason` | varchar(255) | El motivo, obligatorio; es también el motivo del descarte del que sale. |
+| `replaced_by` | bigint FK → `users.id` | Quién reemplazó. |
+| `timestamps` | | `created_at` es la fecha y hora del reemplazo. |
 
 ## 6. Cambios del ER original que ya aplican
 

@@ -133,7 +133,7 @@ class BulkDispatchForm extends Form
                 'integer',
                 function (string $attribute, mixed $value, Closure $fail): void {
                     if ($this->reason === BulkDispatchReason::Operation->value && ! SearchDispatchedKitOptions::query()->whereKey((int) $value)->exists()) {
-                        $fail('Elige el contenedor de un kit usado en su certificación.');
+                        $fail('Elige el contenedor de una certificación en curso, reaperturada o cerrada.');
                     }
                 },
             ],

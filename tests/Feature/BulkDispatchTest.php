@@ -261,7 +261,7 @@ class BulkDispatchTest extends TestCase
             ->set('form.kitId', $builtKit->id)
             ->call('confirmDispatch')
             ->assertHasErrors('form.kitId')
-            ->assertSee('Elige el contenedor de un kit usado en su certificación.')
+            ->assertSee('Elige el contenedor de una certificación en curso, reaperturada o cerrada.')
             ->set('form.kitId', $dispatchedKit->id)
             ->call('save')
             ->assertHasNoErrors();
@@ -363,24 +363,40 @@ class BulkDispatchTest extends TestCase
             ->assertJsonPath('0.name', 'MSKU1234567 · KIT-000046');
     }
 
-    public function test_only_a_kit_used_in_its_certification_can_receive_an_operation(): void
+    public function test_the_operation_takes_the_kits_of_certifications_in_progress_reopened_or_closed_but_never_annulled(): void
     {
         $this->lot('SB', 1001, 1001);
         $uncertified = $this->dispatchedKit('KIT-000047', null);
-        $inCertification = $this->dispatchedKit('KIT-000048', 'TCLU7654321');
-        $inCertification->update(['status' => KitStatus::Dispatched]);
+        $inProgress = $this->dispatchedKit('KIT-000048', 'TCLU7654321');
+        $inProgress->update(['status' => KitStatus::Dispatched]);
+        $closed = $this->dispatchedKit('KIT-000049', 'TCLU7654322');
+        $closed->certification?->update(['closed_at' => now()]);
+        $annulled = $this->dispatchedKit('KIT-000045', 'TCLU7654320');
+        $annulled->certification?->update(['annulled_at' => now()]);
 
         $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-00004'])
             ->assertOk()
-            ->assertJsonCount(0);
+            ->assertJsonCount(2)
+            ->assertJsonPath('0.name', 'TCLU7654322 · KIT-000049')
+            ->assertJsonPath('1.name', 'TCLU7654321 · KIT-000048');
+        $this->assertStringContainsString('· Cerrada ·', $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-000049'])->json('0.description'));
+        $this->assertStringContainsString('· En curso ·', $this->postJson(route('intranet.kits.dispatched-options'), ['search' => 'KIT-000048'])->json('0.description'));
 
-        foreach ([$uncertified, $inCertification] as $kit) {
+        foreach ([$uncertified, $annulled] as $kit) {
             $this->filledWindow(BulkDispatchReason::Operation)
                 ->call('scan', 'SB001001')
                 ->set('form.kitId', $kit->id)
                 ->call('confirmDispatch')
                 ->assertHasErrors('form.kitId');
         }
+
+        $this->filledWindow(BulkDispatchReason::Operation)
+            ->call('scan', 'SB001001')
+            ->set('form.kitId', $inProgress->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame($inProgress->id, BulkDispatch::query()->sole()->kit_id);
     }
 
     /**

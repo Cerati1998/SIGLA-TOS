@@ -730,7 +730,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Fuera: agregar un extra sin sacar ninguno, devolver extras a bodega y editar o anular un reemplazo.
 - Depende de: H18 a H20, H30 y T77 (foto del descarte).
 - Diseño: página «E5 · Certificación» del lienzo, aprobado por el usuario el 2026-11-24: la sección con «Dispositivos extra» y «Reemplazar», la lista de extras, el modal de reemplazo, la sección después del reemplazo, el detalle con «Dispositivos reemplazados» (teléfono y escritorio) y sus estados. Se reemplaza desde el teléfono; en escritorio, como en H18, es solo lectura. Por la regla del lienzo se actualizó también el selector de Operación en los estados de H30 (E4).
-- Suposición por confirmar al empezar T79: si una asignación con un reemplazo se anula con «Reutilizar» (H32), el extra que entró sigue en el kit en lugar del descartado.
+- Al construir (2026-11-25, T79), propuesto por Claude Code y visto por el usuario en el PR: el modal de reemplazo ofrece solo los dispositivos de la inspección abierta (interna o externa), para que la foto nueva se tome en esa misma inspección; y el PDF lleva solo las fotos tomadas después del reemplazo, porque las anteriores muestran el dispositivo que salió. Las anteriores se ven en el detalle, marcadas «antes del reemplazo».
+- Decisión del usuario del 2026-11-24, al empezar T79: el extra que entra reemplaza al descartado también en el contenido del kit. Si la asignación se anula (H32), el extra sigue en el kit como cualquier otro: con «Reutilizar» vuelve a Despachado con el kit y con «Inhabilitar» pasa a Descartado con los demás. El descartado por el reemplazo sigue Descartado.
 
 ### E6 · Checkpoint (historias aprobadas el 2026-11-23)
 - Validación del contenedor ya cargado, fuera del depot, antes de llegar al puerto de embarque. Solo aplica a unidades que fueron certificadas.

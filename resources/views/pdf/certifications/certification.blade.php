@@ -114,15 +114,16 @@
             <p class="seccion" style="margin-top: 12px;">Inspección {{ mb_strtolower($view['type']->label()) }}</p>
 
             @foreach ($typeSteps as $step)
+                @php $currentPhotos = $step->photos->whereNull('superseded_by_replacement_id'); @endphp
                 <div class="caja" style="padding: 8px 12px; margin-bottom: 10px;">
                     <div style="padding-bottom: 5px; margin-bottom: 8px; border-bottom: 1px solid #c9ced6;">
                         <span style="font-size: 11px; font-weight: bold;">{{ $step->position }} · {{ $step->section->name }}</span>
                         <span style="font-size: 9px; color: #4b5563; margin-left: 8px;">
-                            {{ $step->type->label() }} · {{ $step->devices->isEmpty() ? 'Solo foto' : $step->devices->pluck('serial_number')->implode(', ') }} · {{ trans_choice(':count foto|:count fotos', $step->photos->count()) }}
+                            {{ $step->type->label() }} · {{ $step->devices->isEmpty() ? 'Solo foto' : $step->devices->pluck('serial_number')->implode(', ') }} · {{ trans_choice(':count foto|:count fotos', $currentPhotos->count()) }}
                         </span>
                     </div>
                     <table>
-                        @foreach ($step->photos->chunk(4) as $row)
+                        @foreach ($currentPhotos->chunk(4) as $row)
                             <tr class="sin-corte">
                                 @foreach ($row as $photo)
                                     <td style="width: 25%; vertical-align: top; padding: 0 4px 8px;">
