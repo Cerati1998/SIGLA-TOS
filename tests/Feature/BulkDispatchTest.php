@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\BulkDispatches\DescribeBulkDispatch;
 use App\Enums\BulkDispatchReason;
 use App\Enums\KitStatus;
 use App\Enums\SecurityDeviceStatus;
@@ -85,7 +86,7 @@ class BulkDispatchTest extends TestCase
 
         Livewire::test(BulkDispatchesTable::class)
             ->set('search', $operation->number())
-            ->assertSeeText('Kit KIT-000046')
+            ->assertSeeText('MSKU0000046 · KIT-000046')
             ->assertDontSeeText($sale->number());
 
         Livewire::test(BulkDispatchesTable::class)
@@ -269,7 +270,7 @@ class BulkDispatchTest extends TestCase
         $dispatch = BulkDispatch::query()->sole();
 
         $this->assertSame([BulkDispatchReason::Operation, $dispatchedKit->id, null], [$dispatch->reason, $dispatch->kit_id, $dispatch->client_id]);
-        $this->assertSame('Kit KIT-000046', $dispatch->destination());
+        $this->assertSame('MSKU0000046 · KIT-000046', $dispatch->destination());
         $this->assertSame(SecurityDeviceStatus::Dispatched, $this->deviceOf($lot, 1001)->status);
     }
 
@@ -326,7 +327,69 @@ class BulkDispatchTest extends TestCase
             ->assertSeeText('Reposición por precinto roto.')
             ->assertSeeText('Rangos SB001001 – SB001002, SB001005 · Cantidad 3')
             ->assertSeeInOrder(['SB001001', 'SB001002', 'SB001005'])
-            ->assertDontSee('PDF');
+            ->assertDontSeeText('Asignación del kit');
+    }
+
+    public function test_the_pdf_of_a_bulk_dispatch_opens_from_the_list_and_the_detail_with_its_devices_by_type(): void
+    {
+        $lot = $this->lot('SB', 1001, 1005);
+        $dispatch = $this->bulkDispatch(['notes' => 'Reposición por precinto roto.'], 0);
+        $dispatch->devices()->attach([$this->deviceOf($lot, 1001)->id, $this->deviceOf($lot, 1002)->id, $this->deviceOf($lot, 1005)->id]);
+        $pdf = route('intranet.bulk-dispatches.pdf', $dispatch);
+
+        Livewire::test(BulkDispatchesTable::class)->assertSeeHtml($pdf);
+        $this->get(route('intranet.bulk-dispatches.show', $dispatch))->assertSee($pdf)->assertSeeText('Descargar PDF');
+
+        $this->get($pdf)
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertHeader('content-disposition', sprintf('inline; filename="Despacho %s.pdf"', $dispatch->number()));
+
+        $html = $this->pdfHtml($dispatch);
+
+        $this->assertSame(1, substr_count($html, 'Despacho de dispositivos a granel'));
+        $this->assertStringContainsString($dispatch->number(), $html);
+        $this->assertStringContainsString(($dispatch->created_at ?? now())->timezone('America/Lima')->format('d/m/Y H:i'), $html);
+        $this->assertStringContainsString('Trabajador De Ejemplo Dos', $html);
+        $this->assertStringContainsString('Agroexportadora del Norte S.A.C.', $html);
+        $this->assertStringContainsString('Zona certificación', $html);
+        $this->assertStringContainsString('Reposición por precinto roto.', $html);
+        $this->assertStringContainsString('SB001001 – SB001002, SB001005', $html);
+        $this->assertStringContainsString('Total · 1 tipo', $html);
+        $this->assertStringContainsString('Recepción', $html);
+        $this->assertStringNotContainsString('Asignación del kit', $html);
+
+        foreach (['SB001001', 'SB001002', 'SB001005'] as $serialNumber) {
+            $this->assertStringContainsString($serialNumber, $html);
+        }
+
+        $this->assertStringNotContainsString('SB001003', $html);
+    }
+
+    public function test_for_the_operation_the_list_the_detail_and_the_pdf_show_the_assignment_its_kit_is_linked_to(): void
+    {
+        $kit = $this->dispatchedKit('KIT-000046', 'MSKU1234567');
+        $certification = Certification::query()->where('kit_id', $kit->id)->sole();
+        $certification->update(['gate_out_request_reference' => '10001', 'booking' => 'MAEU258110423', 'client' => 'Operador de ejemplo S.A.C.', 'product' => null]);
+        $certification->shippingLine->update(['code' => 'MAEU', 'name' => 'Maersk Line']);
+        $dispatch = $this->bulkDispatch(['reason' => BulkDispatchReason::Operation, 'client_id' => null, 'kit_id' => $kit->id], 1);
+        $expected = ['MSKU1234567', '10001', 'Operador de ejemplo S.A.C.', 'MAEU · Maersk Line', 'MAEU258110423', $certification->status()->label()];
+
+        Livewire::test(BulkDispatchesTable::class)->assertSeeText('MSKU1234567 · KIT-000046');
+
+        $this->get(route('intranet.bulk-dispatches.show', $dispatch))
+            ->assertOk()
+            ->assertSeeText('Asignación del kit')
+            ->assertSeeTextInOrder($expected)
+            ->assertSeeText('—');
+
+        $html = $this->pdfHtml($dispatch);
+
+        $this->assertStringContainsString('Asignación del kit', $html);
+
+        foreach ($expected as $value) {
+            $this->assertStringContainsString(e($value), $html);
+        }
     }
 
     public function test_the_kit_options_offer_only_dispatched_kits_and_the_client_options_only_active_clients(): void
@@ -458,6 +521,17 @@ class BulkDispatchTest extends TestCase
         }
 
         return $kit;
+    }
+
+    /**
+     * Render the PDF of a bulk dispatch as HTML, to read what it shows.
+     */
+    private function pdfHtml(BulkDispatch $dispatch): string
+    {
+        return view('pdf.bulk-dispatches.dispatch', [
+            ...app(DescribeBulkDispatch::class)->handle($dispatch),
+            'generatedBy' => 'Bodeguero Uno',
+        ])->render();
     }
 
     /**

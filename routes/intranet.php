@@ -76,6 +76,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('bulk-dispatches/{bulkDispatch}', [BulkDispatchController::class, 'show'])->name('bulk-dispatches.show');
 
+    Route::get('bulk-dispatches/{bulkDispatch}/pdf', [BulkDispatchController::class, 'pdf'])->name('bulk-dispatches.pdf');
+
     Route::post('kits/dispatched-options', DispatchedKitOptionsController::class)->name('kits.dispatched-options');
 
     Route::post('clients/options', ClientOptionsController::class)->name('clients.options');

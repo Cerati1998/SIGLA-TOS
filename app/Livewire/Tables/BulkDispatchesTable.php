@@ -49,7 +49,7 @@ class BulkDispatchesTable extends BaseTable
     public function builder(): Builder
     {
         return BulkDispatch::query()
-            ->with(['receiver', 'creator', 'client', 'kit', 'yardZone'])
+            ->with(['receiver', 'creator', 'client', 'kit.certification', 'yardZone'])
             ->withCount('devices')
             ->orderByDesc('bulk_dispatches.id');
     }

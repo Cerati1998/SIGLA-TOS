@@ -19,6 +19,13 @@
     ['name' => $bulkDispatch->number()],
 ]">
     <div class="flex flex-col gap-5">
+        <div class="flex justify-end max-md:flex-col max-md:items-stretch">
+            <flux:button :href="route('intranet.bulk-dispatches.pdf', $bulkDispatch)" target="_blank" variant="primary" class="[--color-accent:var(--color-danger)] max-md:h-13">
+                <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
+                Descargar PDF
+            </flux:button>
+        </div>
+
         <section class="flex flex-col gap-3.5 rounded-card bg-white p-4 shadow-card">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h3 class="m-0 font-heading text-xl font-normal text-brand">{{ $bulkDispatch->number() }}</h3>
@@ -39,6 +46,23 @@
                 </div>
             @endif
         </section>
+
+        @if ($assignment !== null && $assignmentStatus !== null)
+            <section class="flex flex-col gap-3.5 rounded-card bg-white p-4 shadow-card">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="m-0 font-heading text-xl font-normal text-brand">Asignación del kit</h3>
+                    <x-status-badge :variant="$assignmentStatus->badgeVariant()">{{ $assignmentStatus->label() }}</x-status-badge>
+                </div>
+                <dl class="m-0 grid grid-cols-1 gap-x-5 gap-y-3.5 md:grid-cols-4">
+                    @foreach ($assignment as $label => $value)
+                        <div class="flex flex-col gap-0.5">
+                            <dt class="text-xs tracking-wider text-ink-muted uppercase">{{ $label }}</dt>
+                            <dd class="m-0 text-[0.9375rem] font-medium">{{ $value }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </section>
+        @endif
 
         <h3 class="m-0 font-heading text-xl font-normal text-brand">Detalle de dispositivos</h3>
 
