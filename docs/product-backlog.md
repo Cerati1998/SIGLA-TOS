@@ -818,6 +818,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. La pantalla se usa bien desde el celular.
 - Reemplaza la historia de E4 que faltaba («reasignar dispositivos a una unidad en reinspección»): los dispositivos llegan por H30.
 - Cambio del 2026-11-24 (H38): el reemplazo del criterio 5 usa el de H38 y queda en el mismo registro de «Dispositivos reemplazados», con el motivo de la reinspección.
+- Decisión del usuario del 2026-11-26, antes de construir: el reemplazo del criterio 5 pide también la **foto obligatoria del descarte** del dispositivo que sale, como en H38 (opción A). El diseño de la sección reabierta se actualizó en el lienzo con esa foto y el botón «Reemplazar», y se aprobó el 2026-11-26.
 
 - Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y ronda 2 el 2026-11-24): el motivo al finalizar, la sección reabierta para el inspector certificado, el listado de Asignaciones con «En reinspección» y su cierre, y la segunda vuelta del checkpoint. En las listas de Inspección interna y externa, la unidad en reinspección lleva la etiqueta «Reinspección», sobre el diseño de H18.
 
