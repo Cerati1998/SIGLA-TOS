@@ -79,6 +79,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_replacements` | E5 · H38 | `en código` | (nueva) |
 | `checkpoints`, `checkpoint_steps`, `checkpoint_photos`, `checkpoint_marks` | E6 · H34 | `en código` | (nuevas) |
 | `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
+| `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -589,13 +590,14 @@ erDiagram
   security_device_replacements |o--o| reinspection_devices : "reemplazo"
   reinspections |o--o{ checkpoint_marks : "trajo o superó"
   users ||--o{ reinspections : "inició y cerró"
-  users |o--o{ checkpoints : "foto del contenedor y cerró"
+  users |o--o{ checkpoints : "inició, foto del contenedor y cerró"
   users ||--o{ checkpoint_photos : "subió"
   users |o--o{ checkpoint_marks : "marcó"
 
   checkpoints {
     bigint id PK
     bigint certification_id FK, UK
+    bigint started_by FK "null"
     string container_photo_path "null"
     string container_thumbnail_path "null"
     bigint container_photo_by FK "null"
@@ -1209,12 +1211,13 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 
 ### 5.27 `checkpoints` · `en código`
 
-El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor. Un checkpoint cerrado no se edita.
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); el listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `certification_id` | bigint FK → `certifications.id` | UK: una certificación tiene un solo checkpoint. |
+| `started_by` | bigint FK → `users.id` null | Quién lo inició: quien abrió la unidad por primera vez (H36, aprobado por el usuario el 2026-11-26). Null en los checkpoints anteriores a esta columna. `created_at` es cuándo. |
 | `container_photo_path` | varchar(255) null | Foto opcional del contenedor, como evidencia; no lee el número. Una sola: una nueva reemplaza la anterior y borra sus archivos. Va en `storage/app/private/checkpoints/{id}/container`. |
 | `container_thumbnail_path` | varchar(255) null | Su miniatura. |
 | `container_photo_by` | bigint FK → `users.id` null | Quién tomó la foto del contenedor. |
