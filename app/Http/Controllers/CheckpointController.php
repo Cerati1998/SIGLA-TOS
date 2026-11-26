@@ -14,4 +14,12 @@ class CheckpointController extends Controller
     {
         return view('pages.checkpoints.show', ['checkpoint' => $checkpoint->load('certification')]);
     }
+
+    /**
+     * Show the detail of a checkpoint, only to read (H36, criterion 3).
+     */
+    public function details(Checkpoint $checkpoint): View
+    {
+        return view('pages.checkpoints.details', ['checkpoint' => $checkpoint->load('certification')]);
+    }
 }

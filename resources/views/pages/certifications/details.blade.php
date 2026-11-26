@@ -35,7 +35,10 @@
 
 <div x-data="certificationDetails" class="flex flex-col gap-5.25">
     <div class="flex flex-wrap items-center justify-end gap-3 max-md:flex-col max-md:items-stretch">
-        <flux:button :href="route('intranet.certifications.list')" wire:navigate class="max-md:order-2 max-md:h-13">Volver a Asignaciones</flux:button>
+        <flux:button :href="route('intranet.certifications.list')" wire:navigate class="max-md:order-3 max-md:h-13">Volver a Asignaciones</flux:button>
+        @if ($certification->checkpoint !== null)
+            <flux:button :href="route('intranet.checkpoints.details', $certification->checkpoint)" wire:navigate class="border-brand! text-brand! max-md:order-2 max-md:h-13">Ver checkpoint</flux:button>
+        @endif
         @if ($certification->isClosed() && ! $certification->isInReinspection())
             <flux:button :href="route('intranet.certifications.pdf', $certification)" target="_blank" variant="primary" class="[--color-accent:var(--color-danger)] max-md:order-1 max-md:h-13">
                 <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>

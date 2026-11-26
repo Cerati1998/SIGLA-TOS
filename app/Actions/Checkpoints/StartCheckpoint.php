@@ -8,6 +8,7 @@ use App\Models\Certification;
 use App\Models\CertificationSection;
 use App\Models\Checkpoint;
 use App\Models\SecurityDevice;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,13 +17,14 @@ use Illuminate\Validation\ValidationException;
  * Give a certification its checkpoint the first time someone opens the unit (H34, decision of 2026-11-24): the active
  * checkpoint sections of the catalog are copied as its steps, in their order, and each verification step gets one
  * unmarked mark for each series the certification left in the sections it verifies (criterion 6), so later changes
- * in the catalog do not change it. If the checkpoint already exists, it is the one returned.
+ * in the catalog do not change it. It keeps who started it (H36). If the checkpoint already exists, it is the one
+ * returned.
  */
 class StartCheckpoint
 {
-    public function handle(Certification $certification): Checkpoint
+    public function handle(Certification $certification, User $user): Checkpoint
     {
-        return DB::transaction(function () use ($certification): Checkpoint {
+        return DB::transaction(function () use ($certification, $user): Checkpoint {
             $certification = Certification::query()->lockForUpdate()->findOrFail($certification->id);
 
             if ($certification->checkpoint()->exists()) {
@@ -35,7 +37,7 @@ class StartCheckpoint
                 ]);
             }
 
-            $checkpoint = $certification->checkpoint()->create();
+            $checkpoint = $certification->checkpoint()->create(['started_by' => $user->id]);
 
             self::sections()->each(function (CertificationSection $section, int $index) use ($checkpoint, $certification): void {
                 $kind = $section->checkpoint_kind ?? CheckpointSectionKind::Photos;
