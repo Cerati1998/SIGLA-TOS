@@ -218,7 +218,11 @@ class ReinspectionTest extends TestCase
         $this->replaceDevice('WXG900');
         $this->newPhoto($this->evaporators);
 
-        $this->assignments()->call('closeReinspection', $this->certification->id)->assertDispatched('toast', icon: 'success');
+        $this->assignments()
+            ->assertSeeText('Reinspección 1/1')
+            ->assertSeeHtml("confirmAction('¿Cerrar la reinspección?', reinspectionText")
+            ->assertDontSeeHtml('@js(')
+            ->call('closeReinspection', $this->certification->id)->assertDispatched('toast', icon: 'success');
 
         $reinspection = Reinspection::query()->sole();
         $this->assertNotNull($reinspection->closed_at);
