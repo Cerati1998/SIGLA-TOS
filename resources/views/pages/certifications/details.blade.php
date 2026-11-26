@@ -36,7 +36,7 @@
 <div x-data="certificationDetails" class="flex flex-col gap-5.25">
     <div class="flex flex-wrap items-center justify-end gap-3 max-md:flex-col max-md:items-stretch">
         <flux:button :href="route('intranet.certifications.list')" wire:navigate class="max-md:order-2 max-md:h-13">Volver a Asignaciones</flux:button>
-        @if ($certification->isClosed())
+        @if ($certification->isClosed() && ! $certification->isInReinspection())
             <flux:button :href="route('intranet.certifications.pdf', $certification)" target="_blank" variant="primary" class="[--color-accent:var(--color-danger)] max-md:order-1 max-md:h-13">
                 <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
                 Descargar PDF
@@ -55,6 +55,15 @@
             </span>
         </p>
     @elseif ($certification->isClosed())
+        @php $openReinspection = $certification->openReinspection()->with('starter')->first(); @endphp
+        @if ($openReinspection !== null)
+            <p class="m-0 flex items-start gap-2 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+                <span>
+                    <strong>En reinspección</strong> desde el {{ $lima($openReinspection->created_at)?->format('d/m/Y') }} a las {{ $lima($openReinspection->created_at)?->format('H:i') }}, iniciada en el checkpoint por <strong>{{ $openReinspection->starter->name }}</strong>. Motivo: «{{ $openReinspection->reason }}». Sin PDF hasta que se cierre la reinspección.
+                </span>
+            </p>
+        @endif
         @php $closedAt = $lima($certification->closed_at); @endphp
         <p class="m-0 flex items-start gap-2 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
             <i class="fa-solid fa-lock mt-0.5" aria-hidden="true"></i>
@@ -200,13 +209,13 @@
                     @endif
 
                     @if ($oldPhotos->isNotEmpty())
-                        <span class="pt-1.5 text-sm text-ink-muted">Antes del reemplazo · {{ $oldPhotos->count() }}, ya no cuentan</span>
+                        <span class="pt-1.5 text-sm text-ink-muted">{{ $oldPhotos->last()?->supersedingReplacement?->isFromReinspection() ? 'Antes de la reinspección' : 'Antes del reemplazo' }} · {{ $oldPhotos->count() }}, ya no cuentan</span>
                         <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
                             @foreach ($oldPhotos as $photo)
                                 <button type="button" wire:key="old-photo-{{ $photo->id }}"
                                     x-on:click="show(@js(route('intranet.certification-photos.show', $photo)), @js($photo->uploader->name), @js($lima($photo->created_at)?->format('d/m/Y H:i')))"
                                     class="aspect-square overflow-hidden rounded-control border border-line bg-surface opacity-55 max-md:min-h-11"
-                                    aria-label="Ver la foto {{ $loop->iteration }} de {{ $step->section->name }}, antes del reemplazo">
+                                    aria-label="Ver la foto {{ $loop->iteration }} de {{ $step->section->name }}, {{ $photo->supersedingReplacement?->isFromReinspection() ? 'antes de la reinspección' : 'antes del reemplazo' }}">
                                     <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="size-full object-cover">
                                 </button>
                             @endforeach

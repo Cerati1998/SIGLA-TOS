@@ -79,13 +79,24 @@ class CheckpointStep extends Model
     }
 
     /**
-     * Get the marks of the series of the step, in the order they were created: by serial number.
+     * Get the marks of the series of the step that count, in the order they were created: by serial number, then the
+     * series each reinspection brought. The incorrect ones a reinspection replaced are left out (H35).
      *
      * @return HasMany<CheckpointMark, $this>
      */
     public function marks(): HasMany
     {
-        return $this->hasMany(CheckpointMark::class)->orderBy('id');
+        return $this->hasMany(CheckpointMark::class)->whereNull('superseded_by_reinspection_id')->orderBy('id');
+    }
+
+    /**
+     * Get the incorrect marks a reinspection replaced, kept as the trace of the first round (H35).
+     *
+     * @return HasMany<CheckpointMark, $this>
+     */
+    public function supersededMarks(): HasMany
+    {
+        return $this->hasMany(CheckpointMark::class)->whereNotNull('superseded_by_reinspection_id')->orderBy('id');
     }
 
     /**

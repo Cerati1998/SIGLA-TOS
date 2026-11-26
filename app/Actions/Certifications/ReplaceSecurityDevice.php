@@ -7,6 +7,7 @@ use App\Enums\SecurityDeviceStatus;
 use App\Models\BulkDispatch;
 use App\Models\Certification;
 use App\Models\CertificationStep;
+use App\Models\ReinspectionDevice;
 use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceReplacement;
 use App\Models\User;
@@ -20,7 +21,9 @@ use Throwable;
  * Replace a device of the kit, already placed in a section of a certification, by one of its extra devices of the same
  * type (H38, criteria 4 to 7 and 10). The extra takes its place in the section and in the kit, with its status; the one
  * that left becomes Descartado, with the reason and its photo, as a discard (T77); and the photos the section had no
- * longer count, so it needs a new one. All or nothing.
+ * longer count, so it needs a new one. All or nothing. In a reinspection (H35, criterion 5) the certification stays
+ * closed: only the device to replace of a reopened section is replaced, with the reason of the reinspection, and the
+ * replacement is kept in it.
  */
 class ReplaceSecurityDevice
 {
@@ -28,14 +31,14 @@ class ReplaceSecurityDevice
 
     /**
      * Replace the device and return null, or return why it was not replaced, to show it on screen. The photo of a
-     * replacement that did not happen is not kept.
+     * replacement that did not happen is not kept. In a reinspection, it is the device to replace.
      */
-    public function handle(CertificationStep $step, SecurityDevice $removed, SecurityDevice $installed, string $reason, UploadedFile $photo, UploadedFile $thumbnail, User $user): ?string
+    public function handle(CertificationStep $step, SecurityDevice $removed, SecurityDevice $installed, string $reason, UploadedFile $photo, UploadedFile $thumbnail, User $user, ?ReinspectionDevice $reinspectionDevice = null): ?string
     {
         $storedPhoto = $this->photoStorage->store($photo, $thumbnail, DiscardSecurityDevice::PHOTO_DIRECTORY);
 
         try {
-            $refusal = DB::transaction(fn (): ?string => $this->replace($step, $removed, $installed, $reason, $storedPhoto, $user));
+            $refusal = DB::transaction(fn (): ?string => $this->replace($step, $removed, $installed, $reason, $storedPhoto, $user, $reinspectionDevice));
         } catch (Throwable $exception) {
             $this->photoStorage->delete($storedPhoto);
 
@@ -52,7 +55,7 @@ class ReplaceSecurityDevice
     /**
      * Check the certification and both devices again, locked, and replace the device, or say why not.
      */
-    private function replace(CertificationStep $step, SecurityDevice $removed, SecurityDevice $installed, string $reason, StoredPhoto $storedPhoto, User $user): ?string
+    private function replace(CertificationStep $step, SecurityDevice $removed, SecurityDevice $installed, string $reason, StoredPhoto $storedPhoto, User $user, ?ReinspectionDevice $reinspectionDevice): ?string
     {
         $certification = Certification::query()->lockForUpdate()->findOrFail($step->certification_id);
 
@@ -60,7 +63,14 @@ class ReplaceSecurityDevice
             return 'Se anuló la asignación de su kit: ya no admite reemplazos.';
         }
 
-        if ($certification->isClosed()) {
+        if ($reinspectionDevice !== null) {
+            $reinspectionDevice = ReinspectionDevice::query()->with('reinspection')->lockForUpdate()->findOrFail($reinspectionDevice->id);
+            $refusal = $this->reinspectionRefusal($certification, $step, $removed, $reinspectionDevice);
+
+            if ($refusal !== null) {
+                return $refusal;
+            }
+        } elseif ($certification->isClosed()) {
             return 'La certificación está cerrada. Para reemplazar un dispositivo, reapertúrala desde Asignaciones.';
         }
 
@@ -81,6 +91,7 @@ class ReplaceSecurityDevice
             'removed_device_id' => $lockedRemoved->id,
             'installed_device_id' => $lockedInstalled->id,
             'bulk_dispatch_id' => $bulkDispatch->id,
+            'reinspection_id' => $reinspectionDevice?->reinspection_id,
             'reason' => $reason,
             'replaced_by' => $user->id,
         ]);
@@ -105,6 +116,30 @@ class ReplaceSecurityDevice
         ]);
 
         $step->photos()->whereNull('superseded_by_replacement_id')->update(['superseded_by_replacement_id' => $replacement->id]);
+        $reinspectionDevice?->forceFill(['security_device_replacement_id' => $replacement->id])->save();
+
+        return null;
+    }
+
+    /**
+     * Say why a device to replace of a reinspection cannot be replaced, or null: the reinspection must still be open,
+     * and the device must be that one, in its reopened section, not replaced yet.
+     */
+    private function reinspectionRefusal(Certification $certification, CertificationStep $step, SecurityDevice $removed, ReinspectionDevice $reinspectionDevice): ?string
+    {
+        $reinspection = $reinspectionDevice->reinspection;
+
+        if ($reinspection->certification_id !== $certification->id || $reinspectionDevice->certification_step_id !== $step->id || $reinspectionDevice->security_device_id !== $removed->id) {
+            return sprintf('%s no está por reemplazar en esta sección.', $removed->serial_number);
+        }
+
+        if ($reinspection->isClosed()) {
+            return 'La reinspección ya se cerró: no admite más reemplazos.';
+        }
+
+        if ($reinspectionDevice->isReplaced()) {
+            return sprintf('%s ya se reemplazó: quizá otro inspector lo hizo.', $removed->serial_number);
+        }
 
         return null;
     }

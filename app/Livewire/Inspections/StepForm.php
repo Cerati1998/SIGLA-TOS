@@ -10,6 +10,7 @@ use App\Enums\CertificationSectionType;
 use App\Models\Certification;
 use App\Models\CertificationPhoto;
 use App\Models\CertificationStep;
+use App\Models\Reinspection;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -27,9 +28,13 @@ use Livewire\WithFileUploads;
  * thumbnail; moving between the steps happens in the browser, and the server is called only to save or delete a
  * photo. A closed certification is only read, until it is reopened (H18, criterion 11). A device of a section can be
  * replaced by an extra device of the unit, in its own window (H38); then the photos the section had no longer count.
+ * In reinspection (H35, criteria 4 to 6) the certification stays closed and only its reopened sections of this
+ * inspection are shown and edited: each incorrect series is replaced, and then the section takes its new photos.
  *
  * @property-read Collection<int, CertificationStep> $steps
  * @property-read array{total: int, unusedCount: int, unusedTypeIds: list<int>} $extras
+ * @property-read Reinspection|null $reinspection
+ * @property-read array<int, list<string>> $extraDispatches
  */
 class StepForm extends Component
 {
@@ -59,10 +64,51 @@ class StepForm extends Component
     #[Computed]
     public function steps(): Collection
     {
+        $reinspection = $this->reinspection;
+
         return $this->certification->steps()
             ->where('type', $this->type)
-            ->with(['section', 'devices.lot.securityDeviceType', 'photos.uploader', 'replacements.removedDevice'])
+            ->when($reinspection !== null, fn ($steps) => $steps->whereKey($reinspection?->reopenedStepIds() ?? []))
+            ->with(['section', 'devices.lot.securityDeviceType', 'photos.uploader', 'photos.supersedingReplacement', 'replacements.removedDevice'])
             ->get();
+    }
+
+    /**
+     * Get the open reinspection of the unit when it reopened sections of this inspection (H35, criterion 4), with its
+     * devices to replace.
+     */
+    #[Computed]
+    public function reinspection(): ?Reinspection
+    {
+        $reinspection = $this->certification->openReinspection()
+            ->with(['starter', 'devices.device.lot.securityDeviceType', 'devices.step'])
+            ->first();
+
+        if ($reinspection === null || $reinspection->devices->doesntContain(fn ($device): bool => $device->step->type === $this->type)) {
+            return null;
+        }
+
+        return $reinspection;
+    }
+
+    /**
+     * Get the bulk dispatches of the unused extra devices of each type, to tell the reinspection where the new device
+     * must come from.
+     *
+     * @return array<int, list<string>>
+     */
+    #[Computed]
+    public function extraDispatches(): array
+    {
+        $dispatches = [];
+
+        foreach (app(ListExtraDevices::class)->handle($this->certification, $this->type)['extras'] as $extra) {
+            if ($extra['unused']) {
+                $dispatches[$extra['typeId']][] = $extra['dispatch'];
+            }
+        }
+
+        return array_map(fn (array $codes): array => array_values(array_unique($codes)), $dispatches);
     }
 
     /**
@@ -91,7 +137,7 @@ class StepForm extends Component
     #[On('security-device-replaced')]
     public function refreshSteps(): void
     {
-        unset($this->steps, $this->extras);
+        unset($this->steps, $this->extras, $this->reinspection, $this->extraDispatches);
     }
 
     /**
@@ -100,7 +146,13 @@ class StepForm extends Component
      */
     public function savePhoto(int $stepId, ?int $replacedPhotoId, AddCertificationPhoto $addPhoto, ReplaceCertificationPhoto $replacePhoto): bool
     {
-        if ($this->refusedBecauseClosed()) {
+        if ($this->refusedBecauseClosed($stepId)) {
+            return false;
+        }
+
+        if ($this->hasDevicesToReplace($stepId)) {
+            $this->dispatch('toast', icon: 'warning', title: 'Primero el dispositivo', text: 'Reemplaza la serie incorrecta antes de tomar las fotos nuevas.');
+
             return false;
         }
 
@@ -137,7 +189,7 @@ class StepForm extends Component
      */
     public function deletePhoto(int $stepId, int $photoId, DeleteCertificationPhoto $deletePhoto): void
     {
-        if ($this->refusedBecauseClosed()) {
+        if ($this->refusedBecauseClosed($stepId)) {
             return;
         }
 
@@ -150,11 +202,12 @@ class StepForm extends Component
 
     /**
      * Refuse a change when the certification was closed, even if the screen was opened before (H18, criterion 11), or
-     * when the assignment of its kit was annulled (H32).
+     * when the assignment of its kit was annulled (H32). In reinspection, a reopened section is edited (H35).
      */
-    private function refusedBecauseClosed(): bool
+    private function refusedBecauseClosed(int $stepId): bool
     {
         $certification = $this->certification->refresh();
+        unset($this->reinspection);
 
         if ($certification->isAnnulled()) {
             $this->dispatch('toast', icon: 'warning', title: 'Asignación anulada', text: 'No se puede editar: se anuló la asignación de su kit.');
@@ -166,9 +219,24 @@ class StepForm extends Component
             return false;
         }
 
+        if (in_array($stepId, $this->reinspection?->reopenedStepIds() ?? [], true)) {
+            return false;
+        }
+
         $this->dispatch('toast', icon: 'warning', title: 'Certificación cerrada', text: 'No se puede editar. Para corregir sus fotos, reapertúrala desde Asignaciones.');
 
         return true;
+    }
+
+    /**
+     * Whether a reopened section still has an incorrect series to replace: its new photos come after it (H35).
+     */
+    private function hasDevicesToReplace(int $stepId): bool
+    {
+        return (bool) $this->reinspection?->devices()
+            ->where('certification_step_id', $stepId)
+            ->whereNull('security_device_replacement_id')
+            ->exists();
     }
 
     /**

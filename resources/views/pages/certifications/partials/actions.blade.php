@@ -9,11 +9,16 @@
     $kitText = $wasReopened
         ? "El kit {$certification->kit->pouch_code} sigue en Usado."
         : "El kit {$certification->kit->pouch_code} y sus {$certification->kit->devices_count} dispositivos pasan a Usado.";
+    $reinspection = $status === \App\Enums\CertificationStatus::InReinspection ? $certification->openReinspection : null;
+    $reinspectionProgress = $reinspection?->progress() ?? ['total' => 0, 'done' => 0];
+    $reinspectionText = ($reinspectionProgress['total'] === 1 ? '1 sección reabierta' : $reinspectionProgress['total'].' secciones reabiertas')
+        .', con su dispositivo nuevo y fotos nuevas. La unidad vuelve a la lista del checkpoint, que verifica solo las series reemplazadas.';
 @endphp
 
 <div x-data="{
         id: {{ $certification->id }},
         container: @js($certification->container),
+        reinspectionText: @js("{$certification->container} · {$reinspectionText}"),
         closeText: @js("La interna ({$progress['internal']['done']}/{$progress['internal']['total']}) y la externa ({$progress['external']['done']}/{$progress['external']['total']}) están completas. {$kitText}"),
     }" class="flex items-center gap-1 [&_a]:max-md:size-11 [&_button]:max-md:size-11">
     <x-wire-button primary :href="route('intranet.certifications.show', $certification)" wire:navigate title="Ver" aria-label="Ver {{ $certification->container }}" xs>
@@ -21,6 +26,30 @@
     </x-wire-button>
 
     @if ($status === \App\Enums\CertificationStatus::Annulled)
+    @elseif ($status === \App\Enums\CertificationStatus::InReinspection)
+        @if ($reinspectionProgress['total'] > 0 && $reinspectionProgress['done'] === $reinspectionProgress['total'])
+            <x-wire-button
+                positive
+                x-on:click="confirmAction('¿Cerrar la reinspección?', reinspectionText, () => $wire.closeReinspection(id))"
+                wire:loading.attr="disabled"
+                wire:target="closeReinspection"
+                title="Cerrar la reinspección"
+                aria-label="Cerrar la reinspección de {{ $certification->container }}"
+                xs
+            >
+                <i class="fa-solid fa-lock text-sm" aria-hidden="true"></i>
+            </x-wire-button>
+        @else
+            <x-wire-button
+                positive
+                disabled
+                title="Cerrar la reinspección: falta el dispositivo nuevo o sus fotos"
+                aria-label="Cerrar la reinspección, no disponible: falta el dispositivo nuevo o sus fotos"
+                xs
+            >
+                <i class="fa-solid fa-lock text-sm" aria-hidden="true"></i>
+            </x-wire-button>
+        @endif
     @elseif ($status === \App\Enums\CertificationStatus::Closed)
         <x-wire-button negative :href="route('intranet.certifications.pdf', $certification)" target="_blank" title="Descargar PDF" aria-label="Descargar el PDF de {{ $certification->container }}" xs>
             <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>

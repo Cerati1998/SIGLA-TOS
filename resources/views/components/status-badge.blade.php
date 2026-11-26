@@ -11,6 +11,7 @@
         'warning' => 'bg-badge-warning text-badge-warning-ink',
         'danger' => 'bg-badge-danger text-badge-danger-ink',
         'purple' => 'bg-badge-purple text-badge-purple-ink',
+        'highlight' => 'bg-highlight text-white',
         'muted' => 'bg-badge-neutral text-ink-muted ring-1 ring-line ring-inset',
         default => 'bg-badge-neutral text-badge-neutral-ink',
     },

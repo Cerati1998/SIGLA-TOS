@@ -77,6 +77,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `certification_photos` | E5 · H18 | `en código` | (nueva; cierra P3) |
 | `certification_reopenings` | E5 · H19 | `en código` | (nueva; con `closed_at` y `closed_by` en `certifications`, cierra P4) |
 | `security_device_replacements` | E5 · H38 | `en código` | (nueva) |
+| `checkpoints`, `checkpoint_steps`, `checkpoint_photos`, `checkpoint_marks` | E6 · H34 | `en código` | (nuevas) |
+| `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -559,6 +561,7 @@ erDiagram
     bigint removed_device_id FK
     bigint installed_device_id FK, UK
     bigint bulk_dispatch_id FK
+    bigint reinspection_id FK "null"
     string reason
     bigint replaced_by FK
   }
@@ -567,6 +570,8 @@ erDiagram
 ### 4.10 Checkpoint (E6)
 
 El inspector de checkpoint elige una unidad con la certificación cerrada (H34). La primera vez que alguien la abre nace su checkpoint, uno por certificación, que copia las secciones activas de tipo Checkpoint como sus pasos. Un paso de fotos guarda de 1 a n fotos; uno de verificación guarda una marca por cada serie que la certificación dejó en las secciones que verifica (H33), fijadas al nacer el checkpoint. El último paso suma observaciones y fotos extra, sin paso. Con todo completo y todas las series correctas, se cierra.
+
+Con alguna serie incorrecta, el checkpoint inicia una **reinspección** con su motivo (H35): guarda un dispositivo a reemplazar por cada serie incorrecta, con la sección de la certificación donde está, que queda reabierta. El inspector certificado reemplaza cada uno por un dispositivo extra, con el reemplazo de H38, y toma fotos nuevas; después la cierra desde Asignaciones. Al cerrarla, cada serie nueva recibe su marca en los pasos que verificaban la reemplazada, cuyas marcas quedan superadas, y el checkpoint verifica solo las nuevas.
 
 ```mermaid
 erDiagram
@@ -577,6 +582,13 @@ erDiagram
   checkpoint_steps |o--o{ checkpoint_photos : "fotos del paso"
   checkpoint_steps ||--o{ checkpoint_marks : "series a verificar"
   security_devices ||--o{ checkpoint_marks : "serie"
+  checkpoints ||--o{ reinspections : "inicia"
+  certifications ||--o{ reinspections : "reabre secciones"
+  reinspections ||--o{ reinspection_devices : "series a reemplazar"
+  certification_steps ||--o{ reinspection_devices : "sección reabierta"
+  security_device_replacements |o--o| reinspection_devices : "reemplazo"
+  reinspections |o--o{ checkpoint_marks : "trajo o superó"
+  users ||--o{ reinspections : "inició y cerró"
   users |o--o{ checkpoints : "foto del contenedor y cerró"
   users ||--o{ checkpoint_photos : "subió"
   users |o--o{ checkpoint_marks : "marcó"
@@ -611,9 +623,27 @@ erDiagram
     bigint id PK
     bigint checkpoint_step_id FK
     bigint security_device_id FK
+    bigint reinspection_id FK "null: serie de la primera vuelta"
+    bigint superseded_by_reinspection_id FK "null: cuenta"
     boolean is_correct "null: sin marcar"
     bigint marked_by FK "null"
     datetime marked_at "null"
+  }
+  reinspections {
+    bigint id PK
+    bigint checkpoint_id FK
+    bigint certification_id FK
+    string reason
+    bigint started_by FK
+    datetime closed_at "null: abierta"
+    bigint closed_by FK "null"
+  }
+  reinspection_devices {
+    bigint id PK
+    bigint reinspection_id FK
+    bigint certification_step_id FK
+    bigint security_device_id FK
+    bigint security_device_replacement_id FK, UK "null: sin reemplazar"
   }
 ```
 
@@ -1172,6 +1202,7 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 | `removed_device_id` | bigint FK → `security_devices.id` | El dispositivo del kit que sale, ahora `discarded`. |
 | `installed_device_id` | bigint FK → `security_devices.id` | UK: un extra entra una sola vez. |
 | `bulk_dispatch_id` | bigint FK → `bulk_dispatches.id` | El despacho a granel en que llegó el extra. |
+| `reinspection_id` | bigint FK → `reinspections.id`, null | La reinspección en que se hizo (H35), con su motivo. Las fotos que dejó sin valor se ven «antes de la reinspección». Null en un reemplazo de la inspección (H38). |
 | `reason` | varchar(255) | El motivo, obligatorio; es también el motivo del descarte del que sale. |
 | `replaced_by` | bigint FK → `users.id` | Quién reemplazó. |
 | `timestamps` | | `created_at` es la fecha y hora del reemplazo. |
@@ -1222,16 +1253,46 @@ Las fotos del checkpoint (H34): de los pasos de fotos, de 1 a n, y las fotos ext
 
 ### 5.30 `checkpoint_marks` · `en código`
 
-Una fila por cada serie de un paso de verificación (H34): los dispositivos que la certificación dejó en las secciones que el paso verifica (`certification_section_verifications`), fijados cuando nace el checkpoint, en orden de serie. Se crean sin marca y se marcan al tocarlas; la marca se puede cambiar mientras el checkpoint está a medias.
+Una fila por cada serie de un paso de verificación (H34): los dispositivos que la certificación dejó en las secciones que el paso verifica (`certification_section_verifications`), fijados cuando nace el checkpoint, en orden de serie. Se crean sin marca y se marcan al tocarlas; la marca se puede cambiar mientras el checkpoint está a medias. Al cerrar una reinspección (H35), cada serie nueva recibe su fila, con `reinspection_id`, y las filas de la serie reemplazada quedan con `superseded_by_reinspection_id`: se conservan, pero ya no cuentan para cerrar.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `checkpoint_step_id` | bigint FK → `checkpoint_steps.id` | |
 | `security_device_id` | bigint FK → `security_devices.id` | UK junto con `checkpoint_step_id`. |
+| `reinspection_id` | bigint FK → `reinspections.id` null | La reinspección que trajo la serie: la que verifica la segunda vuelta. Null en las series de la primera vuelta. |
+| `superseded_by_reinspection_id` | bigint FK → `reinspections.id` null | La reinspección que reemplazó la serie de esta marca incorrecta. Mientras sea null, la marca cuenta. |
 | `is_correct` | boolean null | Correcta (true), incorrecta (false) o sin marcar (null). |
 | `marked_by` | bigint FK → `users.id` null | Quién la marcó por última vez. |
 | `marked_at` | datetime null | Cuándo la marcó. |
+| `timestamps` | | |
+
+### 5.31 `reinspections` · `en código`
+
+Las reinspecciones que inicia un checkpoint con series incorrectas (H35). Mientras una está abierta (`closed_at` null), la certificación sigue cerrada pero se ve «En reinspección» en Asignaciones: sin PDF, sin reapertura y sin anulación; solo se editan sus secciones reabiertas, y el checkpoint no se edita ni está en «Registrar checkpoint». Un checkpoint puede tener varias, una después de otra.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `checkpoint_id` | bigint FK → `checkpoints.id` | El checkpoint que la inició. |
+| `certification_id` | bigint FK → `certifications.id` | Índice con `closed_at`: la reinspección abierta de una certificación. |
+| `reason` | varchar(255) | El motivo, obligatorio. Es también el motivo de cada reemplazo y de cada descarte, por eso tiene su largo. |
+| `started_by` | bigint FK → `users.id` | Quién la inició. |
+| `closed_at` | datetime null | Cuándo se cerró, con cada sección reabierta con su dispositivo nuevo y al menos una foto nueva. |
+| `closed_by` | bigint FK → `users.id` null | Quién la cerró. |
+| `timestamps` | | `created_at` es la fecha y hora en que se inició. |
+
+### 5.32 `reinspection_devices` · `en código`
+
+Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie incorrecta, con la sección de la certificación donde estaba, que queda reabierta. Se reemplaza escaneando o escribiendo la serie de un dispositivo extra, con la foto del descarte del que sale (decisión del usuario del 2026-11-26), y el reemplazo queda en `security_device_replacements`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `reinspection_id` | bigint FK → `reinspections.id` | UK junto con `security_device_id`. |
+| `certification_step_id` | bigint FK → `certification_steps.id` | La sección reabierta. |
+| `security_device_id` | bigint FK → `security_devices.id` | El dispositivo de la serie incorrecta, que pasa a Descartado al reemplazarlo. |
+| `security_device_replacement_id` | bigint FK → `security_device_replacements.id` null | UK. Su reemplazo; null mientras falta reemplazarlo. |
 | `timestamps` | | |
 
 ## 6. Cambios del ER original que ya aplican

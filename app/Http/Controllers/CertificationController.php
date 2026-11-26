@@ -44,11 +44,12 @@ class CertificationController extends Controller
     /**
      * Show the PDF of a closed certification: its header, the devices placed on the drawings of the container and the
      * photos of each section (H20, criteria 5 and 6). Each photo goes shrunk from the whole photo, not from its
-     * thumbnail, so it stays sharp when zoomed and the PDF does not carry the photos as they are (T85).
+     * thumbnail, so it stays sharp when zoomed and the PDF does not carry the photos as they are (T85). There is no PDF
+     * while it is in reinspection (H35, criterion 9).
      */
     public function pdf(Request $request, Certification $certification, DescribeCertification $describeCertification, PhotoStorage $photoStorage): Response
     {
-        abort_unless($certification->isClosed(), 404);
+        abort_unless($certification->isClosed() && ! $certification->isInReinspection(), 404);
 
         /** @var User $user */
         $user = $request->user();

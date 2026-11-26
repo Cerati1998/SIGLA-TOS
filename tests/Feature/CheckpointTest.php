@@ -206,7 +206,7 @@ class CheckpointTest extends TestCase
             ->call('mark', $third->id, true)
             ->call('finish')
             ->assertHasErrors('checkpoint')
-            ->assertSeeText('Hay series incorrectas: el checkpoint no se cierra y pasa a reinspección');
+            ->assertSeeText('Hay series incorrectas: inicia la reinspección.');
 
         $this->assertFalse($checkpoint->refresh()->isClosed());
     }

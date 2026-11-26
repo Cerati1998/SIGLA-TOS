@@ -12,11 +12,14 @@ use Illuminate\Support\Carbon;
 /**
  * The mark of a series in a verification step of a checkpoint (H34): correct, incorrect or still unmarked. The series
  * to verify are fixed when the checkpoint is born, from the sections of the certification the step verifies. Who
- * marked it last and when is the evidence (criterion 10).
+ * marked it last and when is the evidence (criterion 10). The series a reinspection brought keep it, and the
+ * incorrect ones it replaced keep the reinspection that superseded them, which no longer count (H35).
  *
  * @property int $id
  * @property int $checkpoint_step_id
  * @property int $security_device_id
+ * @property int|null $reinspection_id
+ * @property int|null $superseded_by_reinspection_id
  * @property bool|null $is_correct
  * @property int|null $marked_by
  * @property Carbon|null $marked_at
@@ -25,8 +28,9 @@ use Illuminate\Support\Carbon;
  * @property-read CheckpointStep $step
  * @property-read SecurityDevice $device
  * @property-read User|null $marker
+ * @property-read Reinspection|null $reinspection
  */
-#[Fillable(['checkpoint_step_id', 'security_device_id'])]
+#[Fillable(['checkpoint_step_id', 'security_device_id', 'reinspection_id'])]
 class CheckpointMark extends Model
 {
     /** @use HasFactory<CheckpointMarkFactory> */
@@ -73,5 +77,15 @@ class CheckpointMark extends Model
     public function marker(): BelongsTo
     {
         return $this->belongsTo(User::class, 'marked_by')->withTrashed();
+    }
+
+    /**
+     * Get the reinspection that brought the series, if it was a new one (H35).
+     *
+     * @return BelongsTo<Reinspection, $this>
+     */
+    public function reinspection(): BelongsTo
+    {
+        return $this->belongsTo(Reinspection::class);
     }
 }

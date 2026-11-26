@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Reopen a closed certification with a reason, so its photos can be corrected or added and it can be closed again
- * (H19, criterion 7). Its kit and its devices stay Usado.
+ * (H19, criterion 7). Its kit and its devices stay Usado. One in reinspection is not reopened (H35, criterion 9).
  */
 class ReopenCertification
 {
@@ -25,6 +25,10 @@ class ReopenCertification
 
             if (! $locked->isClosed()) {
                 throw ValidationException::withMessages(['certification' => 'No está cerrada: ya se puede corregir.']);
+            }
+
+            if ($locked->isInReinspection()) {
+                throw ValidationException::withMessages(['certification' => 'Está en reinspección: se reapertura cuando se cierre la reinspección.']);
             }
 
             $locked->reopenings()->create([

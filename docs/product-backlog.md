@@ -819,6 +819,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   12. La pantalla se usa bien desde el celular.
 - Reemplaza la historia de E4 que faltaba («reasignar dispositivos a una unidad en reinspección»): los dispositivos llegan por H30.
 - Cambio del 2026-11-24 (H38): el reemplazo del criterio 5 usa el de H38 y queda en el mismo registro de «Dispositivos reemplazados», con el motivo de la reinspección.
+- Decisión del usuario del 2026-11-26, antes de construir: el reemplazo del criterio 5 pide también la **foto obligatoria del descarte** del dispositivo que sale, como en H38 (opción A). El diseño de la sección reabierta se actualizó en el lienzo con esa foto y el botón «Reemplazar», y se aprobó el 2026-11-26.
+- Al construir (2026-11-26, T71), propuesto por Claude Code y aprobado por el usuario, y dibujado en el lienzo: en la sección reabierta, «Tomar foto» se activa recién después de reemplazar la serie incorrecta, porque el reemplazo deja sin valor las fotos anteriores; en «Registrar checkpoint», la unidad que vuelve lleva la etiqueta «Vuelve de reinspección»; el detalle de la certificación (H20) muestra el aviso «En reinspección» con su motivo y no ofrece el PDF; y la reinspección se inicia solo con todos los pasos completos, como «Finalizar», porque la segunda vuelta muestra solo los pasos de verificación.
 
 - Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y ronda 2 el 2026-11-24): el motivo al finalizar, la sección reabierta para el inspector certificado, el listado de Asignaciones con «En reinspección» y su cierre, y la segunda vuelta del checkpoint. En las listas de Inspección interna y externa, la unidad en reinspección lleva la etiqueta «Reinspección», sobre el diseño de H18.
 

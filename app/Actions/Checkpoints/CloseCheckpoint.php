@@ -11,8 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Close a checkpoint (H34, criteria 8 and 9): every photo step has a photo, every series is marked and all of them are
- * correct. It keeps the observations and who closed it and when. With an incorrect series it is not closed: the
- * reinspection arrives with H35 (decision of the user of 2026-11-24).
+ * correct. It keeps the observations and who closed it and when. With an incorrect series it is not closed: it starts a
+ * reinspection instead (H35), and while it waits for one it is not closed either.
  */
 class CloseCheckpoint
 {
@@ -25,12 +25,16 @@ class CloseCheckpoint
                 throw ValidationException::withMessages(['checkpoint' => 'El checkpoint ya estaba cerrado.']);
             }
 
+            if ($checkpoint->isInReinspection()) {
+                throw ValidationException::withMessages(['checkpoint' => 'El checkpoint está en reinspección: se cierra cuando vuelva.']);
+            }
+
             if (! self::isComplete($checkpoint)) {
                 throw ValidationException::withMessages(['checkpoint' => 'Falta completar pasos: cada paso de fotos necesita una foto y cada serie, su marca.']);
             }
 
             if (self::hasIncorrectSeries($checkpoint)) {
-                throw ValidationException::withMessages(['checkpoint' => 'Hay series incorrectas: el checkpoint pasa a reinspección.']);
+                throw ValidationException::withMessages(['checkpoint' => 'Hay series incorrectas: inicia la reinspección.']);
             }
 
             $checkpoint->forceFill([

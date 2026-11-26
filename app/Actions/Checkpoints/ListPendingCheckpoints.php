@@ -13,14 +13,15 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * The units whose checkpoint is pending or half done (H34, criteria 1 and 2): certifications closed and not annulled,
  * without a closed checkpoint, with how far their checkpoint went and who changed it last. The ones half done go
- * first, then the ones closed last.
+ * first, then the ones closed last. A unit in reinspection is not here until the reinspection is closed; then it comes
+ * back, marked (H35, criterion 8).
  */
 class ListPendingCheckpoints
 {
     /**
      * Get the pending units.
      *
-     * @return list<array{id: int, container: string, pouchCode: string, shippingLine: string, started: bool, done: int, total: int, lastChange: array{by: string, at: CarbonInterface}|null, closedAt: CarbonInterface}>
+     * @return list<array{id: int, container: string, pouchCode: string, shippingLine: string, started: bool, done: int, total: int, lastChange: array{by: string, at: CarbonInterface}|null, closedAt: CarbonInterface, fromReinspection: bool}>
      */
     public function handle(): array
     {
@@ -30,6 +31,7 @@ class ListPendingCheckpoints
                 'shippingLine:id,code',
                 'checkpoint.steps' => fn ($steps) => $steps->with(['photos:id,checkpoint_step_id', 'marks:id,checkpoint_step_id,is_correct']),
             ])
+            ->withExists('reinspections')
             ->latest('closed_at')
             ->get();
 
@@ -56,6 +58,7 @@ class ListPendingCheckpoints
                 'total' => $checkpoint?->steps->count() ?? $catalogSteps,
                 'lastChange' => $checkpoint === null ? null : ($lastChanges[$checkpoint->id] ?? null),
                 'closedAt' => $closedAt,
+                'fromReinspection' => (bool) $certification->getAttribute('reinspections_exists'),
             ];
         });
 
@@ -115,7 +118,7 @@ class ListPendingCheckpoints
     }
 
     /**
-     * Get the certifications closed and not annulled whose checkpoint is not closed.
+     * Get the certifications closed and not annulled whose checkpoint is not closed nor waiting for a reinspection.
      *
      * @return Builder<Certification>
      */
@@ -124,6 +127,7 @@ class ListPendingCheckpoints
         return Certification::query()
             ->whereNotNull('closed_at')
             ->whereNull('annulled_at')
-            ->whereDoesntHave('checkpoint', fn (Builder $checkpoint) => $checkpoint->whereNotNull('closed_at'));
+            ->whereDoesntHave('checkpoint', fn (Builder $checkpoint) => $checkpoint->whereNotNull('closed_at'))
+            ->doesntHave('openReinspection');
     }
 }
