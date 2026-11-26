@@ -41,7 +41,7 @@
 
     <p x-show="! canCapture && ! closed" x-cloak class="m-0 flex items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
         <x-feather name="smartphone" class="mt-0.5 size-4 shrink-0" />
-        <span>Solo lectura: las fotos se toman desde el teléfono. Aquí puedes revisar el avance de cada sección.</span>
+        <span>Las fotos se toman desde el teléfono. Aquí puedes revisar el avance de cada sección y ver o eliminar sus fotos.</span>
     </p>
 
     <div class="flex flex-col gap-2.5">
@@ -150,7 +150,7 @@
                         </button>
                         <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente. Toca una foto para verla o eliminarla.</p>
 
-                        <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
+                        <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
                             @foreach ($currentPhotos as $photo)
                                 <div wire:key="photo-{{ $photo->id }}" class="relative aspect-square overflow-hidden rounded-lg bg-control"
                                     x-bind:class="isMenuOf({{ $photo->id }}) && 'outline-3 outline-offset-2 outline-brand'">
@@ -202,7 +202,7 @@
                                 <span class="text-base font-medium text-ink-muted">Antes del reemplazo · {{ $oldPhotos->count() }}</span>
                                 <span class="text-sm text-ink-muted">No cuentan</span>
                             </div>
-                            <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
+                            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
                                 @foreach ($oldPhotos as $photo)
                                     <button type="button" wire:key="old-photo-{{ $photo->id }}"
                                         x-on:click="openViewer(@js($viewed($step, $photo, true)))"
@@ -274,9 +274,9 @@
             </div>
             <div class="flex flex-none flex-col gap-3 p-4 pb-6">
                 <span class="text-sm">Subida por <strong x-text="viewer?.by"></strong> el <span x-text="viewer?.at"></span>.</span>
-                <div x-show="canCapture && ! viewer?.old" class="grid grid-cols-2 gap-2.5">
-                    <button type="button" x-on:click="replace" class="inline-flex h-13 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
-                    <button type="button" x-on:click="remove(viewer)" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
+                <div x-show="! closed && ! viewer?.old" class="flex gap-2.5">
+                    <button type="button" x-show="canCapture" x-on:click="replace" class="inline-flex h-13 flex-1 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
+                    <button type="button" x-on:click="remove(viewer)" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 flex-1 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
                 </div>
             </div>
         </div>
@@ -423,7 +423,7 @@
         },
 
         tapPhoto(photo) {
-            if (! this.canCapture) {
+            if (this.closed) {
                 this.openViewer(photo);
 
                 return;
