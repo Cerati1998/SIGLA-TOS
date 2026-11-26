@@ -250,6 +250,33 @@ class CertificationInspectionTest extends TestCase
         $this->actingAs($this->inspector)->get(route('intranet.certification-photos.thumbnail', $photo))->assertOk()->assertStreamedContent('miniatura');
     }
 
+    public function test_the_viewer_shows_when_each_photo_was_uploaded_in_lima_time(): void
+    {
+        $certification = $this->certificationWithSteps();
+        $step = $certification->steps()->where('type', CertificationSectionType::Internal)->firstOrFail();
+        CertificationPhoto::factory()->create(['certification_step_id' => $step->id, 'created_at' => '2026-11-25 15:14:00']);
+
+        $this->actingAs($this->inspector)
+            ->get(route('intranet.inspections.show', ['internal', $certification]))
+            ->assertOk()
+            ->assertSee('a las 10:14')
+            ->assertDontSee('a las 15:14');
+    }
+
+    public function test_the_trash_button_over_a_photo_is_offered_only_while_the_certification_is_not_closed(): void
+    {
+        $certification = $this->certificationWithSteps();
+        $step = $certification->steps()->where('type', CertificationSectionType::Internal)->firstOrFail();
+        CertificationPhoto::factory()->create(['certification_step_id' => $step->id]);
+        $route = route('intranet.inspections.show', ['internal', $certification]);
+
+        $this->actingAs($this->inspector)->get($route)->assertOk()->assertSee('Ver la foto 1')->assertSee('Eliminar la foto 1');
+
+        $certification->update(['closed_at' => now(), 'closed_by' => $this->inspector->id]);
+
+        $this->actingAs($this->inspector)->get($route)->assertOk()->assertDontSee('Eliminar la foto 1');
+    }
+
     /**
      * A certification already assigned with the active sections copied, as the assignment leaves it.
      */

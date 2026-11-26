@@ -6,9 +6,23 @@
     $done = $steps->filter(fn ($step) => $current($step)->isNotEmpty())->count();
     $firstPending = $steps->search(fn ($step) => $current($step)->isEmpty());
     $tone = $type === \App\Enums\CertificationSectionType::Internal ? 'purple' : 'info';
+    $readOnly = $certification->isReadOnly();
+    $viewed = function ($step, $photo, bool $old): array {
+        $uploadedAt = $photo->created_at->timezone(config('app.display_timezone'));
+
+        return [
+            'stepId' => $step->id,
+            'photoId' => $photo->id,
+            'section' => $old ? $step->section->name.' · antes del reemplazo' : $step->section->name,
+            'url' => route('intranet.certification-photos.show', $photo),
+            'by' => $photo->uploader->name,
+            'at' => $uploadedAt->format('d/m/Y').' a las '.$uploadedAt->format('H:i'),
+            'old' => $old,
+        ];
+    };
 @endphp
 
-<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($certification->isReadOnly()) })"
+<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($readOnly) })"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
@@ -134,18 +148,33 @@
                             <x-feather name="camera" class="size-6.5" />
                             Tomar foto
                         </button>
-                        <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente.</p>
+                        <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente. Toca una foto para verla o eliminarla.</p>
 
                         <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
                             @foreach ($currentPhotos as $photo)
-                                <button type="button" wire:key="photo-{{ $photo->id }}"
-                                    x-on:click="openViewer({ stepId: {{ $step->id }}, photoId: {{ $photo->id }}, section: @js($step->section->name), url: @js(route('intranet.certification-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at->format('d/m/Y').' a las '.$photo->created_at->format('H:i')), old: false })"
-                                    class="relative aspect-square overflow-hidden rounded-lg bg-control" aria-label="Ver la foto {{ $loop->iteration }}">
-                                    <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
-                                    <span class="absolute top-1.5 right-1.5 flex size-5.5 items-center justify-center rounded-full bg-status-green text-white" aria-hidden="true">
-                                        <i class="fa-solid fa-check text-[0.625rem]"></i>
-                                    </span>
-                                </button>
+                                <div wire:key="photo-{{ $photo->id }}" class="relative aspect-square overflow-hidden rounded-lg bg-control"
+                                    x-bind:class="isMenuOf({{ $photo->id }}) && 'outline-3 outline-offset-2 outline-brand'">
+                                    <button type="button" x-on:click="tapPhoto(@js($viewed($step, $photo, false)))" class="absolute inset-0 size-full" aria-label="Foto {{ $loop->iteration }}">
+                                        <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
+                                        <span class="absolute top-1.5 right-1.5 flex size-5.5 items-center justify-center rounded-full bg-status-green text-white" aria-hidden="true">
+                                            <i class="fa-solid fa-check text-[0.625rem]"></i>
+                                        </span>
+                                    </button>
+                                    @unless ($readOnly)
+                                        <div x-show="isMenuOf({{ $photo->id }})" x-cloak x-on:click.self="closeMenu" class="absolute inset-0 flex items-center justify-center bg-ink/35">
+                                            <button type="button" x-on:click="viewFromMenu" class="inline-flex size-11 items-center justify-center" aria-label="Ver la foto {{ $loop->iteration }}">
+                                                <span class="inline-flex size-8 items-center justify-center rounded-full bg-status-green text-white shadow-[0_1px_4px_rgb(0_0_0/0.3)]">
+                                                    <i class="fa-solid fa-eye text-sm" aria-hidden="true"></i>
+                                                </span>
+                                            </button>
+                                            <button type="button" x-on:click="removeFromMenu" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex size-11 items-center justify-center" aria-label="Eliminar la foto {{ $loop->iteration }}">
+                                                <span class="inline-flex size-8 items-center justify-center rounded-full bg-danger text-white shadow-[0_1px_4px_rgb(0_0_0/0.3)]">
+                                                    <i class="fa-solid fa-trash text-sm" aria-hidden="true"></i>
+                                                </span>
+                                            </button>
+                                        </div>
+                                    @endunless
+                                </div>
                             @endforeach
 
                             <div wire:ignore class="contents">
@@ -176,7 +205,7 @@
                             <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
                                 @foreach ($oldPhotos as $photo)
                                     <button type="button" wire:key="old-photo-{{ $photo->id }}"
-                                        x-on:click="openViewer({ stepId: {{ $step->id }}, photoId: {{ $photo->id }}, section: @js($step->section->name.' · antes del reemplazo'), url: @js(route('intranet.certification-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at->format('d/m/Y').' a las '.$photo->created_at->format('H:i')), old: true })"
+                                        x-on:click="openViewer(@js($viewed($step, $photo, true)))"
                                         class="relative aspect-square overflow-hidden rounded-lg bg-control opacity-55" aria-label="Ver la foto {{ $loop->iteration }}, antes del reemplazo">
                                         <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
                                     </button>
@@ -247,7 +276,7 @@
                 <span class="text-sm">Subida por <strong x-text="viewer?.by"></strong> el <span x-text="viewer?.at"></span>.</span>
                 <div x-show="canCapture && ! viewer?.old" class="grid grid-cols-2 gap-2.5">
                     <button type="button" x-on:click="replace" class="inline-flex h-13 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
-                    <button type="button" x-on:click="remove" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
+                    <button type="button" x-on:click="remove(viewer)" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
                 </div>
             </div>
         </div>
@@ -264,12 +293,14 @@
         canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
+        menu: null,
         target: null,
         pending: {},
         queue: [],
         uploading: false,
 
         go(index) {
+            this.menu = null;
             this.current = index;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
@@ -387,7 +418,34 @@
             this.uploading = false;
         },
 
+        isMenuOf(photoId) {
+            return this.menu?.photoId === photoId;
+        },
+
+        tapPhoto(photo) {
+            if (! this.canCapture) {
+                this.openViewer(photo);
+
+                return;
+            }
+
+            this.menu = this.isMenuOf(photo.photoId) ? null : photo;
+        },
+
+        closeMenu() {
+            this.menu = null;
+        },
+
+        viewFromMenu() {
+            this.openViewer(this.menu);
+        },
+
+        removeFromMenu() {
+            this.remove(this.menu);
+        },
+
         openViewer(photo) {
+            this.menu = null;
             this.viewer = photo;
         },
 
@@ -397,11 +455,12 @@
             this.takePhoto(stepId, photoId);
         },
 
-        remove() {
-            const { stepId, photoId, section } = this.viewer;
+        remove(photo) {
+            const { stepId, photoId, section } = photo;
 
             window.confirmAction('¿Borrar esta foto?', `Se quita de la sección «${section}». No se puede deshacer.`, () => {
                 this.viewer = null;
+                this.menu = null;
                 this.$wire.deletePhoto(stepId, photoId);
             });
         },
