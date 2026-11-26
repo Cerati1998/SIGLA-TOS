@@ -157,13 +157,16 @@ class BulkDispatch extends Model
     }
 
     /**
-     * Get who or what the devices go to: the client of a sale or the pouch of the kit of the operation.
+     * Get who or what the devices go to: the client of a sale or, for the operation, the container of the assignment
+     * with its kit, as in "MSKU1234567 · KIT-000046" (T87). A kit without an assignment shows only its pouch.
      */
     public function destination(): string
     {
+        $container = $this->kit?->certification?->container;
+
         return match ($this->reason) {
             BulkDispatchReason::Sale => (string) $this->client?->business_name,
-            BulkDispatchReason::Operation => 'Kit '.$this->kit?->pouch_code,
+            BulkDispatchReason::Operation => $container === null ? 'Kit '.$this->kit?->pouch_code : $container.' · '.$this->kit->pouch_code,
         };
     }
 
