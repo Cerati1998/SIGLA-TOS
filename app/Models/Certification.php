@@ -68,6 +68,8 @@ use Illuminate\Support\Carbon;
  * @property-read CertificationReopening|null $lastReopening
  * @property-read Checkpoint|null $checkpoint
  * @property-read Collection<int, SecurityDeviceReplacement> $replacements
+ * @property-read Collection<int, Reinspection> $reinspections
+ * @property-read Reinspection|null $openReinspection
  */
 #[Fillable([
     'source', 'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
@@ -259,6 +261,35 @@ class Certification extends Model
     }
 
     /**
+     * Get the reinspections that its checkpoint started, the first one first (H35).
+     *
+     * @return HasMany<Reinspection, $this>
+     */
+    public function reinspections(): HasMany
+    {
+        return $this->hasMany(Reinspection::class)->orderBy('id');
+    }
+
+    /**
+     * Get the reinspection still open, whose sections are reopened (H35).
+     *
+     * @return HasOne<Reinspection, $this>
+     */
+    public function openReinspection(): HasOne
+    {
+        return $this->hasOne(Reinspection::class)->whereNull('closed_at');
+    }
+
+    /**
+     * Whether it is in reinspection (H35): it stays closed, but its reopened sections take the new devices and photos,
+     * and it is neither annulled, reopened nor printed until the reinspection is closed (criterion 9).
+     */
+    public function isInReinspection(): bool
+    {
+        return (bool) ($this->getAttribute('open_reinspection_exists') ?? $this->openReinspection()->exists());
+    }
+
+    /**
      * Whether the assignment of its kit was annulled: then it is kept, but it is neither edited nor closed (H32).
      */
     public function isAnnulled(): bool
@@ -318,7 +349,7 @@ class Certification extends Model
             'steps as internal_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal)->has('currentPhotos'),
             'steps as external_total' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External),
             'steps as external_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External)->has('currentPhotos'),
-        ])->withExists('reopenings');
+        ])->withExists(['reopenings', 'openReinspection']);
     }
 
     /**
@@ -342,7 +373,8 @@ class Certification extends Model
         $query->whereNull('certifications.annulled_at');
 
         match ($status) {
-            CertificationStatus::Closed => $query->whereNotNull('certifications.closed_at'),
+            CertificationStatus::InReinspection => $query->has('openReinspection'),
+            CertificationStatus::Closed => $query->whereNotNull('certifications.closed_at')->doesntHave('openReinspection'),
             CertificationStatus::Reopened => $query->whereNull('certifications.closed_at')->has('reopenings'),
             CertificationStatus::ReadyToClose => $query->whereNull('certifications.closed_at')->doesntHave('reopenings')->where($complete),
             CertificationStatus::InProgress => $query->whereNull('certifications.closed_at')->doesntHave('reopenings')->whereNot($complete),
@@ -383,7 +415,8 @@ class Certification extends Model
     }
 
     /**
-     * Get where the certification is: closed, reopened until it is closed again, ready to close or still in progress.
+     * Get where the certification is: in reinspection (H35), closed, reopened until it is closed again, ready to close
+     * or still in progress.
      */
     public function status(): CertificationStatus
     {
@@ -391,6 +424,7 @@ class Certification extends Model
 
         return match (true) {
             $this->isAnnulled() => CertificationStatus::Annulled,
+            $this->isInReinspection() => CertificationStatus::InReinspection,
             $this->isClosed() => CertificationStatus::Closed,
             (bool) $wasReopened => CertificationStatus::Reopened,
             $this->inspectionsAreComplete() => CertificationStatus::ReadyToClose,

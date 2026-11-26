@@ -24,13 +24,17 @@
             class="flex flex-col gap-2 rounded-card border border-line bg-white px-4 py-3.5 text-ink no-underline shadow-card hover:border-brand hover:text-ink">
             <span class="flex items-center justify-between gap-2.5">
                 <span class="font-heading text-lg font-medium tracking-wide text-brand">{{ $unit['container'] }}</span>
-                <x-status-badge :variant="$unit['done'] > 0 ? 'info' : 'warning'">{{ $unit['done'] > 0 ? 'A medias' : 'Sin empezar' }}</x-status-badge>
+                @if ($unit['reinspection'])
+                    <x-status-badge variant="highlight">Reinspección</x-status-badge>
+                @else
+                    <x-status-badge :variant="$unit['done'] > 0 ? 'info' : 'warning'">{{ $unit['done'] > 0 ? 'A medias' : 'Sin empezar' }}</x-status-badge>
+                @endif
             </span>
             <span class="h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Avance de la inspección" aria-valuemin="0" aria-valuemax="{{ $unit['total'] }}" aria-valuenow="{{ $unit['done'] }}">
                 <span class="block h-full rounded-full bg-logo-orange" style="width: {{ round($unit['done'] * 100 / $unit['total']) }}%"></span>
             </span>
             <span class="flex items-center justify-between gap-2.5 text-sm text-ink-muted">
-                <span>{{ $type->label() }} {{ $unit['done'] }} de {{ $unit['total'] }} · {{ $unit['pouchCode'] }}</span>
+                <span>{{ $unit['reinspection'] ? ($unit['total'] === 1 ? 'Sección reabierta' : 'Secciones reabiertas') : $type->label() }} {{ $unit['done'] }} de {{ $unit['total'] }} · {{ $unit['pouchCode'] }}</span>
                 <span>{{ $unit['shippingLine'] }}</span>
             </span>
             <span class="text-xs text-ink-muted">

@@ -49,7 +49,11 @@
                 class="flex w-full flex-col gap-2 rounded-card border border-line bg-white px-4 py-3.5 text-left text-ink shadow-card hover:border-brand disabled:opacity-60">
                 <span class="flex items-center justify-between gap-2.5">
                     <span class="font-heading text-lg font-medium tracking-wide text-brand">{{ $unit['container'] }}</span>
-                    <x-status-badge :variant="$unit['started'] ? 'info' : 'warning'">{{ $unit['started'] ? 'A medias' : 'Sin empezar' }}</x-status-badge>
+                    @if ($unit['fromReinspection'])
+                        <x-status-badge variant="highlight">Vuelve de reinspección</x-status-badge>
+                    @else
+                        <x-status-badge :variant="$unit['started'] ? 'info' : 'warning'">{{ $unit['started'] ? 'A medias' : 'Sin empezar' }}</x-status-badge>
+                    @endif
                 </span>
                 <span class="h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Avance del checkpoint" aria-valuemin="0" aria-valuemax="{{ $unit['total'] }}" aria-valuenow="{{ $unit['done'] }}">
                     <span class="block h-full rounded-full bg-logo-orange" style="width: {{ $unit['total'] === 0 ? 0 : round($unit['done'] * 100 / $unit['total']) }}%"></span>

@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
  * The checkpoint of a certification (H34): one per certification, born the first time someone opens the unit, with the
  * checkpoint sections of the catalog copied as its steps. It keeps the optional photo of the container, the observations
- * and who closed it and when. A closed checkpoint is not edited.
+ * and who closed it and when. A closed checkpoint is not edited. With incorrect series it starts a reinspection
+ * (H35) and waits for it, not editable, until it is closed; then it verifies the new series.
  *
  * @property int $id
  * @property int $certification_id
@@ -34,6 +36,9 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CheckpointStep> $steps
  * @property-read Collection<int, CheckpointPhoto> $photos
  * @property-read Collection<int, CheckpointPhoto> $extraPhotos
+ * @property-read Collection<int, Reinspection> $reinspections
+ * @property-read Reinspection|null $openReinspection
+ * @property-read Reinspection|null $lastReinspection
  */
 #[Fillable(['certification_id', 'observations'])]
 class Checkpoint extends Model
@@ -112,6 +117,44 @@ class Checkpoint extends Model
     public function extraPhotos(): HasMany
     {
         return $this->photos()->whereNull('checkpoint_step_id');
+    }
+
+    /**
+     * Get the reinspections it started, the first one first (H35).
+     *
+     * @return HasMany<Reinspection, $this>
+     */
+    public function reinspections(): HasMany
+    {
+        return $this->hasMany(Reinspection::class)->orderBy('id');
+    }
+
+    /**
+     * Get the reinspection still open, while the certified inspector replaces the series (H35).
+     *
+     * @return HasOne<Reinspection, $this>
+     */
+    public function openReinspection(): HasOne
+    {
+        return $this->hasOne(Reinspection::class)->whereNull('closed_at');
+    }
+
+    /**
+     * Get the reinspection started last, open or closed (H35).
+     *
+     * @return HasOne<Reinspection, $this>
+     */
+    public function lastReinspection(): HasOne
+    {
+        return $this->hasOne(Reinspection::class)->latestOfMany();
+    }
+
+    /**
+     * Whether it waits for a reinspection: then it is not edited and it is not in the list of «Registrar checkpoint».
+     */
+    public function isInReinspection(): bool
+    {
+        return $this->openReinspection()->exists();
     }
 
     /**

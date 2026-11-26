@@ -3,6 +3,7 @@
 namespace App\Livewire\Tables;
 
 use App\Actions\Certifications\CloseCertification;
+use App\Actions\Reinspections\CloseReinspection;
 use App\Enums\CertificationStatus;
 use App\Models\Certification;
 use App\Models\ShippingLine;
@@ -20,7 +21,8 @@ use Throwable;
 
 /**
  * The list of assignments (H20): every assigned unit with how far its two inspections went, where it is closed and
- * reopened (H19). The state, the progress and the actions go first, so they fit on the phone without scrolling.
+ * reopened (H19), and where its reinspection is closed (H35). The state, the progress and the actions go first, so
+ * they fit on the phone without scrolling.
  */
 class CertificationsTable extends BaseTable
 {
@@ -54,7 +56,7 @@ class CertificationsTable extends BaseTable
     {
         return Certification::query()
             ->withInspectionProgress()
-            ->with(['shippingLine', 'tractor', 'kit' => fn ($kits) => $kits->withCount('devices')])
+            ->with(['shippingLine', 'tractor', 'kit' => fn ($kits) => $kits->withCount('devices'), 'openReinspection.devices'])
             ->orderByDesc('certifications.started_at')
             ->orderByDesc('certifications.id');
     }
@@ -77,7 +79,7 @@ class CertificationsTable extends BaseTable
             Column::make('Estado')
                 ->label(fn (Certification $row): View => view('pages.certifications.partials.status', ['status' => $row->status()])),
             Column::make('Avance')
-                ->label(fn (Certification $row): View => view('pages.certifications.partials.progress', ['progress' => $row->progress()])),
+                ->label(fn (Certification $row): View => view('pages.certifications.partials.progress', ['progress' => $row->progress(), 'reinspection' => $row->openReinspection])),
             Column::make('Acciones')
                 ->label(fn (Certification $row): View => view('pages.certifications.partials.actions', ['certification' => $row])),
             Column::make('Naviera')
@@ -161,5 +163,32 @@ class CertificationsTable extends BaseTable
         }
 
         $this->dispatch('toast', icon: 'success', title: 'Certificación cerrada', text: "Certificación de {$certification->container} cerrada. Ya puedes descargar su PDF.");
+    }
+
+    /**
+     * Close the reinspection of a certification once the inspector confirmed it: the unit goes back to the checkpoint
+     * (H35, criterion 7).
+     */
+    public function closeReinspection(int $id, CloseReinspection $closeReinspection): void
+    {
+        /** @var Certification $certification */
+        $certification = $this->builder()->findOrFail($id);
+        /** @var User $user */
+        $user = Auth::user();
+
+        try {
+            $closeReinspection->handle($certification, $user);
+        } catch (ValidationException $exception) {
+            $this->dispatch('toast', icon: 'warning', title: 'No se puede cerrar la reinspección', text: $exception->validator->errors()->first('reinspection'));
+
+            return;
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->dispatch('toast', icon: 'error', title: 'No se pudo cerrar la reinspección', text: 'No se cerró y no se cambió nada. Intenta de nuevo.');
+
+            return;
+        }
+
+        $this->dispatch('toast', icon: 'success', title: 'Reinspección cerrada', text: "{$certification->container} vuelve al checkpoint, que verifica solo las series reemplazadas.");
     }
 }

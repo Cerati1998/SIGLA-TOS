@@ -13,7 +13,8 @@ use Illuminate\Support\Carbon;
  * A device of the kit, already placed in a section of a certification, replaced by an extra device of the same type,
  * that is, one that a bulk dispatch for the operation sent to that certification (H38). The removed device became
  * Descartado, with the reason and its photo; the installed one took its place in the section and in the kit. It stays
- * as the trace of the change, and the photos the section had before it no longer count.
+ * as the trace of the change, and the photos the section had before it no longer count. A replacement made in a
+ * reinspection (H35) keeps it, with its reason.
  *
  * @property int $id
  * @property int $certification_id
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $removed_device_id
  * @property int $installed_device_id
  * @property int $bulk_dispatch_id
+ * @property int|null $reinspection_id
  * @property string $reason
  * @property int $replaced_by
  * @property Carbon|null $created_at
@@ -30,9 +32,10 @@ use Illuminate\Support\Carbon;
  * @property-read SecurityDevice $removedDevice
  * @property-read SecurityDevice $installedDevice
  * @property-read BulkDispatch $bulkDispatch
+ * @property-read Reinspection|null $reinspection
  * @property-read User $replacer
  */
-#[Fillable(['certification_id', 'certification_step_id', 'removed_device_id', 'installed_device_id', 'bulk_dispatch_id', 'reason', 'replaced_by'])]
+#[Fillable(['certification_id', 'certification_step_id', 'removed_device_id', 'installed_device_id', 'bulk_dispatch_id', 'reinspection_id', 'reason', 'replaced_by'])]
 class SecurityDeviceReplacement extends Model
 {
     /** @use HasFactory<SecurityDeviceReplacementFactory> */
@@ -101,5 +104,23 @@ class SecurityDeviceReplacement extends Model
     public function replacer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'replaced_by')->withTrashed();
+    }
+
+    /**
+     * Get the reinspection it was made in, if it was (H35).
+     *
+     * @return BelongsTo<Reinspection, $this>
+     */
+    public function reinspection(): BelongsTo
+    {
+        return $this->belongsTo(Reinspection::class);
+    }
+
+    /**
+     * Whether it was made in a reinspection (H35): then the photos it left without value are «antes de la reinspección».
+     */
+    public function isFromReinspection(): bool
+    {
+        return $this->reinspection_id !== null;
     }
 }

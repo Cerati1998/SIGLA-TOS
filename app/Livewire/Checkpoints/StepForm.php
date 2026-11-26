@@ -13,6 +13,8 @@ use App\Models\Checkpoint;
 use App\Models\CheckpointMark;
 use App\Models\CheckpointPhoto;
 use App\Models\CheckpointStep;
+use App\Models\Reinspection;
+use App\Models\ReinspectionDevice;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,11 +29,16 @@ use Livewire\WithFileUploads;
 /**
  * The steps of the checkpoint of a unit (H34), one at a time, then the last step with the observations, the extra
  * photos, the summary and «Finalizar». The photos work as in the inspection (H18); a mark is saved when it is touched.
- * Moving between the steps happens in the browser. A closed checkpoint is only read (criterion 11).
+ * Moving between the steps happens in the browser. A closed checkpoint is only read (criterion 11). With incorrect
+ * series it starts a reinspection instead of closing (H35); while it waits for it, it is only read, and when the
+ * reinspection is closed it shows only the verification steps with the new series: the second round.
  *
  * @property-read Collection<int, CheckpointStep> $steps
  * @property-read Collection<int, CheckpointPhoto> $extraPhotos
  * @property-read array<int, string> $deviceSections
+ * @property-read Reinspection|null $round
+ * @property-read array<int, string> $replacedSerials
+ * @property-read list<array{section: string, type: string, series: list<string>}> $incorrectSections
  */
 class StepForm extends Component
 {
@@ -102,6 +109,61 @@ class StepForm extends Component
             });
 
         return $sections;
+    }
+
+    /**
+     * Get the reinspection whose new series the checkpoint verifies now, the second round (H35, criterion 8): the last
+     * one, once it was closed. Null while there is none or it is still open.
+     */
+    #[Computed]
+    public function round(): ?Reinspection
+    {
+        $reinspection = $this->checkpoint->lastReinspection()->with('devices.device', 'devices.replacement')->first();
+
+        return $reinspection?->isClosed() ? $reinspection : null;
+    }
+
+    /**
+     * Get, for each new series of the second round, the series it replaced, to show them together.
+     *
+     * @return array<int, string>
+     */
+    #[Computed]
+    public function replacedSerials(): array
+    {
+        return $this->round?->devices
+            ->filter(fn (ReinspectionDevice $device): bool => $device->replacement !== null)
+            ->mapWithKeys(fn (ReinspectionDevice $device): array => [(int) $device->replacement?->installed_device_id => $device->device->serial_number])
+            ->all() ?? [];
+    }
+
+    /**
+     * Get the sections of the certification that a reinspection would reopen, each with its type and the incorrect
+     * series it has, for its window (H35, criterion 1).
+     *
+     * @return list<array{section: string, type: string, series: list<string>}>
+     */
+    #[Computed]
+    public function incorrectSections(): array
+    {
+        $incorrect = $this->steps->flatMap(fn (CheckpointStep $step) => $step->marks)
+            ->filter(fn (CheckpointMark $mark): bool => $mark->is_correct === false)
+            ->mapWithKeys(fn (CheckpointMark $mark): array => [$mark->security_device_id => $mark->device->serial_number]);
+
+        if ($incorrect->isEmpty()) {
+            return [];
+        }
+
+        return array_values($this->checkpoint->certification->steps()
+            ->with(['section', 'devices:id'])
+            ->whereHas('devices', fn (Builder $devices) => $devices->whereKey($incorrect->keys()->all()))
+            ->get()
+            ->map(fn (CertificationStep $step): array => [
+                'section' => $step->section->name,
+                'type' => $step->type->label(),
+                'series' => array_values($step->devices->pluck('id')->intersect($incorrect->keys())->map(fn (int $id): string => (string) $incorrect[$id])->all()),
+            ])
+            ->all());
     }
 
     /**
@@ -218,17 +280,26 @@ class StepForm extends Component
     }
 
     /**
-     * Refuse a change when the checkpoint was closed, even if the screen was opened before (criterion 11).
+     * Refuse a change when the checkpoint was closed, even if the screen was opened before (criterion 11), or while it
+     * waits for a reinspection (H35).
      */
     private function refusedBecauseClosed(): bool
     {
-        if (! $this->checkpoint->refresh()->isClosed()) {
-            return false;
+        $checkpoint = $this->checkpoint->refresh();
+
+        if ($checkpoint->isClosed()) {
+            $this->dispatch('toast', icon: 'warning', title: 'Checkpoint cerrado', text: 'No se puede editar: el checkpoint ya está cerrado.');
+
+            return true;
         }
 
-        $this->dispatch('toast', icon: 'warning', title: 'Checkpoint cerrado', text: 'No se puede editar: el checkpoint ya está cerrado.');
+        if ($checkpoint->isInReinspection()) {
+            $this->dispatch('toast', icon: 'warning', title: 'Checkpoint en reinspección', text: 'No se puede editar hasta que se cierre la reinspección.');
 
-        return true;
+            return true;
+        }
+
+        return false;
     }
 
     /**

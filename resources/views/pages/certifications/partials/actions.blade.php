@@ -21,6 +21,35 @@
     </x-wire-button>
 
     @if ($status === \App\Enums\CertificationStatus::Annulled)
+    @elseif ($status === \App\Enums\CertificationStatus::InReinspection)
+        @php
+            $reinspection = $certification->openReinspection;
+            $reinspectionProgress = $reinspection?->progress() ?? ['total' => 0, 'done' => 0];
+            $sectionsText = $reinspectionProgress['total'] === 1 ? '1 sección reabierta' : $reinspectionProgress['total'].' secciones reabiertas';
+        @endphp
+        @if ($reinspection?->isComplete())
+            <x-wire-button
+                positive
+                x-on:click="confirmAction('¿Cerrar la reinspección?', @js("{$certification->container} · {$sectionsText}, con su dispositivo nuevo y fotos nuevas. La unidad vuelve a la lista del checkpoint, que verifica solo las series reemplazadas."), () => $wire.closeReinspection(id))"
+                wire:loading.attr="disabled"
+                wire:target="closeReinspection"
+                title="Cerrar la reinspección"
+                aria-label="Cerrar la reinspección de {{ $certification->container }}"
+                xs
+            >
+                <i class="fa-solid fa-lock text-sm" aria-hidden="true"></i>
+            </x-wire-button>
+        @else
+            <x-wire-button
+                positive
+                disabled
+                title="Cerrar la reinspección: falta el dispositivo nuevo o sus fotos"
+                aria-label="Cerrar la reinspección, no disponible: falta el dispositivo nuevo o sus fotos"
+                xs
+            >
+                <i class="fa-solid fa-lock text-sm" aria-hidden="true"></i>
+            </x-wire-button>
+        @endif
     @elseif ($status === \App\Enums\CertificationStatus::Closed)
         <x-wire-button negative :href="route('intranet.certifications.pdf', $certification)" target="_blank" title="Descargar PDF" aria-label="Descargar el PDF de {{ $certification->container }}" xs>
             <i class="fa-solid fa-file-pdf text-sm" aria-hidden="true"></i>
