@@ -254,7 +254,12 @@
 
             <div class="flex justify-between gap-3 border-t border-line pt-4 max-md:hidden">
                 <flux:button x-on:click="previous" x-bind:disabled="current === 0" icon="chevron-left">Atrás</flux:button>
-                <flux:button variant="primary" x-on:click="next" x-bind:disabled="current === total - 1" icon:trailing="chevron-right">Siguiente sección</flux:button>
+                @if ($reinspection !== null)
+                    <flux:button variant="primary" x-show="current < total - 1" x-on:click="next" icon:trailing="chevron-right">Siguiente sección</flux:button>
+                    <flux:button variant="primary" x-show="current === total - 1" x-cloak :href="route('intranet.inspections.index', $type)" wire:navigate>Volver a la lista</flux:button>
+                @else
+                    <flux:button variant="primary" x-on:click="next" x-bind:disabled="current === total - 1" icon:trailing="chevron-right">Siguiente sección</flux:button>
+                @endif
             </div>
         </div>
     </div>
@@ -263,9 +268,18 @@
         <button type="button" x-on:click="previous" x-bind:disabled="current === 0" class="inline-flex h-13 items-center justify-center gap-2 rounded-control border border-control bg-white text-base font-medium disabled:opacity-50">
             <i class="fa-solid fa-chevron-left text-sm" aria-hidden="true"></i> Atrás
         </button>
-        <button type="button" x-on:click="next" x-bind:disabled="current === total - 1" class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-brand text-base font-medium text-white disabled:opacity-50">
-            Siguiente sección <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
-        </button>
+        @if ($reinspection !== null)
+            <button type="button" x-show="current < total - 1" x-on:click="next" class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-brand text-base font-medium text-white">
+                Siguiente sección <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
+            </button>
+            <a x-show="current === total - 1" x-cloak href="{{ route('intranet.inspections.index', $type) }}" wire:navigate class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-brand text-base font-medium text-white no-underline hover:text-white">
+                Volver a la lista
+            </a>
+        @else
+            <button type="button" x-on:click="next" x-bind:disabled="current === total - 1" class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-brand text-base font-medium text-white disabled:opacity-50">
+                Siguiente sección <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
+            </button>
+        @endif
     </div>
 
     <template x-teleport="body">

@@ -155,7 +155,8 @@ class ReinspectionTest extends TestCase
             ->assertSeeText('Evaporadores cerrados')
             ->assertDontSeeText('Ventilador')
             ->assertSeeText('Dispositivo a reemplazar')
-            ->assertSeeText('Falta cambiar 1');
+            ->assertSeeText('Falta cambiar 1')
+            ->assertSeeText('Volver a la lista');
     }
 
     public function test_the_incorrect_series_is_replaced_by_a_scanned_extra_with_the_reason_of_the_reinspection_and_the_photo_of_the_discard(): void
