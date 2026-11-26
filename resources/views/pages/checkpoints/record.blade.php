@@ -52,7 +52,7 @@
         <p class="m-0 flex items-start gap-2 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
             <x-feather name="info" class="mt-0.5 size-4" />
             <span>
-                <strong>Pendiente</strong>: {{ $stepsDone }} de {{ $steps->count() }} pasos completos. Se completa en «Registrar checkpoint».
+                <strong>En proceso</strong>: {{ $stepsDone }} de {{ $steps->count() }} pasos completos. Se completa en «Registrar checkpoint».
                 {{ $started }}@if ($checkpoint->starter !== null) por <strong>{{ $checkpoint->starter->name }}</strong>@endif.
             </span>
         </p>

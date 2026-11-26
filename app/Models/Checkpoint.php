@@ -194,7 +194,7 @@ class Checkpoint extends Model
         return match (true) {
             $this->isClosed() => CheckpointStatus::Closed,
             $this->isInReinspection() => CheckpointStatus::InReinspection,
-            default => CheckpointStatus::Pending,
+            default => CheckpointStatus::InProgress,
         };
     }
 
@@ -209,7 +209,7 @@ class Checkpoint extends Model
         match ($status) {
             CheckpointStatus::Closed => $query->whereNotNull('checkpoints.closed_at'),
             CheckpointStatus::InReinspection => $query->whereNull('checkpoints.closed_at')->has('openReinspection'),
-            CheckpointStatus::Pending => $query->whereNull('checkpoints.closed_at')->doesntHave('openReinspection'),
+            CheckpointStatus::InProgress => $query->whereNull('checkpoints.closed_at')->doesntHave('openReinspection'),
         };
     }
 

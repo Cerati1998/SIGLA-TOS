@@ -827,7 +827,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H36 · Consultar checkpoints** (aprobada el 2026-11-23 en T67)
 - Como usuario de la intranet, quiero un listado de los checkpoints y su detalle, para seguir su avance y consultar lo verificado.
 - Criterios de aceptación:
-  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (pendiente, en reinspección o cerrado; «pendiente» en vez de «a medias», cambiado por el usuario el 2026-11-26), con búsqueda por contenedor, booking o placa.
+  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (en proceso, en reinspección o cerrado; «en proceso» en vez de «a medias» en todo el sistema, cambiado por el usuario el 2026-11-26), con búsqueda por contenedor, booking o placa.
   2. Cada fila muestra el avance (por ejemplo, 9/14 pasos) y la acción «Ver».
   3. El detalle es de solo consulta: datos de la certificación, cada sección con sus fotos, cada verificación con su marca ✓/✗, las observaciones y las fotos extra, y cada reinspección con su motivo, quién la inició y la cerró, y los dispositivos que se reemplazaron.
   4. Desde el detalle de la certificación (H20) se llega a su checkpoint, si tiene.

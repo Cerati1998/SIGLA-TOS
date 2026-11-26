@@ -136,7 +136,7 @@
                         @if ($inspection['sections'] > 0 && $done === $inspection['sections'])
                             <x-status-badge variant="success">Completa</x-status-badge>
                         @elseif ($done > 0)
-                            <x-status-badge variant="info">A medias</x-status-badge>
+                            <x-status-badge variant="info">En proceso</x-status-badge>
                         @else
                             <x-status-badge variant="warning">Sin empezar</x-status-badge>
                         @endif

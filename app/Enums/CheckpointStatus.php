@@ -8,7 +8,7 @@ namespace App\Enums;
  */
 enum CheckpointStatus: string
 {
-    case Pending = 'pending';
+    case InProgress = 'in_progress';
     case InReinspection = 'in_reinspection';
     case Closed = 'closed';
 
@@ -18,7 +18,7 @@ enum CheckpointStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Pendiente',
+            self::InProgress => 'En proceso',
             self::InReinspection => 'En reinspección',
             self::Closed => 'Cerrado',
         };
@@ -30,7 +30,7 @@ enum CheckpointStatus: string
     public function badgeVariant(): string
     {
         return match ($this) {
-            self::Pending => 'info',
+            self::InProgress => 'info',
             self::InReinspection => 'highlight',
             self::Closed => 'success',
         };

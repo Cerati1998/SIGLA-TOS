@@ -67,7 +67,7 @@ class CheckpointTest extends TestCase
 
         Livewire::actingAs($this->inspector)->test(UnitPicker::class)
             ->assertSeeText('Con checkpoint pendiente · 2')
-            ->assertSeeTextInOrder(['TGHU5550123', 'A medias', '0 de 2 pasos', 'TEMU9795602', 'Sin empezar', '0 de 2 pasos'])
+            ->assertSeeTextInOrder(['TGHU5550123', 'En proceso', '0 de 2 pasos', 'TEMU9795602', 'Sin empezar', '0 de 2 pasos'])
             ->assertDontSeeText('ABCU0000001')
             ->assertDontSeeText('ABCU0000002')
             ->assertDontSeeText('ABCU0000003');
