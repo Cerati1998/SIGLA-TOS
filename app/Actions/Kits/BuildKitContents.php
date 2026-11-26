@@ -16,7 +16,7 @@ class BuildKitContents
      */
     public function handle(Kit $kit): array
     {
-        $kit->loadMissing(['kitType', 'shippingLine', 'devices.lot.announcement.securityDeviceType']);
+        $kit->loadMissing(['kitType', 'shippingLine', 'devices.lot.securityDeviceType']);
 
         return [
             'kit' => $kit,
@@ -27,7 +27,7 @@ class BuildKitContents
 
                 return [
                     'serialNumber' => $device->serial_number,
-                    'type' => $device->lot->announcement->securityDeviceType->name,
+                    'type' => $device->lot->securityDeviceType->name,
                     'assignment' => KitAssignment::tryFrom((string) $pivot->assignment)?->label() ?? '-',
                 ];
             })->all()),

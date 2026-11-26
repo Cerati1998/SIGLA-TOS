@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
+use App\Actions\SecurityDevices\ReceiveSecurityDeviceLots;
 use App\Enums\SecurityDeviceStatus;
+use App\Livewire\SecurityDeviceAnnouncements\EditForm as AnnouncementEditForm;
 use App\Livewire\SecurityDeviceLots\EditForm;
 use App\Livewire\Tables\SecurityDeviceLotsTable;
 use App\Models\Provider;
@@ -42,27 +43,28 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $this->get(route('intranet.security-device-lots.edit', $this->lot))->assertRedirect(route('login'));
     }
 
-    public function test_the_list_and_the_detail_lead_to_the_form_filled_with_the_lot(): void
+    public function test_the_detail_of_the_announcement_leads_to_the_corrections(): void
     {
-        Livewire::test(SecurityDeviceLotsTable::class)
+        $announcement = $this->lot->announcement;
+
+        Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $announcement->id])
             ->assertSee(route('intranet.security-device-lots.show', $this->lot))
             ->assertSee(route('intranet.security-device-lots.edit', $this->lot));
 
-        $this->get(route('intranet.security-device-lots.show', $this->lot))
+        $this->get(route('intranet.security-device-announcements.show', $announcement))
             ->assertOk()
-            ->assertSee(route('intranet.security-device-lots.edit', $this->lot))
-            ->assertSeeText('Editar');
+            ->assertSee(route('intranet.security-device-announcements.edit', $announcement))
+            ->assertSee(route('intranet.security-device-announcements.lots.create', $announcement));
 
         $this->get(route('intranet.security-device-lots.edit', $this->lot))
             ->assertOk()
             ->assertSee('<title>Editar lote GSW 0000200 – 0000399 | ', false)
-            ->assertSeeInOrder(['Lotes de dispositivos', 'GSW 0000200 – 0000399', 'Editar'])
+            ->assertSeeInOrder(['Anuncios de ingreso de lotes', $announcement->number(), 'GSW 0000200 – 0000399', 'Editar'])
             ->assertSeeText('Guardar cambios')
+            ->assertDontSeeText('Número de guía')
             ->assertDontSeeText('La serie no se puede cambiar');
 
         $this->editForm()
-            ->assertSet('form.dispatchNumber', 'T001-000123')
-            ->assertSet('form.receivedAt', '2026-11-09')
             ->assertSet('form.seriesPrefix', 'GSW')
             ->assertSet('form.minDigits', '7')
             ->assertSet('form.seriesStart', '200')
@@ -70,15 +72,41 @@ class SecurityDeviceLotCorrectionTest extends TestCase
             ->assertSet('form.seriesLocked', false);
     }
 
-    public function test_correcting_the_origin_and_the_reception_keeps_the_devices(): void
+    public function test_correcting_the_header_of_the_announcement_keeps_its_lots(): void
     {
+        $announcement = $this->lot->announcement;
         $provider = Provider::factory()->create();
         $deviceIds = $this->lot->devices()->orderBy('id')->pluck('id');
 
-        $this->editForm()
+        $this->get(route('intranet.security-device-announcements.edit', $announcement))
+            ->assertOk()
+            ->assertSee('<title>Editar anuncio de ingreso de lotes '.$announcement->number().' | ', false)
+            ->assertSeeText('Lo que cambies aquí vale para el lote del anuncio.');
+
+        Livewire::test(AnnouncementEditForm::class, ['announcement' => $announcement])
+            ->assertSet('form.dispatchNumber', 'T001-000123')
+            ->assertSet('form.receivedAt', '2026-11-09')
             ->set('form.providerId', (string) $provider->id)
-            ->set('form.dispatchNumber', 'T001-000999')
+            ->set('form.dispatchNumber', ' T001-000999 ')
             ->set('form.receivedAt', '2026-11-08')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('intranet.security-device-announcements.show', $announcement));
+
+        $this->assertSame('Anuncio corregido', session('toast.title'));
+
+        $announcement->refresh();
+        $this->assertTrue($announcement->provider->is($provider));
+        $this->assertSame('T001-000999', $announcement->dispatch_number);
+        $this->assertSame('2026-11-08', $announcement->received_at->toDateString());
+        $this->assertEquals($deviceIds, $this->lot->devices()->orderBy('id')->pluck('id'));
+    }
+
+    public function test_correcting_the_notes_of_a_lot_keeps_its_devices(): void
+    {
+        $deviceIds = $this->lot->devices()->orderBy('id')->pluck('id');
+
+        $this->editForm()
             ->set('form.notes', 'Guía corregida.')
             ->call('save')
             ->assertHasNoErrors()
@@ -86,12 +114,7 @@ class SecurityDeviceLotCorrectionTest extends TestCase
 
         $this->assertSame('Lote corregido', session('toast.title'));
         $this->assertSame('Se guardaron los cambios del lote.', session('toast.text'));
-
-        $this->lot->refresh();
-        $this->assertTrue($this->lot->announcement->provider->is($provider));
-        $this->assertSame('T001-000999', $this->lot->dispatch_number);
-        $this->assertSame('2026-11-08', $this->lot->received_at->toDateString());
-        $this->assertSame('Guía corregida.', $this->lot->notes);
+        $this->assertSame('Guía corregida.', $this->lot->refresh()->notes);
         $this->assertEquals($deviceIds, $this->lot->devices()->orderBy('id')->pluck('id'));
     }
 
@@ -113,7 +136,7 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $serialNumbers = $this->lot->devices()->orderBy('id')->pluck('serial_number');
 
         $this->assertSame(50, $this->lot->quantity);
-        $this->assertSame('GWF 00100A – 00149A', $this->lot->announcement->lotName());
+        $this->assertSame('GWF 00100A – 00149A', $this->lot->name());
         $this->assertCount(50, $serialNumbers);
         $this->assertSame('GWF00100A', $serialNumbers->first());
         $this->assertSame('GWF00149A', $serialNumbers->last());
@@ -135,13 +158,13 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $this->editForm()
             ->assertSet('form.seriesLocked', true)
             ->set('form.seriesStart', '1')
-            ->set('form.dispatchNumber', 'T001-000999')
+            ->set('form.notes', 'Revisado.')
             ->call('save')
             ->assertHasNoErrors();
 
         $this->lot->refresh();
-        $this->assertSame(200, $this->lot->announcement->series_start);
-        $this->assertSame('T001-000999', $this->lot->dispatch_number);
+        $this->assertSame(200, $this->lot->series_start);
+        $this->assertSame('Revisado.', $this->lot->notes);
         $this->assertSame(200, $this->lot->devices()->count());
     }
 
@@ -150,7 +173,7 @@ class SecurityDeviceLotCorrectionTest extends TestCase
         $form = $this->editForm()
             ->set('form.seriesStart', '300')
             ->set('form.seriesEnd', '499')
-            ->set('form.dispatchNumber', 'T001-000999');
+            ->set('form.notes', 'Revisado.');
 
         $this->lot->devices()->where('serial_number', 'GSW0000300')->update(['status' => SecurityDeviceStatus::InKit]);
 
@@ -161,8 +184,8 @@ class SecurityDeviceLotCorrectionTest extends TestCase
             ->assertSet('form.seriesStart', '200');
 
         $this->lot->refresh();
-        $this->assertSame('T001-000123', $this->lot->dispatch_number);
-        $this->assertSame(200, $this->lot->announcement->series_start);
+        $this->assertNull($this->lot->notes);
+        $this->assertSame(200, $this->lot->series_start);
     }
 
     public function test_nothing_is_saved_when_a_new_serial_number_exists_in_another_lot(): void
@@ -207,45 +230,67 @@ class SecurityDeviceLotCorrectionTest extends TestCase
 
     public function test_the_current_origin_stays_valid_after_it_was_deactivated_but_no_other_inactive_one(): void
     {
-        $this->lot->announcement->provider->delete();
+        $announcement = $this->lot->announcement;
+        $announcement->provider->delete();
         $otherInactive = Provider::factory()->trashed()->create(['business_name' => 'Proveedor Cerrado']);
 
-        $this->editForm()
-            ->assertSeeText($this->lot->announcement->provider->business_name)
+        Livewire::test(AnnouncementEditForm::class, ['announcement' => $announcement->fresh()])
+            ->assertSeeText($announcement->provider->business_name)
             ->assertDontSeeText('Proveedor Cerrado')
             ->set('form.dispatchNumber', 'T001-000999')
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->editForm()
+        Livewire::test(AnnouncementEditForm::class, ['announcement' => $announcement->fresh()])
             ->set('form.providerId', (string) $otherInactive->id)
             ->call('save')
             ->assertHasErrors(['form.providerId' => 'exists']);
     }
 
-    /**
-     * Receive a lot of available devices, as H07 does.
-     */
-    private function receiveLot(string $prefix, int $start, int $end, ?User $user = null): SecurityDeviceLot
+    public function test_a_lot_is_removed_only_while_its_devices_are_unused_and_the_announcement_keeps_another_one(): void
     {
-        $announcement = new SecurityDeviceAnnouncement([
+        $announcement = $this->lot->announcement;
+        $table = fn (): Testable => Livewire::test(SecurityDeviceLotsTable::class, ['announcementId' => $announcement->id]);
+
+        $table()->assertDontSeeHtml('title="Quitar lote"');
+        $table()->call('remove', $this->lot->id)->assertDispatched('toast', icon: 'warning');
+        $this->assertSame(200, SecurityDevice::query()->count());
+
+        $second = $this->receiveLot('CTA', 1, 10, announcement: $announcement);
+        $table()->assertSeeHtml('title="Quitar lote"');
+
+        $second->devices()->where('serial_number', 'CTA0000001')->update(['status' => SecurityDeviceStatus::Discarded]);
+        $table()->call('remove', $second->id)->assertDispatched('toast', icon: 'warning');
+
+        $second->devices()->update(['status' => SecurityDeviceStatus::Inactive]);
+        $table()->call('remove', $second->id)->assertRedirect(route('intranet.security-device-announcements.show', $announcement));
+
+        $this->assertSame('Lote quitado', session('toast.title'));
+        $this->assertModelMissing($second);
+        $this->assertSame(200, SecurityDevice::query()->count());
+    }
+
+    /**
+     * Receive a lot of inactive devices, as H37 does: in a new announcement, or in the given one.
+     */
+    private function receiveLot(string $prefix, int $start, int $end, ?User $user = null, ?SecurityDeviceAnnouncement $announcement = null): SecurityDeviceLot
+    {
+        $announcement ??= new SecurityDeviceAnnouncement([
             'shipping_line_id' => ShippingLine::factory()->create()->id,
             'provider_id' => Provider::factory()->create()->id,
-            'security_device_type_id' => SecurityDeviceType::factory()->create()->id,
+            'received_at' => '2026-11-09',
+            'dispatch_number' => 'T001-000123',
+        ]);
+        $type = SecurityDeviceType::factory()->create();
+        $lot = (new SecurityDeviceLot([
+            'security_device_type_id' => $type->id,
             'series_prefix' => $prefix,
             'min_digits' => 7,
             'series_start' => $start,
             'series_end' => $end,
-            'series_suffix' => null,
-        ]);
+        ]))->setRelation('securityDeviceType', $type);
 
-        $lot = app(ReceiveSecurityDeviceLot::class)->handle($announcement, [
-            'received_at' => '2026-11-09',
-            'dispatch_number' => 'T001-000123',
-            'notes' => null,
-        ], $user ?? User::factory()->create());
-
-        $this->assertNotNull($lot);
+        $this->assertTrue(app(ReceiveSecurityDeviceLots::class)->handle($announcement, [$lot], $user ?? User::factory()->create()));
 
         return $lot;
     }

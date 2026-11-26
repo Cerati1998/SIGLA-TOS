@@ -4,6 +4,7 @@ namespace App\Livewire\Inspections;
 
 use App\Actions\Certifications\AddCertificationPhoto;
 use App\Actions\Certifications\DeleteCertificationPhoto;
+use App\Actions\Certifications\ListExtraDevices;
 use App\Actions\Certifications\ReplaceCertificationPhoto;
 use App\Enums\CertificationSectionType;
 use App\Models\Certification;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -23,9 +25,11 @@ use Livewire\WithFileUploads;
  * The steps of the internal or the external inspection of a unit, one section at a time, where the inspector takes
  * its photos with the camera of the phone (H18). The photo arrives already compressed in the browser, with its
  * thumbnail; moving between the steps happens in the browser, and the server is called only to save or delete a
- * photo. A closed certification is only read, until it is reopened (H18, criterion 11).
+ * photo. A closed certification is only read, until it is reopened (H18, criterion 11). A device of a section can be
+ * replaced by an extra device of the unit, in its own window (H38); then the photos the section had no longer count.
  *
  * @property-read Collection<int, CertificationStep> $steps
+ * @property-read array{total: int, unusedCount: int, unusedTypeIds: list<int>} $extras
  */
 class StepForm extends Component
 {
@@ -57,8 +61,37 @@ class StepForm extends Component
     {
         return $this->certification->steps()
             ->where('type', $this->type)
-            ->with(['section', 'devices.lot.announcement.securityDeviceType', 'photos.uploader'])
+            ->with(['section', 'devices.lot.securityDeviceType', 'photos.uploader', 'replacements.removedDevice'])
             ->get();
+    }
+
+    /**
+     * Get how many extra devices the unit has and the types of the unused ones, which tell what can be replaced
+     * (H38, criteria 3 and 4).
+     *
+     * @return array{total: int, unusedCount: int, unusedTypeIds: list<int>}
+     */
+    #[Computed]
+    public function extras(): array
+    {
+        $extras = app(ListExtraDevices::class)->handle($this->certification, $this->type)['extras'];
+
+        $unused = array_filter($extras, fn (array $extra): bool => $extra['unused']);
+
+        return [
+            'total' => count($extras),
+            'unusedCount' => count($unused),
+            'unusedTypeIds' => array_values(array_unique(array_map(fn (array $extra): int => $extra['typeId'], $unused))),
+        ];
+    }
+
+    /**
+     * Reload the sections after a device was replaced in the window of the extra devices (H38).
+     */
+    #[On('security-device-replaced')]
+    public function refreshSteps(): void
+    {
+        unset($this->steps, $this->extras);
     }
 
     /**
@@ -151,7 +184,7 @@ class StepForm extends Component
      */
     private function photoOf(CertificationStep $step, int $photoId): CertificationPhoto
     {
-        return $step->photos()->findOrFail($photoId);
+        return $step->currentPhotos()->findOrFail($photoId);
     }
 
     /**

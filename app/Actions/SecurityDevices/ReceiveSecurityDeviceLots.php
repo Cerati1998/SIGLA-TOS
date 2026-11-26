@@ -10,51 +10,57 @@ use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
-class ReceiveSecurityDeviceLot
+class ReceiveSecurityDeviceLots
 {
-    /**
-     * The most devices a lot can bring (H07, criterion 10).
-     */
-    public const int MAX_DEVICES = 10000;
-
     /**
      * The rows written or looked up per query.
      */
     private const int CHUNK_SIZE = 1000;
 
     /**
-     * Save the announcement, its lot and one device per serial number, all or nothing. The devices are born Inactive
+     * Save an announcement of the entry of lots with its new lots and one device per serial number, all or nothing
+     * (H37). The announcement may be new or already saved, when bodega adds lots to it. The devices are born Inactive
      * until bodega registers the approval of their shipping line (H29), or Available when their type does not require
-     * it (T62). Return null, with nothing saved, when one of the serial numbers already exists.
+     * it (T62). Return false, with nothing saved, when one of the serial numbers already exists.
      *
-     * @param  array{received_at: string, dispatch_number: string, notes: string|null}  $lotAttributes
+     * @param  list<SecurityDeviceLot>  $lots  The new lots, not saved yet, each with its type and its series.
      */
-    public function handle(SecurityDeviceAnnouncement $announcement, array $lotAttributes, User $user): ?SecurityDeviceLot
+    public function handle(SecurityDeviceAnnouncement $announcement, array $lots, User $user): bool
     {
-        $serialNumbers = $announcement->serialNumbers();
-        $type = $announcement->securityDeviceType;
-
         try {
-            return DB::transaction(function () use ($announcement, $lotAttributes, $user, $serialNumbers, $type): ?SecurityDeviceLot {
-                if ($this->takenSerialNumbers($serialNumbers, $type) !== []) {
-                    return null;
+            return DB::transaction(function () use ($announcement, $lots, $user): bool {
+                if (array_filter($this->takenSerialNumbersByLot($lots)) !== []) {
+                    return false;
                 }
 
-                $announcement->save();
+                if (! $announcement->exists) {
+                    $announcement->created_by = $user->id;
+                    $announcement->save();
+                }
 
-                $lot = $announcement->lot()->create([
-                    ...$lotAttributes,
-                    'quantity' => count($serialNumbers),
-                    'created_by' => $user->id,
-                ]);
+                foreach ($lots as $lot) {
+                    $serialNumbers = $lot->serialNumbers();
+                    $lot->quantity = count($serialNumbers);
+                    $announcement->lots()->save($lot);
+                    $this->createDevices($lot, $serialNumbers, $lot->securityDeviceType);
+                }
 
-                $this->createDevices($lot, $serialNumbers, $type);
-
-                return $lot;
+                return true;
             });
         } catch (UniqueConstraintViolationException) {
-            return null;
+            return false;
         }
+    }
+
+    /**
+     * Get, for each lot, its serial numbers that already exist in SIGLA, by the position of the lot.
+     *
+     * @param  list<SecurityDeviceLot>  $lots
+     * @return array<int, list<string>>
+     */
+    public function takenSerialNumbersByLot(array $lots): array
+    {
+        return array_map(fn (SecurityDeviceLot $lot): array => $this->takenSerialNumbers($lot->serialNumbers(), $lot->securityDeviceType), $lots);
     }
 
     /**

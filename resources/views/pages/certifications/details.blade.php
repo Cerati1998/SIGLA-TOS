@@ -29,6 +29,8 @@
         'Tipo de kit' => $certification->kit->kitType->name,
         'Dispositivos' => (string) $devices,
     ];
+    $current = fn ($step) => $step->photos->whereNull('superseded_by_replacement_id');
+    $installedIds = $replacements->pluck('installed_device_id')->all();
 @endphp
 
 <div x-data="certificationDetails" class="flex flex-col gap-5.25">
@@ -114,7 +116,7 @@
     @unless ($certification->isReadOnly())
         <section class="grid gap-4 md:grid-cols-2">
             @foreach ($inspections as $inspection)
-                @php $done = $steps->where('type', $inspection['type'])->filter(fn ($step) => $step->photos->isNotEmpty())->count(); @endphp
+                @php $done = $steps->where('type', $inspection['type'])->filter(fn ($step) => $current($step)->isNotEmpty())->count(); @endphp
                 <a wire:key="inspection-{{ $inspection['type']->value }}" href="{{ route('intranet.inspections.show', [$inspection['type'], $certification]) }}" wire:navigate
                     class="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4 text-ink no-underline shadow-card hover:border-brand hover:text-ink">
                     <span class="flex items-center justify-between gap-2">
@@ -145,9 +147,12 @@
 
         @forelse ($steps as $step)
             @php
-                $first = $step->photos->first();
-                $last = $step->photos->last();
-                $uploaders = $step->photos->map(fn ($photo) => $photo->uploader->name)->unique()->implode(', ');
+                $currentPhotos = $current($step);
+                $oldPhotos = $step->photos->whereNotNull('superseded_by_replacement_id');
+                $first = $currentPhotos->first();
+                $last = $currentPhotos->last();
+                $uploaders = $currentPhotos->map(fn ($photo) => $photo->uploader->name)->unique()->implode(', ');
+                $stepReplacements = $replacements->where('certification_step_id', $step->id)->count();
             @endphp
             <div wire:key="step-{{ $step->id }}" class="flex flex-col border-t border-line pt-4 md:grid md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] md:gap-5">
                 <button type="button" x-on:click="toggle({{ $step->id }})" x-bind:aria-expanded="isOpen({{ $step->id }})"
@@ -159,18 +164,23 @@
 
                 <div class="hidden flex-col gap-2 md:flex">
                     <strong class="font-semibold">{{ $step->position }} · {{ $step->section->name }}</strong>
-                    <span><x-status-badge :variant="$step->type === CertificationSectionType::Internal ? 'purple' : 'info'">{{ $step->type->label() }}</x-status-badge></span>
-                    @include('pages.certifications.partials.step-devices', ['step' => $step])
+                    <span class="flex flex-wrap gap-1.5">
+                        <x-status-badge :variant="$step->type === CertificationSectionType::Internal ? 'purple' : 'info'">{{ $step->type->label() }}</x-status-badge>
+                        @if ($stepReplacements > 0)
+                            <x-status-badge variant="success">{{ trans_choice(':count reemplazo|:count reemplazos', $stepReplacements) }}</x-status-badge>
+                        @endif
+                    </span>
+                    @include('pages.certifications.partials.step-devices', ['step' => $step, 'installedIds' => $installedIds])
                 </div>
 
                 <div x-show="isOpen({{ $step->id }}) || wide" x-cloak class="flex flex-col gap-2.5 max-md:pt-2.5">
-                    <div class="md:hidden">@include('pages.certifications.partials.step-devices', ['step' => $step])</div>
+                    <div class="md:hidden">@include('pages.certifications.partials.step-devices', ['step' => $step, 'installedIds' => $installedIds])</div>
 
-                    @if ($step->photos->isEmpty())
-                        <span class="text-sm text-ink-muted">Sin fotos.</span>
+                    @if ($currentPhotos->isEmpty())
+                        <span class="text-sm text-ink-muted">{{ $oldPhotos->isEmpty() ? 'Sin fotos.' : 'Sin fotos nuevas después del reemplazo.' }}</span>
                     @else
                         <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                            @foreach ($step->photos as $photo)
+                            @foreach ($currentPhotos as $photo)
                                 <button type="button" wire:key="photo-{{ $photo->id }}"
                                     x-on:click="show(@js(route('intranet.certification-photos.show', $photo)), @js($photo->uploader->name), @js($lima($photo->created_at)?->format('d/m/Y H:i')))"
                                     class="aspect-square overflow-hidden rounded-control border border-line bg-surface max-md:min-h-11"
@@ -180,13 +190,27 @@
                             @endforeach
                         </div>
                         <span class="text-sm text-ink-muted">
-                            {{ $step->photos->count() === 1 ? 'Subida' : 'Subidas' }} por {{ $uploaders }} ·
-                            @if ($step->photos->count() === 1)
+                            {{ $currentPhotos->count() === 1 ? 'Subida' : 'Subidas' }} por {{ $uploaders }} ·
+                            @if ($currentPhotos->count() === 1)
                                 {{ $lima($first->created_at)?->format('d/m/Y H:i') }}
                             @else
                                 {{ $lima($first->created_at)?->format('d/m/Y') }}, de {{ $lima($first->created_at)?->format('H:i') }} a {{ $lima($last->created_at)?->format('H:i') }}
                             @endif
                         </span>
+                    @endif
+
+                    @if ($oldPhotos->isNotEmpty())
+                        <span class="pt-1.5 text-sm text-ink-muted">Antes del reemplazo · {{ $oldPhotos->count() }}, ya no cuentan</span>
+                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                            @foreach ($oldPhotos as $photo)
+                                <button type="button" wire:key="old-photo-{{ $photo->id }}"
+                                    x-on:click="show(@js(route('intranet.certification-photos.show', $photo)), @js($photo->uploader->name), @js($lima($photo->created_at)?->format('d/m/Y H:i')))"
+                                    class="aspect-square overflow-hidden rounded-control border border-line bg-surface opacity-55 max-md:min-h-11"
+                                    aria-label="Ver la foto {{ $loop->iteration }} de {{ $step->section->name }}, antes del reemplazo">
+                                    <img src="{{ route('intranet.certification-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="size-full object-cover">
+                                </button>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
             </div>
@@ -194,6 +218,10 @@
             <p class="m-0 text-sm text-ink-muted">Esta asignación no tiene secciones.</p>
         @endforelse
     </flux:card>
+
+    @if ($replacements->isNotEmpty())
+        @include('pages.certifications.partials.replacements', ['replacements' => $replacements, 'lima' => $lima])
+    @endif
 
     <template x-teleport="body">
         <div x-show="viewer" x-cloak x-on:keydown.escape.window="viewer = null" class="fixed inset-0 z-50 flex flex-col bg-black/95 text-white" role="dialog" aria-modal="true" aria-label="Foto en grande">

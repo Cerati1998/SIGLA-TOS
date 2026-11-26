@@ -2,21 +2,39 @@
 
 namespace App\Actions\BulkDispatches;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\SecurityDeviceStatus;
 use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceType;
 
 class FindDeviceToBulkDispatch
 {
+    public function __construct(private FindSkippedSecurityDevice $findSkippedDevice) {}
+
     /**
      * Find the device with the scanned or written serial number, or get why it cannot be dispatched in bulk, to show
-     * it on screen. When given, only the devices of the type are looked up (T62).
+     * it on screen. When given, only the devices of the type are looked up (T62). The devices already in the dispatch
+     * count as taken when its shipping line dispatches in order (T82).
+     *
+     * @param  list<int>  $chosenIds
      */
-    public function handle(string $serialNumber, ?SecurityDeviceType $type = null): SecurityDevice|string
+    public function handle(string $serialNumber, ?SecurityDeviceType $type = null, array $chosenIds = []): SecurityDevice|string
     {
-        $device = $this->find($serialNumber, $type, ['lot.announcement.securityDeviceType', 'kits', 'bulkDispatches']);
+        $device = $this->find($serialNumber, $type, ['lot.securityDeviceType', 'kits', 'bulkDispatches']);
 
-        return is_string($device) ? $device : ($this->rejectionReason($device) ?? $device);
+        if (is_string($device)) {
+            return $device;
+        }
+
+        $reason = $this->rejectionReason($device);
+
+        if ($reason !== null) {
+            return $reason;
+        }
+
+        $skipped = $this->findSkippedDevice->handle([$device->id], $chosenIds);
+
+        return $skipped === null ? $device : FindSkippedSecurityDevice::message($skipped);
     }
 
     /**
@@ -25,7 +43,7 @@ class FindDeviceToBulkDispatch
      *
      * @param  list<string>  $with
      */
-    public function find(string $serialNumber, ?SecurityDeviceType $type = null, array $with = ['lot.announcement.securityDeviceType']): SecurityDevice|string
+    public function find(string $serialNumber, ?SecurityDeviceType $type = null, array $with = ['lot.securityDeviceType']): SecurityDevice|string
     {
         $devices = SecurityDevice::query()
             ->with($with)

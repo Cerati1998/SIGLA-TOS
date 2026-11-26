@@ -1,14 +1,14 @@
 @php
     $announcement = $lot->announcement;
     $details = [
-        'Tipo de dispositivo' => $announcement->securityDeviceType->name,
+        'Tipo de dispositivo' => $lot->securityDeviceType->name,
         'Línea naviera' => $announcement->shippingLine->code.' · '.$announcement->shippingLine->name,
         'Proveedor' => $announcement->provider->business_name,
-        'Guía' => $lot->dispatch_number,
-        'Rango' => $announcement->serialNumber($announcement->series_start).' – '.$announcement->serialNumber($announcement->series_end),
+        'Guía' => $announcement->dispatch_number,
+        'Rango' => $lot->serialNumber($lot->series_start).' – '.$lot->serialNumber($lot->series_end),
         'Cantidad' => number_format($lot->quantity, 0, ',', ' '),
-        'Recepción' => $lot->received_at->format('d/m/Y'),
-        'Ingresado por' => $lot->creator->name.' · '.$lot->created_at?->timezone('America/Lima')->format('d/m/Y H:i'),
+        'Recepción' => $announcement->received_at->format('d/m/Y'),
+        'Ingresado por' => $announcement->creator->name.' · '.$announcement->created_at?->timezone('America/Lima')->format('d/m/Y H:i'),
     ];
     $countStyles = [
         'inactive' => 'border border-line bg-badge-neutral text-ink-muted',
@@ -21,10 +21,11 @@
     ];
 @endphp
 
-<x-layouts::app :title="'Lote '.$announcement->lotName()" :breadcrumbs="[
+<x-layouts::app :title="'Lote '.$lot->name()" :breadcrumbs="[
     ['name' => 'Inicio', 'route' => route('intranet.dashboard')],
-    ['name' => 'Lotes de dispositivos', 'route' => route('intranet.security-device-lots.index')],
-    ['name' => $announcement->lotName()],
+    ['name' => 'Anuncios de ingreso de lotes', 'route' => route('intranet.security-device-announcements.index')],
+    ['name' => $announcement->number(), 'route' => route('intranet.security-device-announcements.show', $announcement)],
+    ['name' => $lot->name()],
 ]">
     <x-slot:actions>
         <flux:button
@@ -40,6 +41,11 @@
 
     <flux:card class="flex flex-col gap-5.25 p-5.25!">
         <dl class="m-0 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="flex min-w-0 flex-col gap-0.5">
+                <dt class="text-xs tracking-wider text-ink-muted uppercase">Anuncio de ingreso de lotes</dt>
+                <dd class="m-0"><a href="{{ route('intranet.security-device-announcements.show', $announcement) }}" wire:navigate class="text-brand underline-offset-2 hover:text-accent hover:underline">{{ $announcement->number() }}</a></dd>
+            </div>
+
             @foreach ($details as $label => $value)
                 <div class="flex min-w-0 flex-col gap-0.5">
                     <dt class="text-xs tracking-wider text-ink-muted uppercase">{{ $label }}</dt>

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\BulkDispatchReason;
 use App\Enums\CertificationKitDecision;
 use App\Enums\CertificationSectionType;
 use App\Enums\CertificationStatus;
+use App\Enums\GateOutRequestSource;
 use Database\Factories\CertificationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -19,13 +21,15 @@ use Illuminate\Support\Carbon;
 
 /**
  * The certification of a unit, started by an inspector with a gate out request of SIGLA 1.0 and a dispatched kit
- * (H17), which is the assignment of the kit to the unit. It keeps the reference, the booking, the container, the
- * client and the product of the request (the client and the product since T58, so the detail and the PDF do not
- * depend on SIGLA 1.0), and the links to the catalogs; the driver's DNI and license stay in the drivers catalog. Its
+ * (H17), which is the assignment of the kit to the unit. It keeps where the request comes from (T81), and the
+ * reference, the booking, the container, the client and the product of the request (the client and the product since
+ * T58, so the detail and the PDF do not depend on SIGLA 1.0), and the links to the catalogs; the driver's DNI and
+ * license stay in the drivers catalog. Its
  * sections, with the devices of the kit, are its steps, split in the internal and the external inspection (H18). It is
  * closed by hand once both inspections are complete, and it can be reopened with a reason to correct its photos (H19).
  *
  * @property int $id
+ * @property GateOutRequestSource $source
  * @property string $gate_out_request_reference
  * @property string $booking
  * @property string $container
@@ -63,9 +67,10 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CertificationReopening> $reopenings
  * @property-read CertificationReopening|null $lastReopening
  * @property-read Checkpoint|null $checkpoint
+ * @property-read Collection<int, SecurityDeviceReplacement> $replacements
  */
 #[Fillable([
-    'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
+    'source', 'gate_out_request_reference', 'booking', 'container', 'client', 'product', 'shipping_line_id', 'carrier_id', 'driver_id', 'tractor_id',
     'semi_trailer_id', 'kit_id', 'inspection_sheet_code', 'yard_zone_id', 'certified_by', 'started_at', 'closed_at', 'closed_by',
     'annulled_at', 'annulled_by', 'annulment_reason', 'kit_decision',
 ])]
@@ -86,6 +91,7 @@ class Certification extends Model
             'closed_at' => 'datetime',
             'annulled_at' => 'datetime',
             'kit_decision' => CertificationKitDecision::class,
+            'source' => GateOutRequestSource::class,
         ];
     }
 
@@ -230,6 +236,29 @@ class Certification extends Model
     }
 
     /**
+     * Get its extra devices (H38, criterion 2): the ones a bulk dispatch for the operation sent to its kit, whether they
+     * are still unused (Despachado) or already replaced a device of the kit.
+     *
+     * @return Builder<SecurityDevice>
+     */
+    public function extraDevices(): Builder
+    {
+        return SecurityDevice::query()->whereHas('bulkDispatches', fn (Builder $dispatches) => $dispatches
+            ->where('reason', BulkDispatchReason::Operation)
+            ->where('kit_id', $this->kit_id));
+    }
+
+    /**
+     * Get the replacements of devices of its kit by extra devices, the newest first (H38, criterion 8).
+     *
+     * @return HasMany<SecurityDeviceReplacement, $this>
+     */
+    public function replacements(): HasMany
+    {
+        return $this->hasMany(SecurityDeviceReplacement::class)->latest()->latest('id');
+    }
+
+    /**
      * Whether the assignment of its kit was annulled: then it is kept, but it is neither edited nor closed (H32).
      */
     public function isAnnulled(): bool
@@ -265,6 +294,17 @@ class Certification extends Model
     }
 
     /**
+     * Keep only the certification of a gate out request, whose reference is unique within its source (T81).
+     *
+     * @param  Builder<Certification>  $query
+     */
+    #[Scope]
+    protected function whereGateOutRequest(Builder $query, GateOutRequestSource $source, string $reference): void
+    {
+        $query->where('source', $source)->where('gate_out_request_reference', $reference);
+    }
+
+    /**
      * Load how many sections each inspection has and how many have a photo, and whether it was ever reopened, which
      * the status and the list of assignments read.
      *
@@ -275,9 +315,9 @@ class Certification extends Model
     {
         $query->withCount([
             'steps as internal_total' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal),
-            'steps as internal_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal)->has('photos'),
+            'steps as internal_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::Internal)->has('currentPhotos'),
             'steps as external_total' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External),
-            'steps as external_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External)->has('photos'),
+            'steps as external_done' => fn (Builder $steps) => $steps->where('type', CertificationSectionType::External)->has('currentPhotos'),
         ])->withExists('reopenings');
     }
 
@@ -291,7 +331,7 @@ class Certification extends Model
     {
         $complete = fn (Builder $certifications) => $certifications
             ->has('steps')
-            ->whereDoesntHave('steps', fn (Builder $steps) => $steps->doesntHave('photos'));
+            ->whereDoesntHave('steps', fn (Builder $steps) => $steps->doesntHave('currentPhotos'));
 
         if ($status === CertificationStatus::Annulled) {
             $query->whereNotNull('certifications.annulled_at');
@@ -331,8 +371,8 @@ class Certification extends Model
     }
 
     /**
-     * Whether every section of both inspections has at least one photo, the only way to close it (H19, criteria 1
-     * and 2). A certification without sections is never complete.
+     * Whether every section of both inspections has at least one photo that counts, the only way to close it (H19,
+     * criteria 1 and 2; H38, criterion 6). A certification without sections is never complete.
      */
     public function inspectionsAreComplete(): bool
     {
@@ -366,11 +406,11 @@ class Certification extends Model
      */
     public function inspectionProgress(CertificationSectionType $type): array
     {
-        $steps = $this->steps()->where('type', $type)->withExists('photos')->get();
+        $steps = $this->steps()->where('type', $type)->withExists('currentPhotos')->get();
 
         return [
             'total' => $steps->count(),
-            'done' => $steps->where('photos_exists', true)->count(),
+            'done' => $steps->where('current_photos_exists', true)->count(),
         ];
     }
 }

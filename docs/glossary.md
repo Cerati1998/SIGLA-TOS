@@ -14,8 +14,8 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Semirremolque | `semi_trailer` | Unidad que lleva la carga (H23). |
 | Tipo de documento | `identity` | Tabla `identities` y columna `identity_id`, catálogo SUNAT 06. |
 | Tipo de dispositivo de seguridad | `security_device_type` | Tabla `security_device_types` (H06). Su clase (sello, precinto, cinta, funda u otro) es la columna `kind`. |
-| Anuncio | `security_device_announcement` | Origen de un lote: naviera, proveedor, tipo y cómo se arman sus series (H07). |
-| Lote | `security_device_lot` | Dispositivos de seguridad que llegan juntos, con su fecha de recepción y su guía (H07). |
+| Anuncio de ingreso de lotes | `security_device_announcement` | Recepción de una guía de un proveedor, para una naviera, con uno o más lotes (H37). En pantalla se dice siempre «anuncio de ingreso de lotes», para no confundirlo con otros anuncios de ingreso (de contenedores, de unidades). Antes de H37 era el origen de un solo lote. |
+| Lote | `security_device_lot` | Dispositivos de seguridad de un mismo tipo y una misma serie, dentro de un anuncio de ingreso de lotes (H07, H37). |
 | Dispositivo de seguridad | `security_device` | Cada unidad con su serie única y su estado (H07). |
 | Inicio de serie | `series_prefix` | Letras y números con que empieza la serie, por ejemplo GSW (H07). |
 | Final de serie | `series_suffix` | Letras opcionales con que termina la serie, por ejemplo la A de GWF00100A (H07). |
@@ -43,3 +43,6 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Marca (de una serie) | `checkpoint_mark` (`is_correct`) | Correcta o incorrecta, para cada serie de un paso de verificación, con quién la marcó y cuándo (H34, aprobado por el usuario el 2026-11-24). |
 | Foto del contenedor | `container_photo_path` | Columnas del checkpoint con la foto opcional del contenedor, su miniatura, quién la tomó y cuándo. No lee el número (H34, aprobado por el usuario el 2026-11-24). |
 | Observaciones (del checkpoint) | `observations` | Texto opcional del último paso del checkpoint (H34, aprobado por el usuario el 2026-11-24). |
+| Dispositivo extra | `extra device` | Dispositivo de un despacho a granel con motivo Operación, enlazado al kit de una certificación, usado o sin usar. Consulta `Certification::extraDevices()` (H38, aprobado por el usuario el 2026-11-24). |
+| Reemplazo (de un dispositivo) | `security_device_replacement` | Cambio de un dispositivo del kit, ya colocado en una sección, por un dispositivo extra del mismo tipo, con su motivo (H38, aprobado por el usuario el 2026-11-24). |
+| Modo de despacho | `dispatch_mode` (`random`, `linear`) | Si los dispositivos de una naviera salen en cualquier orden (Aleatorio) o en orden de correlativo, sin saltarse ninguno (Lineal), al armar un kit y al despachar a granel. Enum `DispatchMode` (T82, pedido por el usuario el 2026-11-25). |

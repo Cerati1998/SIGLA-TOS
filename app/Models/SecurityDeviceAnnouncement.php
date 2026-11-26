@@ -4,36 +4,40 @@ namespace App\Models;
 
 use Database\Factories\SecurityDeviceAnnouncementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * The origin of a lot: where it comes from and how its serial numbers are built.
+ * An announcement of the entry of lots (H37): the reception of a dispatch of a provider, for one shipping line, with the
+ * lots it brings.
  *
  * @property int $id
  * @property int $shipping_line_id
  * @property int $provider_id
- * @property int $security_device_type_id
- * @property string $series_prefix
- * @property int $min_digits
- * @property int $series_start
- * @property int $series_end
- * @property string|null $series_suffix
+ * @property Carbon $received_at
+ * @property string $dispatch_number
+ * @property int $created_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read ShippingLine $shippingLine
  * @property-read Provider $provider
- * @property-read SecurityDeviceType $securityDeviceType
- * @property-read SecurityDeviceLot|null $lot
+ * @property-read User $creator
+ * @property-read Collection<int, SecurityDeviceLot> $lots
  */
-#[Fillable(['shipping_line_id', 'provider_id', 'security_device_type_id', 'series_prefix', 'min_digits', 'series_start', 'series_end', 'series_suffix'])]
+#[Fillable(['shipping_line_id', 'provider_id', 'received_at', 'dispatch_number', 'created_by'])]
 class SecurityDeviceAnnouncement extends Model
 {
     /** @use HasFactory<SecurityDeviceAnnouncementFactory> */
     use HasFactory;
+
+    /**
+     * The most devices an announcement can bring, adding up all its lots (H37, criterion 6).
+     */
+    public const int MAX_DEVICES = 10000;
 
     /**
      * Get the attributes that should be cast.
@@ -43,75 +47,28 @@ class SecurityDeviceAnnouncement extends Model
     protected function casts(): array
     {
         return [
-            'min_digits' => 'integer',
-            'series_start' => 'integer',
-            'series_end' => 'integer',
+            'received_at' => 'date',
         ];
     }
 
     /**
-     * Get the serial number of a correlative: the prefix, the correlative left-padded with zeros up to the minimum of digits,
-     * and the suffix when there is one. A correlative longer than the minimum stays whole.
+     * Get the number of the announcement shown on screen, as in AN-000004. It is not a column: it comes from the id.
      */
-    public function serialNumber(int $correlative): string
+    public function number(): string
     {
-        return $this->series_prefix.$this->correlativeWithSuffix($correlative);
+        return self::numberFor($this->id);
     }
 
     /**
-     * Get the correlative of a serial number of this lot, or null when the serial number does not follow its format:
-     * the prefix, only digits, and the suffix when there is one.
+     * Get the number shown on screen for the announcement with the given id.
      */
-    public function correlativeOf(string $serialNumber): ?int
+    public static function numberFor(int $id): string
     {
-        $suffix = (string) $this->series_suffix;
-
-        if (! str_starts_with($serialNumber, $this->series_prefix) || ($suffix !== '' && ! str_ends_with($serialNumber, $suffix))) {
-            return null;
-        }
-
-        $digits = substr($serialNumber, strlen($this->series_prefix), strlen($serialNumber) - strlen($this->series_prefix) - strlen($suffix));
-
-        return $digits !== '' && ctype_digit($digits) ? (int) $digits : null;
+        return sprintf('AN-%06d', $id);
     }
 
     /**
-     * Get the range of the lot without the prefix, as in "0000200 – 0000399".
-     */
-    public function rangeLabel(): string
-    {
-        return $this->correlativeWithSuffix($this->series_start).' – '.$this->correlativeWithSuffix($this->series_end);
-    }
-
-    /**
-     * Get the name of the lot: its prefix and its range, as in "GSW 0000200 – 0000399", or only its range when its type
-     * does not use a series (T62).
-     */
-    public function lotName(): string
-    {
-        return ltrim($this->series_prefix.' '.$this->rangeLabel());
-    }
-
-    /**
-     * Get a correlative left-padded with zeros and followed by the suffix, without the prefix.
-     */
-    private function correlativeWithSuffix(int $correlative): string
-    {
-        return str_pad((string) $correlative, $this->min_digits, '0', STR_PAD_LEFT).$this->series_suffix;
-    }
-
-    /**
-     * Get the serial numbers of the whole range, from the first correlative to the last one.
-     *
-     * @return list<string>
-     */
-    public function serialNumbers(): array
-    {
-        return array_map($this->serialNumber(...), range($this->series_start, $this->series_end));
-    }
-
-    /**
-     * Get the shipping line the devices are for.
+     * Get the shipping line all the lots of the announcement belong to.
      *
      * @return BelongsTo<ShippingLine, $this>
      */
@@ -121,7 +78,7 @@ class SecurityDeviceAnnouncement extends Model
     }
 
     /**
-     * Get the provider that sends the devices.
+     * Get the provider that sent the lots.
      *
      * @return BelongsTo<Provider, $this>
      */
@@ -131,22 +88,22 @@ class SecurityDeviceAnnouncement extends Model
     }
 
     /**
-     * Get the type of the devices.
+     * Get the user who entered the announcement.
      *
-     * @return BelongsTo<SecurityDeviceType, $this>
+     * @return BelongsTo<User, $this>
      */
-    public function securityDeviceType(): BelongsTo
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(SecurityDeviceType::class)->withTrashed();
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
     /**
-     * Get the lot received from this announcement.
+     * Get the lots of the announcement, in the order they were entered.
      *
-     * @return HasOne<SecurityDeviceLot, $this>
+     * @return HasMany<SecurityDeviceLot, $this>
      */
-    public function lot(): HasOne
+    public function lots(): HasMany
     {
-        return $this->hasOne(SecurityDeviceLot::class);
+        return $this->hasMany(SecurityDeviceLot::class)->orderBy('id');
     }
 }

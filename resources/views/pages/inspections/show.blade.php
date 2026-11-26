@@ -4,4 +4,5 @@
     ['name' => $certification->container],
 ]">
     <livewire:inspections.step-form :certification="$certification" :type="$type" />
+    <livewire:inspections.extra-devices :certification="$certification" :type="$type" />
 </x-layouts::app>

@@ -17,6 +17,11 @@ use Illuminate\Http\Response;
 class CertificationController extends Controller
 {
     /**
+     * The longest side, in px, of each photo in the PDF: three to a row of an A4 page, it still reads when zoomed.
+     */
+    private const int PDF_PHOTO_SIDE = 1024;
+
+    /**
      * Show the panel of the certifications: the assignment, the internal and external inspections, with how many
      * units each inspection has pending (T58), and the list of assignments, with how many are ready to close.
      */
@@ -38,7 +43,8 @@ class CertificationController extends Controller
 
     /**
      * Show the PDF of a closed certification: its header, the devices placed on the drawings of the container and the
-     * photos of each section (H20, criteria 5 and 6). The photos go as their thumbnails, so the PDF stays light.
+     * photos of each section (H20, criteria 5 and 6). Each photo goes shrunk from the whole photo, not from its
+     * thumbnail, so it stays sharp when zoomed and the PDF does not carry the photos as they are (T85).
      */
     public function pdf(Request $request, Certification $certification, DescribeCertification $describeCertification, PhotoStorage $photoStorage): Response
     {
@@ -50,7 +56,7 @@ class CertificationController extends Controller
         return Pdf::loadView('pdf.certifications.certification', [
             ...$describeCertification->handle($certification),
             'certification' => $certification,
-            'photoData' => fn (CertificationPhoto $photo): string => $photoStorage->dataUri($photo->thumbnail_path),
+            'photoData' => fn (CertificationPhoto $photo): string => $photoStorage->resizedDataUri($photo->path, self::PDF_PHOTO_SIDE),
             'generatedBy' => $user->name,
         ])
             ->setPaper('a4')

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\GateOutRequestSource;
 use App\Enums\KitStatus;
 use App\Livewire\Certifications\StartForm;
 use App\Models\Branch;
@@ -12,7 +13,6 @@ use App\Models\Driver;
 use App\Models\Kit;
 use App\Models\KitDispatch;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\ShippingLine;
@@ -108,6 +108,7 @@ class CertificationStartTest extends TestCase
                 $certification->kit_id, $certification->inspection_sheet_code, $certification->yard_zone_id, $certification->certified_by],
         );
         $this->assertTrue($certification->started_at->equalTo(now()));
+        $this->assertSame(GateOutRequestSource::Api, $certification->source);
         $this->assertSame(['OPERADOR DE EJEMPLO S.A.C.', 'PRODUCTO DE EJEMPLO'], [$certification->client, $certification->product]);
         $this->assertSame(['20000000003', 'TRANSPORTES DE EJEMPLO S.R.L.'], [$carrier->document_number, $carrier->business_name]);
         $this->assertSame(['00000001', 'NOMBRE APELLIDO DE EJEMPLO', 'B00000001'], [$driver->document_number, $driver->full_name, $driver->license]);
@@ -149,6 +150,32 @@ class CertificationStartTest extends TestCase
             ->call('start');
 
         $this->assertSame(1, Certification::query()->count());
+    }
+
+    public function test_a_sigla2_request_with_the_same_number_does_not_block_the_sigla1_request(): void
+    {
+        Certification::factory()->create([
+            'source' => GateOutRequestSource::Web,
+            'gate_out_request_reference' => '10001',
+            'certified_by' => $this->inspector->id,
+        ]);
+        $this->fakeSigla1([$this->gateOutRequest()]);
+        $kit = $this->dispatchedKit('KIT-000046');
+
+        $this->lookedUp()
+            ->assertSet('existingCertificationId', null)
+            ->set('form.pouchCode', $kit->pouch_code)
+            ->call('findKit')
+            ->assertSet('kitId', $kit->id)
+            ->set('form.yardZoneId', (string) $this->yardZone->id)
+            ->call('start')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('intranet.certifications.list'));
+
+        $this->assertSame(
+            [GateOutRequestSource::Api, GateOutRequestSource::Web],
+            Certification::query()->where('gate_out_request_reference', '10001')->orderBy('source')->get()->pluck('source')->all(),
+        );
     }
 
     public function test_the_container_needs_its_four_letters_and_its_seven_numbers_and_the_booking_is_required(): void
@@ -297,9 +324,7 @@ class CertificationStartTest extends TestCase
         $pouchType = SecurityDeviceType::factory()->pouch()->create(['name' => 'Funda']);
         $kit = $this->dispatchedKit('FMK0000012');
         $kit->securityDeviceTypes()->attach($pouchType->id, ['quantity' => 1]);
-        $lot = SecurityDeviceLot::factory()->create([
-            'security_device_announcement_id' => SecurityDeviceAnnouncement::factory()->create(['security_device_type_id' => $pouchType->id])->id,
-        ]);
+        $lot = SecurityDeviceLot::factory()->create(['security_device_type_id' => $pouchType->id]);
         $kit->devices()->attach(SecurityDevice::factory()->create(['security_device_lot_id' => $lot->id, 'serial_number' => 'FMK0000012'])->id);
 
         $this->lookedUp()

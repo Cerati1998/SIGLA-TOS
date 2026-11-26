@@ -63,6 +63,19 @@ class CertificationSection extends Model
     }
 
     /**
+     * Get the name of a security device type the section carries, with its side when the type is split between the
+     * internal and the external assignment (T84): the side is the type of the section.
+     */
+    public function deviceTypeName(SecurityDeviceType $deviceType): string
+    {
+        if (! $deviceType->splits_internal_external || ! $this->type->isInspection()) {
+            return $deviceType->name;
+        }
+
+        return "{$deviceType->name} · {$this->type->label()}";
+    }
+
+    /**
      * Get the internal or external sections whose serial numbers a checkpoint section of verification shows (H33),
      * even the deactivated ones: the link stays until the admin removes it.
      *

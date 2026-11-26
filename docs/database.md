@@ -51,8 +51,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `providers` | E8 · H10 | `en código` | `providers` |
 | `clients` | E8 · H31 | `en código` | `clients` (estaba como futura) |
 | `security_device_types` | E2 · H06 | `en código` | `security_device_types` |
-| `security_device_announcements` | E2 · H07 | `en código` | `security_device_types_announcement` |
-| `security_device_lots` | E2 · H07 | `en código` | `security_device_lots` |
+| `security_device_announcements` | E2 · H07, H37 | `en código` | `security_device_types_announcement` |
+| `security_device_lots` | E2 · H07, H37 | `en código` | `security_device_lots` |
 | `security_devices` | E2 · H07 | `en código` | `s_device_lots_units` |
 | `security_device_lot_approvals` | E2 · H29 | `en código` | (nueva; bitácora de aprobaciones de la naviera) |
 | `certification_sections` | E3 · H11 | `planeada (T35/H11)` | `certification_criteria_items` |
@@ -76,6 +76,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `certification_step_security_device` | E5 · H18 | `en código` | (nueva) |
 | `certification_photos` | E5 · H18 | `en código` | (nueva; cierra P3) |
 | `certification_reopenings` | E5 · H19 | `en código` | (nueva; con `closed_at` y `closed_by` en `certifications`, cierra P4) |
+| `security_device_replacements` | E5 · H38 | `en código` | (nueva) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -168,9 +169,9 @@ erDiagram
 erDiagram
   shipping_lines ||--o{ security_device_announcements : "naviera"
   providers ||--o{ security_device_announcements : "proveedor"
-  security_device_types ||--o{ security_device_announcements : "tipo"
-  security_device_announcements ||--|| security_device_lots : "origen"
-  users ||--o{ security_device_lots : "ingresó"
+  users ||--o{ security_device_announcements : "ingresó"
+  security_device_announcements ||--|{ security_device_lots : "trae"
+  security_device_types ||--o{ security_device_lots : "tipo"
   security_device_lots ||--o{ security_devices : "trae"
   security_device_lots ||--o{ security_device_lot_approvals : "aprobaciones"
   users ||--o{ security_device_lot_approvals : "registró"
@@ -180,21 +181,21 @@ erDiagram
     bigint id PK
     bigint shipping_line_id FK
     bigint provider_id FK
+    date received_at
+    string dispatch_number
+    bigint created_by FK
+  }
+  security_device_lots {
+    bigint id PK
+    bigint security_device_announcement_id FK
     bigint security_device_type_id FK
     string series_prefix
     int min_digits
     bigint series_start
     bigint series_end
     string series_suffix "null"
-  }
-  security_device_lots {
-    bigint id PK
-    bigint security_device_announcement_id FK "UK"
     int quantity
-    date received_at
-    string dispatch_number
     text notes
-    bigint created_by FK
   }
   security_devices {
     bigint id PK
@@ -470,7 +471,7 @@ erDiagram
 
 ### 4.9 Certificaciones (E5)
 
-El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19).
+El inspector asigna el kit a una unidad con una solicitud de retiro de SIGLA 1.0 y un kit despachado (H17). De la solicitud se guardan su origen (`source`, T81), su id, su booking, su contenedor, su cliente y su producto; lo demás se enlaza con los catálogos. Al asignar, las secciones activas se copian como pasos de la certificación, con los dispositivos del kit que el sistema reparte en cada una, y la inspección interna y la externa suben sus fotos a esos pasos (H18). Con las dos completas se cierra a mano, y una cerrada se puede reaperturar con un motivo (H19). Mientras la certificación está en curso o reaperturada, un dispositivo del kit ya colocado se puede reemplazar por un dispositivo extra del mismo tipo, uno que un despacho a granel por Operación mandó a su kit (H38): el reemplazo queda en `security_device_replacements` y las fotos que la sección tenía dejan de contar.
 
 ```mermaid
 erDiagram
@@ -490,10 +491,18 @@ erDiagram
   users |o--o{ certifications : "cerró"
   certifications ||--o{ certification_reopenings : "reaperturas"
   users ||--o{ certification_reopenings : "reaperturó"
+  certifications ||--o{ security_device_replacements : "reemplazos"
+  certification_steps ||--o{ security_device_replacements : "en la sección"
+  security_devices ||--o{ security_device_replacements : "sale"
+  security_devices ||--o| security_device_replacements : "entra"
+  bulk_dispatches ||--o{ security_device_replacements : "llegó en"
+  users ||--o{ security_device_replacements : "reemplazó"
+  security_device_replacements |o--o{ certification_photos : "dejó sin valor"
 
   certifications {
     bigint id PK
-    string gate_out_request_reference UK
+    string source UK "con gate_out_request_reference"
+    string gate_out_request_reference UK "con source"
     string booking
     string container
     string client
@@ -541,6 +550,17 @@ erDiagram
     string path
     string thumbnail_path
     bigint uploaded_by FK
+    bigint superseded_by_replacement_id FK "null"
+  }
+  security_device_replacements {
+    bigint id PK
+    bigint certification_id FK
+    bigint certification_step_id FK
+    bigint removed_device_id FK
+    bigint installed_device_id FK, UK
+    bigint bulk_dispatch_id FK
+    string reason
+    bigint replaced_by FK
   }
 ```
 
@@ -685,9 +705,10 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 | `code` | varchar(20) | UK (criterio 2). Se guarda sin espacios a los lados y en mayúsculas. |
 | `name` | varchar(100) | |
 | `sigla1_name` | varchar(100) (null) | UK. Cómo escribe SIGLA 1.0 esta naviera (por ejemplo `CHIQUITA`), en mayúsculas y sin espacios de más. Es la caché con que la asignación (H17) cuadra la naviera de una solicitud sin volver a buscarla: la llena el seeder y, si no hubo una única coincidencia, la elección del inspector (T74, 2026-11-23). |
+| `dispatch_mode` | varchar(20) | Enum de PHP `DispatchMode`: `random` (Aleatorio, por defecto) o `linear` (Lineal). Con `linear`, sus dispositivos salen en orden de correlativo, sin saltarse ninguno, al armar un kit (H14) y al despachar a granel (H30): el siguiente es el dispositivo `available` con el correlativo más bajo de la misma naviera, el mismo tipo y la misma serie (inicio y final). Lo revisa `FindSkippedSecurityDevice` (T82, 2026-11-25). Se elige al crear y al editar la naviera. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
-`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Si un código ya existe, aunque esté desactivado, no lo toca.
+`ShippingLineSeeder` carga las 29 navieras iniciales dadas por el usuario el 2026-11-16 (de MAEU, Maersk Line, a DOLP, Dole Ocean Cargo Express) y 4 más de SIGLA 1.0 (SEAB, CSP, SVC y MLS, T74), cada una con su `sigla1_name` cuando SIGLA 1.0 la tiene. Todas nacen en `random`, salvo Chiquita Brands International (`CHQT`), en `linear` (T82). Si un código ya existe, aunque esté desactivado, no lo toca.
 
 ### 5.7 `providers` · `en código`
 
@@ -735,34 +756,38 @@ Clientes (H31), global (sin sucursal). Copia de `providers` con un atributo más
 
 ### 5.9 `security_device_announcements` · `en código`
 
-El origen de un lote: de quién viene y cómo se arman sus series. Se crea uno por lote, en el mismo guardado; bodega no lo gestiona aparte (P2, cerrada el 2026-11-10).
+El anuncio de ingreso de lotes (H37, 2026-11-24): la recepción de una guía de un proveedor, para una sola naviera, con los lotes que trae. Se numera en pantalla `AN-000001` desde su `id` (`SecurityDeviceAnnouncement::number()`), sin columna propia. Antes de H37 era el origen de un solo lote y guardaba el tipo y la serie, que pasaron a cada lote.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `shipping_line_id` | bigint FK | Naviera activa al ingresar el lote (H07, criterio 1). |
-| `provider_id` | bigint FK | Proveedor activo. Vive solo aquí: el lote no lo repite. |
-| `security_device_type_id` | bigint FK | Tipo activo (H07, criterio 2). |
-| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. Vacío en un tipo que no utiliza serie (T62). |
-| `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
-| `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
-| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). Null en un tipo que no utiliza serie (T62). |
+| `shipping_line_id` | bigint FK | Naviera activa al ingresar el anuncio. Todos sus lotes son de ella (H37, criterio 1). |
+| `provider_id` | bigint FK | Proveedor activo. |
+| `received_at` | date | Fecha de recepción. ER: `date_reception`. Vino del lote en H37. |
+| `dispatch_number` | varchar(50) | Número de guía. ER: `despatch_number`. Vino del lote en H37. |
+| `created_by` | bigint FK → `users` | Quién ingresó el anuncio; cuándo es `created_at` (H37, criterio 8). Vino del lote en H37. |
 | `timestamps` | | |
 
-La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceAnnouncement::serialNumber()`.
+Un anuncio trae como máximo 10 000 dispositivos, sumando todos sus lotes (`SecurityDeviceAnnouncement::MAX_DEVICES`, H37, criterio 6). La cabecera se corrige siempre; los lotes, aparte (H37, criterio 12).
 
 ### 5.10 `security_device_lots` · `en código`
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `security_device_announcement_id` | bigint FK | UK: un anuncio, un lote. |
+| `security_device_announcement_id` | bigint FK | Anuncio que trae el lote. Un anuncio trae uno o más lotes (antes de H37 era UK: un anuncio, un lote). |
+| `security_device_type_id` | bigint FK | Tipo activo al ingresar el lote (H07, criterio 2). Vino del anuncio en H37. Un anuncio puede traer lotes de tipos distintos. |
+| `series_prefix` | varchar(20) | Prefijo de la serie en columna propia, por ejemplo `GSW`. Letras y números, en mayúsculas. Vacío en un tipo que no utiliza serie (T62). Vino del anuncio en H37. |
+| `min_digits` | tinyint sin signo | Mínimo de dígitos del correlativo, de 1 a 15. |
+| `series_start`, `series_end` | bigint sin signo | Correlativos como números (el ER los tenía como texto), hasta 15 dígitos. `series_start` ≤ `series_end`. |
+| `series_suffix` | varchar(10) (null) | Final de serie, opcional: solo letras, en mayúsculas (pedido por el usuario el 2026-11-10). Null en un tipo que no utiliza serie (T62). |
 | `quantity` | smallint sin signo | Dispositivos del lote, de 1 a 10 000 (H07, criterio 10). ER: `qty`. |
-| `received_at` | date | Fecha de recepción. ER: `date_reception`. |
-| `dispatch_number` | varchar(50) | Número de guía. ER: `despatch_number`. |
-| `notes` | text (null) | Observaciones, opcionales. ER: `observations`. |
-| `created_by` | bigint FK → `users` | Quién ingresó el lote; cuándo es `created_at` (H07, criterio 9). |
+| `notes` | text (null) | Observaciones del lote, opcionales. ER: `observations`. |
 | `timestamps` | | |
+
+La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la izquierda hasta `min_digits` + `series_suffix`, sin separador; un correlativo más largo queda completo (H07, criterio 5). Ejemplo: `GWF` + `100` con 5 dígitos + `A` = `GWF00100A`. La fórmula está en `SecurityDeviceLot::serialNumber()` (antes de H37, en el anuncio).
+
+Un lote se quita de su anuncio, con sus dispositivos, solo si ninguno de ellos cambió de estado y el anuncio conserva otro lote (`RemoveSecurityDeviceLot`, H37, criterio 12).
 
 ### 5.11 `security_devices` · `en código`
 
@@ -781,7 +806,7 @@ La serie de cada dispositivo es `series_prefix` + el correlativo con ceros a la 
 | `discard_thumbnail_path` | varchar(255) (null) | Ruta de su miniatura (T77). |
 | `timestamps` | | |
 
-El lote, su anuncio y sus dispositivos se guardan en una sola transacción: si una serie ya existe, no se guarda nada (H07, criterios 6 y 7). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
+El anuncio, sus lotes nuevos y sus dispositivos se guardan en una sola transacción: si una serie ya existe, o dos lotes del anuncio traen la misma, no se guarda nada (H07, criterios 6 y 7; H37, criterios 4 y 5; `ReceiveSecurityDeviceLots`). Se descartó `location` del ER. La migración de H29 pasó a `inactive` los dispositivos que estaban `available`, porque ninguno tenía la aprobación registrada.
 
 ### 5.11b `security_device_lot_approvals` · `en código`
 
@@ -791,7 +816,7 @@ Bitácora de aprobaciones de la naviera por tramos de un lote (H29). Un registro
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `security_device_lot_id` | bigint FK | Lote del tramo. |
-| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con el anuncio del lote. |
+| `correlative_start`, `correlative_end` | bigint sin signo | Tramo pedido, dentro del rango del lote, con el inicial no mayor que el final. Las series se arman con la serie del lote (antes de H37, con su anuncio). |
 | `approved_count` | smallint sin signo | Cuántos dispositivos Inactivos del tramo pasaron a Disponible. Los ya aprobados no se cuentan. Siempre mayor que 0: si no hay nada que aprobar, no se guarda el registro. |
 | `approved_by` | bigint FK → `users` | Quién registró la aprobación; cuándo es `created_at`. |
 | `timestamps` | | |
@@ -1057,7 +1082,8 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
-| `gate_out_request_reference` | varchar(50) | UK: el id de la solicitud de SIGLA 1.0 (`id_solicitud`). Una solicitud tiene una sola certificación (criterio 6). |
+| `source` | varchar(10) | Enum de PHP `GateOutRequestSource`: de dónde viene la solicitud de retiro. `api` es SIGLA 1.0; `web` será el módulo de solicitudes de SIGLA 2.0, que todavía no existe (T81, 2026-11-25). Por defecto `api`: las certificaciones anteriores a T81 vienen todas de SIGLA 1.0. Por ahora la asignación solo busca en SIGLA 1.0 y guarda `api`; cómo se elige el origen lo decide la historia del módulo de solicitudes. |
+| `gate_out_request_reference` | varchar(50) | El id de la solicitud en su origen: en SIGLA 1.0, `id_solicitud`. UK junto con `source` (antes UK sola; cambiado el 2026-11-25 en T81), para que un mismo número en SIGLA 1.0 y en SIGLA 2.0 no choque. Una solicitud tiene una sola certificación (criterio 6). |
 | `booking` | varchar(50) | El booking de la solicitud, para volver a consultarla. |
 | `container` | varchar(50) | El contenedor completo (ABCU1234567). En pantalla se escribe en dos partes, pero se guarda y se consulta junto. |
 | `client` | varchar(255) (null) | El cliente (operador) de la solicitud, como lo manda SIGLA 1.0 (T58). |
@@ -1131,9 +1157,26 @@ Las fotos de cada paso (H18), de 1 a n, sin máximo. Se toman con la cámara del
 | `path` | varchar(255) | Ruta de la foto en el disco privado. |
 | `thumbnail_path` | varchar(255) | Ruta de la miniatura, en la subcarpeta `thumbnails`. |
 | `uploaded_by` | bigint FK → `users.id` | Quién la subió. Al reemplazarla, quien la reemplazó. |
+| `superseded_by_replacement_id` | bigint FK → `security_device_replacements.id`, null | El reemplazo de un dispositivo de la sección que dejó la foto sin valor (H38). Se conserva y se ve como «antes del reemplazo», pero no cuenta: la sección necesita una foto con este campo en null. |
 | `timestamps` | | `created_at` es la fecha y hora de la subida; al reemplazar la foto, toma la del reemplazo. |
 
-### 5.26 `checkpoints` · `en código`
+### 5.26 `security_device_replacements` · `en código`
+
+Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un dispositivo extra del mismo tipo (H38). Un dispositivo extra es uno de un despacho a granel con motivo Operación cuyo `kit_id` es el kit de la certificación. Al reemplazar, el extra ocupa el lugar del que sale en `certification_step_security_device` y en `kit_security_device`, con su estado (`in_kit`, o `used` si la certificación se reaperturó); el que sale pasa a `discarded`, con el motivo y la foto en sus columnas de descarte (T77); y las fotos de la sección quedan con `superseded_by_replacement_id`. Todo junto o nada.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `certification_id` | bigint FK → `certifications.id` | Índice con `created_at`. |
+| `certification_step_id` | bigint FK → `certification_steps.id` | La sección donde estaba el dispositivo. |
+| `removed_device_id` | bigint FK → `security_devices.id` | El dispositivo del kit que sale, ahora `discarded`. |
+| `installed_device_id` | bigint FK → `security_devices.id` | UK: un extra entra una sola vez. |
+| `bulk_dispatch_id` | bigint FK → `bulk_dispatches.id` | El despacho a granel en que llegó el extra. |
+| `reason` | varchar(255) | El motivo, obligatorio; es también el motivo del descarte del que sale. |
+| `replaced_by` | bigint FK → `users.id` | Quién reemplazó. |
+| `timestamps` | | `created_at` es la fecha y hora del reemplazo. |
+
+### 5.27 `checkpoints` · `en código`
 
 El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor. Un checkpoint cerrado no se edita.
 
@@ -1150,7 +1193,7 @@ El checkpoint de una certificación (H34): uno por certificación. Nace la prime
 | `closed_by` | bigint FK → `users.id` null | Quién lo cerró. |
 | `timestamps` | | |
 
-### 5.27 `checkpoint_steps` · `en código`
+### 5.28 `checkpoint_steps` · `en código`
 
 Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`), copiadas en el checkpoint cuando nace, en su orden (H34). La copia guarda qué pide el paso y su posición, para que un cambio posterior del catálogo no cambie el checkpoint, esté a medias o cerrado.
 
@@ -1163,7 +1206,7 @@ Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`
 | `position` | smallint | Orden del paso. |
 | `timestamps` | | |
 
-### 5.28 `checkpoint_photos` · `en código`
+### 5.29 `checkpoint_photos` · `en código`
 
 Las fotos del checkpoint (H34): de los pasos de fotos, de 1 a n, y las fotos extra del último paso, sin paso. Siguen las reglas de `certification_photos`: cámara del teléfono, compresión en el navegador con fecha, hora y contenedor impresos, miniatura, disco privado (`storage/app/private/checkpoints/{id}`) y solo con sesión.
 
@@ -1177,7 +1220,7 @@ Las fotos del checkpoint (H34): de los pasos de fotos, de 1 a n, y las fotos ext
 | `uploaded_by` | bigint FK → `users.id` | Quién la subió; al reemplazarla, quien la reemplazó. |
 | `timestamps` | | `created_at` es la fecha y hora de la subida o del reemplazo. |
 
-### 5.29 `checkpoint_marks` · `en código`
+### 5.30 `checkpoint_marks` · `en código`
 
 Una fila por cada serie de un paso de verificación (H34): los dispositivos que la certificación dejó en las secciones que el paso verifica (`certification_section_verifications`), fijados cuando nace el checkpoint, en orden de serie. Se crean sin marca y se marcan al tocarlas; la marca se puede cambiar mientras el checkpoint está a medias.
 
@@ -1217,5 +1260,5 @@ Tablas de roles y permisos: se definen al aprobar H24.
 | --- | --- | --- |
 | P1 | «Puertas» | Cerrada el 2026-11-12: las puertas son una sección externa más, con sus cintas y precintos (H12). |
 | P3 | Fotos | Cerrada el 2026-11-20 en H18: una tabla, `certification_photos`, con la foto y su miniatura en la misma fila. |
-| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. `source` (`api`/`web`) y la reinspección se agregan con sus historias. |
+| P4 | Certificación | Cerrada el 2026-11-20 en H19: el estado se calcula, sin columna `status`, y el cierre va en `closed_at` y `closed_by`. Desde H17, remolcador y semirremolque son opcionales: se enlazan solo si SIGLA 1.0 manda sus datos. La reinspección se agrega con su historia. `source` (`api`/`web`) se agregó el 2026-11-25 en T81. |
 | P6 | Llave de `identities` | Se construyó en T19 con `id` varchar(50) y el código SUNAT. Alternativa: `id` numérico y `code` aparte; cambiarlo después requiere una migración. |

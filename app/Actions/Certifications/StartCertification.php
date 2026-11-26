@@ -2,6 +2,7 @@
 
 namespace App\Actions\Certifications;
 
+use App\Enums\GateOutRequestSource;
 use App\Enums\VehicleKind;
 use App\Models\Carrier;
 use App\Models\CarrierDriver;
@@ -36,7 +37,7 @@ class StartCertification
     /**
      * Start the certification of the unit of a gate out request with a dispatched kit (H17). Everything is saved or
      * nothing is (criterion 4). The certification keeps only the reference, the booking and the container of the
-     * request, and links the shipping line, the carrier, the driver and the vehicles, registering the ones that are
+     * request, which comes from SIGLA 1.0 (source `api`, T81), and links the shipping line, the carrier, the driver and the vehicles, registering the ones that are
      * not in their catalogs yet (criterion 3). The shipping line is not registered: it is the active line squared
      * with the request or chosen by the inspector, and the line remembers how SIGLA 1.0 writes it (T74). The kit
      * stays Despachado.
@@ -50,7 +51,7 @@ class StartCertification
         return DB::transaction(function () use ($gateOutRequest, $shippingLine, $kit, $inspectionSheetCode, $yardZone, $inspector): Certification {
             $kit = Kit::query()->with('shippingLine')->lockForUpdate()->findOrFail($kit->id);
 
-            if (Certification::query()->where('gate_out_request_reference', $gateOutRequest['reference'])->exists()) {
+            if (Certification::query()->whereGateOutRequest(GateOutRequestSource::Api, $gateOutRequest['reference'])->exists()) {
                 throw ValidationException::withMessages(['form.booking' => 'Esta solicitud ya tiene una certificación.']);
             }
 
@@ -66,6 +67,7 @@ class StartCertification
             $driver = $this->driver($gateOutRequest['driver'], $carrier);
 
             $certification = Certification::query()->create([
+                'source' => GateOutRequestSource::Api,
                 'gate_out_request_reference' => $gateOutRequest['reference'],
                 'booking' => (string) $gateOutRequest['booking'],
                 'container' => (string) $gateOutRequest['container'],

@@ -11,7 +11,6 @@ use App\Livewire\Tables\SecurityDevicesTable;
 use App\Models\Kit;
 use App\Models\KitType;
 use App\Models\SecurityDevice;
-use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\User;
@@ -44,8 +43,7 @@ class SecurityDeviceDiscardTest extends TestCase
         $this->app->setLocale('es');
 
         $this->seal = SecurityDeviceType::factory()->create(['name' => 'Sello botella']);
-        $announcement = SecurityDeviceAnnouncement::factory()->for($this->seal)->create(['series_prefix' => 'SB', 'min_digits' => 6, 'series_start' => 1, 'series_end' => 3]);
-        $this->lot = SecurityDeviceLot::factory()->for($announcement, 'announcement')->create(['quantity' => 3]);
+        $this->lot = SecurityDeviceLot::factory()->for($this->seal)->create(['series_prefix' => 'SB', 'min_digits' => 6, 'series_start' => 1, 'series_end' => 3, 'quantity' => 3]);
 
         foreach (['SB000001' => SecurityDeviceStatus::Available, 'SB000002' => SecurityDeviceStatus::Inactive, 'SB000003' => SecurityDeviceStatus::InKit] as $serialNumber => $status) {
             SecurityDevice::factory()->for($this->lot, 'lot')->create(['serial_number' => $serialNumber, 'status' => $status]);

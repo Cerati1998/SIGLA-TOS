@@ -50,8 +50,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (app()->isLocal()) {
-            $this->call(LocalTestingSeeder::class);
-        }
+        // Off so that a fresh database starts without test data (asked by the user on 2026-11-25). To load it locally:
+        // php artisan db:seed --class=LocalTestingSeeder
+        // if (app()->isLocal()) {
+        //     $this->call(LocalTestingSeeder::class);
+        // }
     }
 }

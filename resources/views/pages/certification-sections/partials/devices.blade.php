@@ -17,7 +17,7 @@
                 'bg-badge-warning text-badge-warning-ink' => $deviceType->trashed(),
             ])>
                 <span class="font-heading font-medium text-brand">{{ $deviceType->pivot->quantity }}</span>
-                {{ $deviceType->name }}{{ $deviceType->trashed() ? ' (desactivado)' : '' }}
+                {{ $certificationSection->deviceTypeName($deviceType) }}{{ $deviceType->trashed() ? ' (desactivado)' : '' }}
             </li>
         @endforeach
     </ul>

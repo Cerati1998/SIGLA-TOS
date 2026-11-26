@@ -8,12 +8,12 @@ use Illuminate\Contracts\View\View;
 class SecurityDeviceLotController extends Controller
 {
     /**
-     * Show the detail of a lot: its origin, who entered it, its devices by status, the list of its devices and its
-     * approvals log (H29).
+     * Show the detail of a lot: its announcement, its devices by status, the list of its devices and its approvals log
+     * (H08, H29, H37).
      */
     public function show(SecurityDeviceLot $securityDeviceLot): View
     {
-        $securityDeviceLot->load(['announcement.shippingLine', 'announcement.provider', 'announcement.securityDeviceType', 'creator', 'approvals.approver']);
+        $securityDeviceLot->load(['announcement.shippingLine', 'announcement.provider', 'announcement.creator', 'securityDeviceType', 'approvals.approver']);
 
         return view('pages.security-device-lots.show', [
             'lot' => $securityDeviceLot,
@@ -22,7 +22,7 @@ class SecurityDeviceLotController extends Controller
     }
 
     /**
-     * Show the correction of a lot (H28).
+     * Show the correction of a lot (H28, H37).
      */
     public function edit(SecurityDeviceLot $securityDeviceLot): View
     {

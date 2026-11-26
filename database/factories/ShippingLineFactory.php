@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DispatchMode;
 use App\Models\ShippingLine;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +21,15 @@ class ShippingLineFactory extends Factory
         return [
             'code' => fake()->unique()->bothify('???###'),
             'name' => fake()->company(),
+            'dispatch_mode' => DispatchMode::Random,
         ];
+    }
+
+    /**
+     * A line whose devices leave in the order of their correlatives (T82).
+     */
+    public function linear(): static
+    {
+        return $this->state(['dispatch_mode' => DispatchMode::Linear]);
     }
 }

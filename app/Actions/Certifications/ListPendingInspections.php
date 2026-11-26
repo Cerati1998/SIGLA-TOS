@@ -72,9 +72,9 @@ class ListPendingInspections
     {
         return $query->withCount([
             'steps as total' => fn (Builder $steps) => $steps->where('type', $type),
-            'steps as done' => fn (Builder $steps) => $steps->where('type', $type)->has('photos'),
+            'steps as done' => fn (Builder $steps) => $steps->where('type', $type)->has('currentPhotos'),
             'steps as other_total' => fn (Builder $steps) => $steps->where('type', $other),
-            'steps as other_done' => fn (Builder $steps) => $steps->where('type', $other)->has('photos'),
+            'steps as other_done' => fn (Builder $steps) => $steps->where('type', $other)->has('currentPhotos'),
         ]);
     }
 

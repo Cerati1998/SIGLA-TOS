@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
-use App\Models\User;
+use App\Models\SecurityDeviceType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class SecurityDeviceLotFactory extends Factory
 {
     /**
-     * Define the model's default state.
+     * Define the model's default state: a lot of the serial numbers GSW0000200 to GSW0000399, without its devices.
      *
      * @return array<string, mixed>
      */
@@ -21,11 +21,14 @@ class SecurityDeviceLotFactory extends Factory
     {
         return [
             'security_device_announcement_id' => SecurityDeviceAnnouncement::factory(),
+            'security_device_type_id' => SecurityDeviceType::factory(),
+            'series_prefix' => 'GSW',
+            'min_digits' => 7,
+            'series_start' => 200,
+            'series_end' => 399,
+            'series_suffix' => null,
             'quantity' => 200,
-            'received_at' => fake()->date(),
-            'dispatch_number' => fake()->numerify('T001-######'),
             'notes' => null,
-            'created_by' => User::factory(),
         ];
     }
 }

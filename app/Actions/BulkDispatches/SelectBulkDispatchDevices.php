@@ -2,6 +2,7 @@
 
 namespace App\Actions\BulkDispatches;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\SecurityDeviceStatus;
 use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceLot;
@@ -29,15 +30,20 @@ class SelectBulkDispatchDevices
      */
     private const int CHUNK_SIZE = 1000;
 
-    public function __construct(private FindDeviceToBulkDispatch $findDeviceToBulkDispatch) {}
+    public function __construct(
+        private FindDeviceToBulkDispatch $findDeviceToBulkDispatch,
+        private FindSkippedSecurityDevice $findSkippedDevice,
+    ) {}
 
     /**
      * Choose the devices from the first serial number to the last one, both of the same lot. The correlatives without
-     * a device are skipped. When given, only the devices of the type are looked up (T62).
+     * a device are skipped. When given, only the devices of the type are looked up (T62). When the shipping line
+     * dispatches in order, the range starts at the next device, counting the ones already chosen as taken (T82).
      *
+     * @param  list<int>  $chosenIds  The devices already in the dispatch.
      * @return array{deviceIds: list<int>, error: string|null, summary: string|null}
      */
-    public function byRange(string $firstSerialNumber, string $lastSerialNumber, ?SecurityDeviceType $type = null): array
+    public function byRange(string $firstSerialNumber, string $lastSerialNumber, ?SecurityDeviceType $type = null, array $chosenIds = []): array
     {
         $first = $this->findDeviceToBulkDispatch->find($firstSerialNumber, $type);
         $last = $this->findDeviceToBulkDispatch->find($lastSerialNumber, $type);
@@ -55,8 +61,8 @@ class SelectBulkDispatchDevices
         }
 
         $lot = $first->lot;
-        $start = (int) $lot->announcement->correlativeOf($first->serial_number);
-        $end = (int) $lot->announcement->correlativeOf($last->serial_number);
+        $start = (int) $lot->correlativeOf($first->serial_number);
+        $end = (int) $lot->correlativeOf($last->serial_number);
 
         if ($start > $end) {
             return $this->rejected('La serie inicial no puede ser mayor que la final.');
@@ -86,7 +92,7 @@ class SelectBulkDispatchDevices
             ));
         }
 
-        return $this->chosen($devices, $lot->announcement->securityDeviceType->name);
+        return $this->keepingTheOrder($devices, $chosenIds) ?? $this->chosen($devices, $lot->securityDeviceType->name);
     }
 
     /**
@@ -103,24 +109,24 @@ class SelectBulkDispatchDevices
             return $this->rejected(sprintf('La cantidad debe estar entre 1 y %s.', self::format(self::MAX_DEVICES)));
         }
 
-        $first = SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->ofType($type->id)->first()
-            ?? SecurityDevice::query()->with('lot.announcement.securityDeviceType')->where('serial_number', $start)->first();
+        $first = SecurityDevice::query()->with('lot.securityDeviceType')->where('serial_number', $start)->ofType($type->id)->first()
+            ?? SecurityDevice::query()->with('lot.securityDeviceType')->where('serial_number', $start)->first();
         $lots = $first === null ? $this->lotsOfPrefix($start) : collect([$first->lot]);
-        $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->announcement->security_device_type_id !== $type->id);
+        $lotOfAnotherType = $lots->first(fn (SecurityDeviceLot $lot): bool => $lot->security_device_type_id !== $type->id);
 
         if ($lots->isEmpty()) {
             return $this->rejected(sprintf('No encontramos un dispositivo ni una serie %s. Escribe la serie completa (por ejemplo HLS0000009) o solo su prefijo (HLS).', $start));
         }
 
         if ($lotOfAnotherType !== null) {
-            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $start, $lotOfAnotherType->announcement->securityDeviceType->name, $type->name));
+            return $this->rejected(sprintf('La serie %s es de %s, no de %s.', $start, $lotOfAnotherType->securityDeviceType->name, $type->name));
         }
 
-        $from = $first === null ? null : $first->lot->announcement->correlativeOf($first->serial_number);
+        $from = $first === null ? null : $first->lot->correlativeOf($first->serial_number);
         $devices = $lots
             ->flatMap(fn (SecurityDeviceLot $lot): array => $this->dispatchableDevices($lot)
                 ->reject(fn (SecurityDevice $device): bool => in_array($device->id, $chosenIds, true))
-                ->map(fn (SecurityDevice $device): array => ['device' => $device, 'lot' => $lot->id, 'correlative' => $lot->announcement->correlativeOf($device->serial_number)])
+                ->map(fn (SecurityDevice $device): array => ['device' => $device, 'lot' => $lot->id, 'correlative' => $lot->correlativeOf($device->serial_number)])
                 ->all())
             ->filter(fn (array $item): bool => $item['correlative'] !== null && ($from === null || $item['correlative'] >= $from))
             ->sortBy([['correlative', 'asc'], ['lot', 'asc']])
@@ -137,7 +143,25 @@ class SelectBulkDispatchDevices
             ));
         }
 
-        return $this->chosen($devices->take($quantity)->values(), $type->name);
+        $devices = $devices->take($quantity)->values();
+
+        return $this->keepingTheOrder($devices, $chosenIds) ?? $this->chosen($devices, $type->name);
+    }
+
+    /**
+     * Get the answer that adds nothing when the devices skip the next one of a shipping line that dispatches in order,
+     * or null when they keep it (T82).
+     *
+     * @param  Collection<int, SecurityDevice>  $devices
+     * @param  list<int>  $chosenIds
+     * @return array{deviceIds: list<int>, error: string, summary: null}|null
+     */
+    private function keepingTheOrder(Collection $devices, array $chosenIds): ?array
+    {
+        $deviceIds = array_values($devices->map(fn (SecurityDevice $device): int => $device->id)->all());
+        $skipped = $this->findSkippedDevice->handle($deviceIds, $chosenIds);
+
+        return $skipped === null ? null : $this->rejected(FindSkippedSecurityDevice::rangeMessage($skipped));
     }
 
     /**
@@ -148,8 +172,8 @@ class SelectBulkDispatchDevices
     private function lotsOfPrefix(string $prefix): Collection
     {
         return SecurityDeviceLot::query()
-            ->with('announcement.securityDeviceType')
-            ->whereHas('announcement', fn ($query) => $query->where('series_prefix', $prefix))
+            ->with('securityDeviceType')
+            ->where('series_prefix', $prefix)
             ->orderBy('id')
             ->get()
             ->collect();
@@ -165,7 +189,7 @@ class SelectBulkDispatchDevices
     {
         $devices = collect();
 
-        foreach (array_chunk(array_map($lot->announcement->serialNumber(...), range($start, $end)), self::CHUNK_SIZE) as $chunk) {
+        foreach (array_chunk(array_map($lot->serialNumber(...), range($start, $end)), self::CHUNK_SIZE) as $chunk) {
             $found = $lot->devices()->with(['kits', 'bulkDispatches'])->whereIn('serial_number', $chunk)->get()->keyBy('serial_number');
 
             foreach ($chunk as $serialNumber) {

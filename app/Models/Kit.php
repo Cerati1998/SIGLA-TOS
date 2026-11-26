@@ -221,11 +221,10 @@ class Kit extends Model
         return DB::table('kit_security_device')
             ->join('security_devices', 'security_devices.id', '=', 'kit_security_device.security_device_id')
             ->join('security_device_lots', 'security_device_lots.id', '=', 'security_devices.security_device_lot_id')
-            ->join('security_device_announcements', 'security_device_announcements.id', '=', 'security_device_lots.security_device_announcement_id')
             ->where('kit_security_device.kit_id', $this->id)
-            ->groupBy('security_device_announcements.security_device_type_id', 'kit_security_device.assignment')
+            ->groupBy('security_device_lots.security_device_type_id', 'kit_security_device.assignment')
             ->get([
-                'security_device_announcements.security_device_type_id as type_id',
+                'security_device_lots.security_device_type_id as type_id',
                 'kit_security_device.assignment',
                 DB::raw('count(*) as total'),
             ])

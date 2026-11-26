@@ -2,6 +2,7 @@
 
 namespace App\Actions\BulkDispatches;
 
+use App\Actions\SecurityDevices\FindSkippedSecurityDevice;
 use App\Enums\SecurityDeviceStatus;
 use App\Models\BulkDispatch;
 use App\Models\SecurityDevice;
@@ -21,11 +22,15 @@ class DispatchBulkDevices
      */
     private const int CHUNK_SIZE = 1000;
 
-    public function __construct(private FindDeviceToBulkDispatch $findDeviceToBulkDispatch) {}
+    public function __construct(
+        private FindDeviceToBulkDispatch $findDeviceToBulkDispatch,
+        private FindSkippedSecurityDevice $findSkippedDevice,
+    ) {}
 
     /**
      * Dispatch the devices in bulk, all or none (H30, criterion 10). Each device is checked again under a lock, in case
-     * another user put it in a kit or dispatched it after it was chosen. The devices become Despachado.
+     * another user put it in a kit or dispatched it after it was chosen, and the whole dispatch keeps the order of the
+     * shipping lines that dispatch in order, in case a stretch was taken out of it (T82). The devices become Despachado.
      *
      * @param  array{receiver_id: int, reason: string, client_id: int|null, kit_id: int|null, yard_zone_id: int, notes: string|null}  $attributes
      * @param  list<int>  $deviceIds
@@ -59,6 +64,12 @@ class DispatchBulkDevices
 
             if ($found !== count($deviceIds)) {
                 $rejections[] = 'Uno de los dispositivos elegidos ya no existe.';
+            }
+
+            $skipped = $rejections === [] ? $this->findSkippedDevice->handle($deviceIds) : null;
+
+            if ($skipped !== null) {
+                $rejections[] = FindSkippedSecurityDevice::message($skipped);
             }
 
             if ($rejections !== []) {

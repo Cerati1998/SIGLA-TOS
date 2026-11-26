@@ -3,12 +3,10 @@
 namespace App\Livewire\Forms;
 
 use App\Actions\SecurityDevices\CorrectSecurityDeviceLot;
-use App\Actions\SecurityDevices\ReceiveSecurityDeviceLot;
 use App\Enums\SecurityDeviceLotCorrection;
 use App\Models\SecurityDeviceAnnouncement;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
-use App\Models\User;
 use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
@@ -17,6 +15,9 @@ use Illuminate\Validation\Rules\Exists;
 use Livewire\Attributes\Locked;
 use Livewire\Form;
 
+/**
+ * The correction of a lot of an announcement (H28, H37): its type, its series and its notes.
+ */
 class SecurityDeviceLotForm extends Form
 {
     /**
@@ -24,15 +25,7 @@ class SecurityDeviceLotForm extends Form
      */
     public const int LISTED_TAKEN_SERIAL_NUMBERS = 20;
 
-    public string $shippingLineId = '';
-
-    public string $providerId = '';
-
     public string $securityDeviceTypeId = '';
-
-    public string $receivedAt = '';
-
-    public string $dispatchNumber = '';
 
     public string $seriesPrefix = '';
 
@@ -47,47 +40,29 @@ class SecurityDeviceLotForm extends Form
     public string $notes = '';
 
     /**
-     * Whether the series of the lot being corrected can no longer change, because one of its devices changed status (H28).
+     * Whether the series of the lot can no longer change, because one of its devices changed status (H28).
      */
     #[Locked]
     public bool $seriesLocked = false;
 
     /**
-     * The origin of the lot being corrected. It stays a valid choice even if it was deactivated later.
+     * The type of the lot being corrected. It stays a valid choice even if it was deactivated later.
      *
-     * @var array{shippingLineId: int|null, providerId: int|null, securityDeviceTypeId: int|null}
+     * @var array{securityDeviceTypeId: int|null}
      */
     #[Locked]
-    public array $currentOriginIds = ['shippingLineId' => null, 'providerId' => null, 'securityDeviceTypeId' => null];
+    public array $currentOriginIds = ['securityDeviceTypeId' => null];
 
     /**
-     * Start the form with today as the reception date.
-     */
-    public function setDefaults(): void
-    {
-        $this->receivedAt = now('America/Lima')->toDateString();
-    }
-
-    /**
-     * Fill the form with the lot being corrected (H28).
+     * Fill the form with the lot being corrected.
      */
     public function setLot(SecurityDeviceLot $lot): void
     {
-        $announcement = $lot->announcement;
-
-        $this->shippingLineId = (string) $announcement->shipping_line_id;
-        $this->providerId = (string) $announcement->provider_id;
-        $this->securityDeviceTypeId = (string) $announcement->security_device_type_id;
-        $this->currentOriginIds = [
-            'shippingLineId' => $announcement->shipping_line_id,
-            'providerId' => $announcement->provider_id,
-            'securityDeviceTypeId' => $announcement->security_device_type_id,
-        ];
-        $this->receivedAt = $lot->received_at->toDateString();
-        $this->dispatchNumber = $lot->dispatch_number;
+        $this->securityDeviceTypeId = (string) $lot->security_device_type_id;
+        $this->currentOriginIds = ['securityDeviceTypeId' => $lot->security_device_type_id];
         $this->notes = (string) $lot->notes;
         $this->seriesLocked = ! $lot->seriesCanBeCorrected();
-        $this->setSeries($announcement);
+        $this->setSeries($lot);
     }
 
     /**
@@ -98,37 +73,41 @@ class SecurityDeviceLotForm extends Form
     protected function rules(): array
     {
         return [
-            'shippingLineId' => ['required', $this->activeOrCurrent('shipping_lines', 'shippingLineId')],
-            'providerId' => ['required', $this->activeOrCurrent('providers', 'providerId')],
-            'securityDeviceTypeId' => ['required', $this->activeOrCurrent('security_device_types', 'securityDeviceTypeId'), $this->sameBoxesAsCurrentType(...)],
-            'receivedAt' => ['required', 'date_format:Y-m-d'],
-            'dispatchNumber' => ['required', 'string', 'max:50'],
-            'seriesPrefix' => [Rule::requiredIf(fn (): bool => $this->selectedType()->uses_series ?? true), 'alpha_num:ascii', 'max:20'],
-            'minDigits' => ['required', 'integer', 'between:1,15'],
-            'seriesStart' => ['required', 'digits_between:1,15'],
-            'seriesEnd' => ['required', 'digits_between:1,15'],
-            'seriesSuffix' => ['nullable', 'alpha:ascii', 'max:10'],
+            'securityDeviceTypeId' => ['required', self::activeOrCurrentType($this->currentOriginIds['securityDeviceTypeId']), $this->sameBoxesAsCurrentType(...)],
+            ...self::seriesRules($this->selectedType()),
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     /**
-     * Accept an active record, or the one the lot being corrected already has.
+     * Get the rules of the series of a lot of the given type (H07). A type that does not use a series needs no prefix (T62).
      *
-     * @param  'shippingLineId'|'providerId'|'securityDeviceTypeId'  $field
+     * @return array<string, array<int, mixed>>
      */
-    private function activeOrCurrent(string $table, string $field): Exists
+    public static function seriesRules(?SecurityDeviceType $type): array
     {
-        $currentId = $this->currentOriginIds[$field];
+        return [
+            'seriesPrefix' => [Rule::requiredIf($type->uses_series ?? true), 'alpha_num:ascii', 'max:20'],
+            'minDigits' => ['required', 'integer', 'between:1,15'],
+            'seriesStart' => ['required', 'digits_between:1,15'],
+            'seriesEnd' => ['required', 'digits_between:1,15'],
+            'seriesSuffix' => ['nullable', 'alpha:ascii', 'max:10'],
+        ];
+    }
 
-        return Rule::exists($table, 'id')->where(fn (Builder $query) => $query->where(
+    /**
+     * Accept an active type, or the one the lot being corrected already has.
+     */
+    public static function activeOrCurrentType(?int $currentId): Exists
+    {
+        return Rule::exists('security_device_types', 'id')->where(fn (Builder $query) => $query->where(
             fn (Builder $active) => $active->whereNull('deleted_at')->when($currentId, fn (Builder $current, int $id) => $current->orWhere('id', $id)),
         ));
     }
 
     /**
-     * Let the lot being corrected change its type only to one with the same boxes, so the status and the serial numbers
-     * of its devices stay right (H28, T62).
+     * Let the lot change its type only to one with the same boxes, so the status and the serial numbers of its devices
+     * stay right (H28, T62).
      */
     private function sameBoxesAsCurrentType(string $attribute, mixed $value, Closure $fail): void
     {
@@ -167,9 +146,19 @@ class SecurityDeviceLotForm extends Form
     protected function messages(): array
     {
         return [
-            'shippingLineId.exists' => 'Elige una línea naviera activa.',
-            'providerId.exists' => 'Elige un proveedor activo.',
             'securityDeviceTypeId.exists' => 'Elige un tipo de dispositivo activo.',
+            ...self::seriesMessages(),
+        ];
+    }
+
+    /**
+     * Get the messages of the series that change from the default ones.
+     *
+     * @return array<string, string>
+     */
+    public static function seriesMessages(): array
+    {
+        return [
             'seriesStart.digits_between' => 'El correlativo inicial solo lleva números, hasta 15 dígitos.',
             'seriesEnd.digits_between' => 'El correlativo final solo lleva números, hasta 15 dígitos.',
             'seriesSuffix.alpha' => 'El final de serie solo lleva letras.',
@@ -184,72 +173,64 @@ class SecurityDeviceLotForm extends Form
     protected function validationAttributes(): array
     {
         return [
-            'shippingLineId' => 'línea naviera',
-            'providerId' => 'proveedor',
             'securityDeviceTypeId' => 'tipo de dispositivo',
-            'receivedAt' => 'fecha de recepción',
-            'dispatchNumber' => 'número de guía',
-            'seriesPrefix' => 'inicio de serie',
-            'minDigits' => 'mínimo de dígitos',
-            'seriesStart' => 'correlativo inicial',
-            'seriesEnd' => 'correlativo final',
-            'seriesSuffix' => 'final de serie',
+            ...self::seriesAttributes(),
             'notes' => 'observaciones',
         ];
     }
 
     /**
-     * Save the lot with all its devices, or nothing when the range is wrong or a serial number is taken.
+     * Get the names of the fields of the series in the validation messages.
+     *
+     * @return array<string, string>
      */
-    public function store(ReceiveSecurityDeviceLot $receiveLot, User $user): ?SecurityDeviceLot
+    public static function seriesAttributes(): array
     {
-        if (! $this->validateLot()) {
-            return null;
-        }
-
-        $announcement = $this->announcement();
-        $lot = $receiveLot->handle($announcement, $this->lotAttributes(), $user);
-
-        if ($lot === null) {
-            $type = $announcement->securityDeviceType;
-            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($receiveLot->takenSerialNumbers($announcement->serialNumbers(), $type), $type));
-
-            return null;
-        }
-
-        $this->reset();
-        $this->setDefaults();
-
-        return $lot;
+        return [
+            'seriesPrefix' => 'inicio de serie',
+            'minDigits' => 'mínimo de dígitos',
+            'seriesStart' => 'correlativo inicial',
+            'seriesEnd' => 'correlativo final',
+            'seriesSuffix' => 'final de serie',
+        ];
     }
 
     /**
-     * Save the corrections of the lot (H28). Return null, with nothing saved, when the range is wrong, the series can no longer
+     * Save the corrections of the lot. Return null, with nothing saved, when the range is wrong, the series can no longer
      * change or a new serial number is taken.
      */
     public function update(CorrectSecurityDeviceLot $correctLot, SecurityDeviceLot $lot): ?SecurityDeviceLotCorrection
     {
         if ($this->seriesLocked) {
-            $this->setSeries($lot->announcement);
+            $this->setSeries($lot);
         }
 
-        if (! $this->validateLot()) {
+        $usesSeries = $this->selectedType()->uses_series ?? true;
+        $this->seriesPrefix = $usesSeries ? mb_strtoupper(trim($this->seriesPrefix)) : '';
+        $this->seriesSuffix = $usesSeries ? mb_strtoupper(trim($this->seriesSuffix)) : '';
+        $this->validate();
+
+        $rangeError = self::rangeError((int) $this->seriesStart, (int) $this->seriesEnd);
+
+        if ($rangeError !== null) {
+            $this->addError('seriesRange', $rangeError);
+
             return null;
         }
 
-        $correction = $correctLot->handle($lot, $this->announcementAttributes(), $this->lotAttributes());
+        $correction = $correctLot->handle($lot, $this->attributes());
 
         if ($correction === SecurityDeviceLotCorrection::SeriesLocked) {
             $this->seriesLocked = true;
-            $this->setSeries($lot->announcement);
+            $this->setSeries($lot);
             $this->addError('serialNumbers', 'La serie ya no se puede cambiar porque algunos dispositivos del lote cambiaron de estado. Revisa los demás datos y guarda de nuevo.');
 
             return null;
         }
 
         if ($correction === SecurityDeviceLotCorrection::SerialNumbersTaken) {
-            $announcement = $this->announcement();
-            $this->addError('serialNumbers', $this->takenSerialNumbersMessage($correctLot->takenSerialNumbers($announcement, $lot), $announcement->securityDeviceType));
+            $correctedLot = new SecurityDeviceLot($this->attributes());
+            $this->addError('serialNumbers', self::takenSerialNumbersMessage($correctLot->takenSerialNumbers($correctedLot, $lot), $correctedLot->securityDeviceType));
 
             return null;
         }
@@ -258,95 +239,54 @@ class SecurityDeviceLotForm extends Form
     }
 
     /**
-     * Put the series of an announcement in the form.
+     * Put the series of a lot in the form.
      */
-    private function setSeries(SecurityDeviceAnnouncement $announcement): void
+    private function setSeries(SecurityDeviceLot $lot): void
     {
-        $this->seriesPrefix = $announcement->series_prefix;
-        $this->minDigits = (string) $announcement->min_digits;
-        $this->seriesStart = (string) $announcement->series_start;
-        $this->seriesEnd = (string) $announcement->series_end;
-        $this->seriesSuffix = (string) $announcement->series_suffix;
+        $this->seriesPrefix = $lot->series_prefix;
+        $this->minDigits = (string) $lot->min_digits;
+        $this->seriesStart = (string) $lot->series_start;
+        $this->seriesEnd = (string) $lot->series_end;
+        $this->seriesSuffix = (string) $lot->series_suffix;
     }
 
     /**
-     * Clean up and validate the fields, and check the range. A type that does not use a series has neither a start nor
-     * an end of series: each serial number is only its correlative (T62).
+     * Get why a range cannot be a lot, or null when it can: the first correlative cannot be after the last one, and a lot
+     * fits in an announcement (H07, criterion 3; H37, criterion 6).
      */
-    private function validateLot(): bool
+    public static function rangeError(int $start, int $end): ?string
     {
-        $usesSeries = $this->selectedType()->uses_series ?? true;
-        $this->seriesPrefix = $usesSeries ? mb_strtoupper(trim($this->seriesPrefix)) : '';
-        $this->seriesSuffix = $usesSeries ? mb_strtoupper(trim($this->seriesSuffix)) : '';
-        $this->dispatchNumber = trim($this->dispatchNumber);
-        $this->validate();
-
-        return $this->hasValidRange();
-    }
-
-    /**
-     * Check that the first correlative is not after the last one and that the range fits in a lot.
-     */
-    private function hasValidRange(): bool
-    {
-        $quantity = (int) $this->seriesEnd - (int) $this->seriesStart + 1;
+        $quantity = $end - $start + 1;
 
         if ($quantity < 1) {
-            $this->addError('seriesRange', 'El correlativo inicial no puede ser mayor que el final.');
-
-            return false;
+            return 'El correlativo inicial no puede ser mayor que el final.';
         }
 
-        if ($quantity > ReceiveSecurityDeviceLot::MAX_DEVICES) {
-            $this->addError('seriesRange', sprintf(
+        if ($quantity > SecurityDeviceAnnouncement::MAX_DEVICES) {
+            return sprintf(
                 'Un lote puede tener como máximo %s dispositivos. Este rango tiene %s.',
-                $this->formatNumber(ReceiveSecurityDeviceLot::MAX_DEVICES),
-                $this->formatNumber($quantity),
-            ));
-
-            return false;
+                self::formatNumber(SecurityDeviceAnnouncement::MAX_DEVICES),
+                self::formatNumber($quantity),
+            );
         }
 
-        return true;
+        return null;
     }
 
     /**
-     * Build the announcement of the lot, not saved yet.
-     */
-    private function announcement(): SecurityDeviceAnnouncement
-    {
-        return new SecurityDeviceAnnouncement($this->announcementAttributes());
-    }
-
-    /**
-     * Get the columns of the announcement taken from the form.
+     * Get the columns of the lot taken from the form.
      *
-     * @return array{shipping_line_id: int, provider_id: int, security_device_type_id: int, series_prefix: string, min_digits: int, series_start: int, series_end: int, series_suffix: string|null}
+     * @return array{security_device_type_id: int, series_prefix: string, min_digits: int, series_start: int, series_end: int, series_suffix: string|null, notes: string|null}
      */
-    private function announcementAttributes(): array
+    private function attributes(): array
     {
         return [
-            'shipping_line_id' => (int) $this->shippingLineId,
-            'provider_id' => (int) $this->providerId,
             'security_device_type_id' => (int) $this->securityDeviceTypeId,
             'series_prefix' => $this->seriesPrefix,
             'min_digits' => (int) $this->minDigits,
             'series_start' => (int) $this->seriesStart,
             'series_end' => (int) $this->seriesEnd,
             'series_suffix' => $this->seriesSuffix ?: null,
-        ];
-    }
-
-    /**
-     * Get the columns of the lot taken from the form.
-     *
-     * @return array{received_at: string, dispatch_number: string, notes: string|null}
-     */
-    private function lotAttributes(): array
-    {
-        return [
-            'received_at' => $this->receivedAt,
-            'dispatch_number' => $this->dispatchNumber,
             'notes' => trim($this->notes) ?: null,
         ];
     }
@@ -357,7 +297,7 @@ class SecurityDeviceLotForm extends Form
      *
      * @param  list<string>  $takenSerialNumbers
      */
-    private function takenSerialNumbersMessage(array $takenSerialNumbers, SecurityDeviceType $type): string
+    public static function takenSerialNumbersMessage(array $takenSerialNumbers, SecurityDeviceType $type): string
     {
         $total = count($takenSerialNumbers);
         $listed = Arr::join(array_slice($takenSerialNumbers, 0, self::LISTED_TAKEN_SERIAL_NUMBERS), ', ', ' y ');
@@ -373,7 +313,7 @@ class SecurityDeviceLotForm extends Form
 
         return sprintf(
             '%s series ya existen %s. Las %d primeras: %s. Revisa el rango.',
-            $this->formatNumber($total),
+            self::formatNumber($total),
             $where,
             self::LISTED_TAKEN_SERIAL_NUMBERS,
             $listed,
@@ -383,7 +323,7 @@ class SecurityDeviceLotForm extends Form
     /**
      * Format a whole number with a space between thousands, as in 10 000.
      */
-    private function formatNumber(int $number): string
+    public static function formatNumber(int $number): string
     {
         return number_format($number, 0, ',', ' ');
     }
