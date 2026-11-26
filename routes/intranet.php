@@ -102,6 +102,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('checkpoints/pending', 'pages.checkpoints.pending')->name('checkpoints.pending');
 
+    Route::view('checkpoints', 'pages.checkpoints.index')->name('checkpoints.index');
+
+    Route::get('checkpoints/{checkpoint}/details', [CheckpointController::class, 'details'])->whereNumber('checkpoint')->name('checkpoints.details');
+
     Route::get('checkpoints/{checkpoint}', [CheckpointController::class, 'show'])->whereNumber('checkpoint')->name('checkpoints.show');
 
     Route::get('checkpoints/{checkpoint}/container-photo', [CheckpointPhotoController::class, 'container'])->name('checkpoints.container-photo');

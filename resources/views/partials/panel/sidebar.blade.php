@@ -69,11 +69,12 @@
                 [
                     'name' => 'Registrar checkpoint',
                     'route' => route('intranet.checkpoints.pending'),
-                    'active' => request()->routeIs('intranet.checkpoints.*'),
+                    'active' => request()->routeIs('intranet.checkpoints.pending', 'intranet.checkpoints.show'),
                 ],
                 [
                     'name' => 'Checkpoints',
-                    'disabled' => true,
+                    'route' => route('intranet.checkpoints.index'),
+                    'active' => request()->routeIs('intranet.checkpoints.index', 'intranet.checkpoints.details'),
                 ],
             ],
         ],

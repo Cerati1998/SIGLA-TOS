@@ -827,7 +827,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 **H36 · Consultar checkpoints** (aprobada el 2026-11-23 en T67)
 - Como usuario de la intranet, quiero un listado de los checkpoints y su detalle, para seguir su avance y consultar lo verificado.
 - Criterios de aceptación:
-  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (a medias, en reinspección o cerrado), con búsqueda por contenedor, booking o placa.
+  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (en proceso, en reinspección o cerrado; «en proceso» en vez de «a medias» en todo el sistema, cambiado por el usuario el 2026-11-26), con búsqueda por contenedor, booking o placa.
   2. Cada fila muestra el avance (por ejemplo, 9/14 pasos) y la acción «Ver».
   3. El detalle es de solo consulta: datos de la certificación, cada sección con sus fotos, cada verificación con su marca ✓/✗, las observaciones y las fotos extra, y cada reinspección con su motivo, quién la inició y la cerró, y los dispositivos que se reemplazaron.
   4. Desde el detalle de la certificación (H20) se llega a su checkpoint, si tiene.
@@ -836,6 +836,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   7. El listado y el detalle se usan bien desde el celular.
 
 - Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): listado y detalle, en escritorio y teléfono. El detalle muestra las reinspecciones (motivo, sección reabierta, reemplazo y segunda verificación) y cada paso con sus fotos o sus series marcadas. El detalle de la certificación (H20) suma el botón «Ver checkpoint».
+- Al construir (aprobado por el usuario el 2026-11-26, dibujado en el lienzo):
+  - El checkpoint guarda quién lo inició: quien abre la unidad por primera vez en «Registrar checkpoint» (`checkpoints.started_by`). El detalle lo muestra en su aviso; los checkpoints anteriores muestran solo la fecha.
+  - La columna «Inspector» muestra quién lo cerró o, mientras no está cerrado, quién tomó la última foto o marcó la última serie. El filtro «Inspector» encuentra el checkpoint si esa persona lo inició, lo cerró, tomó alguna foto o marcó alguna serie.
+  - Lo empezado y sin terminar se llama «En proceso» en todo el sistema, en vez de «A medias»: Asignaciones, las listas de unidades de la inspección y de «Registrar checkpoint», y los checkpoints.
+  - Las migas son «Inicio / Checkpoints», sin «Checkpoint», que solo es el grupo del menú. «Acciones» va en cuarta columna también en escritorio, como en Asignaciones. La lista empieza por los últimos checkpoints iniciados.
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.

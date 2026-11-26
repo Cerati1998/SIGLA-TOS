@@ -65,13 +65,14 @@ class CertificationStartTest extends TestCase
         $this->get(route('intranet.certifications.create'))->assertRedirect(route('login'));
     }
 
-    public function test_the_certification_menu_has_the_inspection_and_a_disabled_checkpoint(): void
+    public function test_the_certification_menu_has_the_inspection_and_the_checkpoint_with_its_list(): void
     {
         $this->actingAs($this->inspector)
             ->get(route('intranet.certifications.create'))
             ->assertOk()
-            ->assertSeeInOrder(['Certificación', 'Solicitudes de retiro', 'Inspección', 'Checkpoint', 'Administración'])
-            ->assertSee('aria-disabled="true"', false)
+            ->assertSeeInOrder(['Certificación', 'Solicitudes de retiro', 'Inspección', 'Checkpoint', 'Registrar checkpoint', 'Checkpoints', 'Administración'])
+            ->assertSee(route('intranet.checkpoints.index'))
+            ->assertDontSee('aria-disabled="true"', false)
             ->assertSeeText('Iniciar certificación');
     }
 

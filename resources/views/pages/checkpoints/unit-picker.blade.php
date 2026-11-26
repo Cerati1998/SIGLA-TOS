@@ -52,7 +52,7 @@
                     @if ($unit['fromReinspection'])
                         <x-status-badge variant="highlight">Vuelve de reinspección</x-status-badge>
                     @else
-                        <x-status-badge :variant="$unit['started'] ? 'info' : 'warning'">{{ $unit['started'] ? 'A medias' : 'Sin empezar' }}</x-status-badge>
+                        <x-status-badge :variant="$unit['started'] ? 'info' : 'warning'">{{ $unit['started'] ? 'En proceso' : 'Sin empezar' }}</x-status-badge>
                     @endif
                 </span>
                 <span class="h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Avance del checkpoint" aria-valuemin="0" aria-valuemax="{{ $unit['total'] }}" aria-valuenow="{{ $unit['done'] }}">

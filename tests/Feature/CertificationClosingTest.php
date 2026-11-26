@@ -61,7 +61,7 @@ class CertificationClosingTest extends TestCase
         Livewire::actingAs($this->inspector)->test(CertificationsTable::class)
             ->assertSeeText('ABCU1234567')
             ->assertSeeText('Lista para cerrar')
-            ->assertSeeText('A medias')
+            ->assertSeeText('En proceso')
             ->assertSeeText('Interna 0/1')
             ->assertSeeText('Externa 1/1')
             ->assertSeeHtml('id: '.$ready->id.',')

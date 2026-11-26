@@ -79,6 +79,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `security_device_replacements` | E5 · H38 | `en código` | (nueva) |
 | `checkpoints`, `checkpoint_steps`, `checkpoint_photos`, `checkpoint_marks` | E6 · H34 | `en código` | (nuevas) |
 | `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
+| `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -589,13 +590,14 @@ erDiagram
   security_device_replacements |o--o| reinspection_devices : "reemplazo"
   reinspections |o--o{ checkpoint_marks : "trajo o superó"
   users ||--o{ reinspections : "inició y cerró"
-  users |o--o{ checkpoints : "foto del contenedor y cerró"
+  users |o--o{ checkpoints : "inició, foto del contenedor y cerró"
   users ||--o{ checkpoint_photos : "subió"
   users |o--o{ checkpoint_marks : "marcó"
 
   checkpoints {
     bigint id PK
     bigint certification_id FK, UK
+    bigint started_by FK "null"
     string container_photo_path "null"
     string container_thumbnail_path "null"
     bigint container_photo_by FK "null"
@@ -1136,7 +1138,7 @@ Certificaciones de contenedores (H17). Se crean en la Asignación, desde Inspecc
 | `kit_decision` | varchar(20) (null) | Enum de PHP `CertificationKitDecision`: `reuse` (el kit vuelve a `dispatched` y sus dispositivos salen de las secciones) o `disable` (el kit pasa a `disabled` y sus dispositivos a `discarded`), según responda la naviera (H32). |
 | `timestamps` | | |
 
-No guarda un `status`: el estado se calcula (enum de PHP `CertificationStatus`, H19 y H20). `closed` (Cerrada) si tiene `closed_at`; `reopened` (Reaperturada) si no lo tiene y tiene reaperturas; `ready_to_close` (Lista para cerrar) si cada paso tiene al menos una foto; si no, `in_progress` (A medias). Al cerrarla, el kit y sus dispositivos pasan a `used` en la misma transacción. Al asignarla, se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).
+No guarda un `status`: el estado se calcula (enum de PHP `CertificationStatus`, H19 y H20). `closed` (Cerrada) si tiene `closed_at`; `reopened` (Reaperturada) si no lo tiene y tiene reaperturas; `ready_to_close` (Lista para cerrar) si cada paso tiene al menos una foto; si no, `in_progress` (En proceso). Al cerrarla, el kit y sus dispositivos pasan a `used` en la misma transacción. Al asignarla, se escribe junto con la naviera, el transportista, el conductor, su enlace, los vehículos que falten y sus pasos, en una transacción que vuelve a bloquear y revisar el kit (todo o nada, criterio 4). El kit se asigna solo si tiene exactamente lo que piden las secciones activas (criterio 16).
 
 ### 5.22b `certification_reopenings` · `en código`
 
@@ -1209,12 +1211,13 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 
 ### 5.27 `checkpoints` · `en código`
 
-El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor. Un checkpoint cerrado no se edita.
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); el listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `certification_id` | bigint FK → `certifications.id` | UK: una certificación tiene un solo checkpoint. |
+| `started_by` | bigint FK → `users.id` null | Quién lo inició: quien abrió la unidad por primera vez (H36, aprobado por el usuario el 2026-11-26). Null en los checkpoints anteriores a esta columna. `created_at` es cuándo. |
 | `container_photo_path` | varchar(255) null | Foto opcional del contenedor, como evidencia; no lee el número. Una sola: una nueva reemplaza la anterior y borra sus archivos. Va en `storage/app/private/checkpoints/{id}/container`. |
 | `container_thumbnail_path` | varchar(255) null | Su miniatura. |
 | `container_photo_by` | bigint FK → `users.id` null | Quién tomó la foto del contenedor. |

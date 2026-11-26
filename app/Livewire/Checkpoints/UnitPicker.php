@@ -36,7 +36,9 @@ class UnitPicker extends Component
      */
     public function open(int $certificationId, ListPendingCheckpoints $listPendingCheckpoints, StartCheckpoint $startCheckpoint, SaveContainerPhoto $saveContainerPhoto): void
     {
-        $checkpoint = $startCheckpoint->handle($listPendingCheckpoints->certification($certificationId));
+        /** @var User $user */
+        $user = Auth::user();
+        $checkpoint = $startCheckpoint->handle($listPendingCheckpoints->certification($certificationId), $user);
 
         if ($this->photo !== null) {
             $this->validate([
@@ -47,8 +49,6 @@ class UnitPicker extends Component
                 'thumbnail.*' => 'La foto del contenedor no es válida. Tómala otra vez.',
             ]);
 
-            /** @var User $user */
-            $user = Auth::user();
             /** @var TemporaryUploadedFile $thumbnail */
             $thumbnail = $this->thumbnail;
 

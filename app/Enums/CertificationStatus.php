@@ -22,7 +22,7 @@ enum CertificationStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::InProgress => 'A medias',
+            self::InProgress => 'En proceso',
             self::ReadyToClose => 'Lista para cerrar',
             self::Closed => 'Cerrada',
             self::Reopened => 'Reaperturada',
