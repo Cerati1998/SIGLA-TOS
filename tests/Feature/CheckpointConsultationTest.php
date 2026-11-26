@@ -107,14 +107,14 @@ class CheckpointConsultationTest extends TestCase
         $this->actingAs($this->inspector)
             ->get(route('intranet.checkpoints.details', $this->checkpoint))
             ->assertOk()
-            ->assertSeeText('A medias: 2 de 2 pasos completos.')
+            ->assertSeeText('Pendiente: 2 de 2 pasos completos.')
             ->assertSeeText('por Inspector Checkpoint');
     }
 
     public function test_the_list_shows_each_checkpoint_with_its_status_its_progress_and_who_works_on_it(): void
     {
         $this->checkpoints()
-            ->assertSeeTextInOrder(['TEMU9795602', 'A medias', 'Pasos 2/2', 'Series 2/3 · 1 incorrecta', 'Inspector Checkpoint'])
+            ->assertSeeTextInOrder(['TEMU9795602', 'Pendiente', 'Pasos 2/2', 'Series 2/3 · 1 incorrecta', 'Inspector Checkpoint'])
             ->assertSeeHtml('aria-label="Ver el checkpoint de TEMU9795602"');
 
         $this->startReinspection();
@@ -146,7 +146,7 @@ class CheckpointConsultationTest extends TestCase
             ->assertSeeText('TEMU9795602')->assertDontSeeText('ABCU1234567');
         $table->set('filterComponents.inspector', '')->set('filterComponents.status', 'closed')
             ->assertSeeText('ABCU1234567')->assertDontSeeText('TEMU9795602');
-        $table->set('filterComponents.status', 'in_progress')
+        $table->set('filterComponents.status', 'pending')
             ->assertSeeText('TEMU9795602')->assertDontSeeText('ABCU1234567');
     }
 
