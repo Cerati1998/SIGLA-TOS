@@ -12,7 +12,11 @@
     @elseif (isset($link['submenu']))
         <x-panel.menu-tree :icon="$link['icon']" :label="$link['name']" :active="$link['active'] ?? false">
             @foreach (array_filter($link['submenu'], $isAllowed) as $sublink)
-                <x-panel.menu-subitem :href="$sublink['route']" :active="$sublink['active'] ?? false">{{ $sublink['name'] }}</x-panel.menu-subitem>
+                @if ($sublink['disabled'] ?? false)
+                    <x-panel.menu-subitem disabled>{{ $sublink['name'] }}</x-panel.menu-subitem>
+                @else
+                    <x-panel.menu-subitem :href="$sublink['route']" :active="$sublink['active'] ?? false">{{ $sublink['name'] }}</x-panel.menu-subitem>
+                @endif
             @endforeach
         </x-panel.menu-tree>
     @elseif ($link['disabled'] ?? false)

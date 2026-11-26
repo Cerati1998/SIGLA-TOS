@@ -286,18 +286,14 @@
 @script
 <script>
     Alpine.data('inspectionSteps', ({ start, total, container, closed }) => ({
+        ...window.photoUploads(container),
         current: start,
         total,
-        container,
         closed,
         canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
         menu: null,
-        target: null,
-        pending: {},
-        queue: [],
-        uploading: false,
 
         go(index) {
             this.menu = null;
@@ -315,107 +311,6 @@
             if (this.current < this.total - 1) {
                 this.go(this.current + 1);
             }
-        },
-
-        pendingOf(stepId) {
-            return this.pending[stepId] ?? [];
-        },
-
-        label(item) {
-            return {
-                preparing: 'Preparando…',
-                uploading: `Subiendo ${item.progress} %`,
-                failed: 'No se subió · Reintentar',
-            }[item.status];
-        },
-
-        takePhoto(stepId, replacedPhotoId = null) {
-            this.target = { stepId, replacedPhotoId };
-            this.$refs.camera.click();
-        },
-
-        watermark() {
-            const now = new Date();
-            const pad = (value) => String(value).padStart(2, '0');
-
-            return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())} · ${this.container}`;
-        },
-
-        async captured(event) {
-            const file = event.target.files[0];
-            event.target.value = '';
-
-            if (! file || this.target === null) {
-                return;
-            }
-
-            const { stepId, replacedPhotoId } = this.target;
-            this.target = null;
-            this.pending[stepId] = [...this.pendingOf(stepId), {
-                key: `${Date.now()}-${Math.random()}`, stepId, replacedPhotoId, status: 'preparing', progress: 0, url: URL.createObjectURL(file), blobs: null,
-            }];
-            const item = this.pending[stepId].at(-1);
-
-            try {
-                item.blobs = await window.preparePhoto(file, { watermark: this.watermark() });
-                URL.revokeObjectURL(item.url);
-                item.url = URL.createObjectURL(item.blobs.thumbnail);
-                this.queue.push(item);
-                this.upload();
-            } catch {
-                item.status = 'failed';
-            }
-        },
-
-        retry(item) {
-            if (item.status !== 'failed' || item.blobs === null) {
-                return;
-            }
-
-            this.queue.push(item);
-            this.upload();
-        },
-
-        send(property, blob, item) {
-            const file = new File([blob], 'foto.jpg', { type: 'image/jpeg' });
-
-            return new Promise((resolve, reject) => {
-                this.$wire.upload(property, file, resolve, reject, (event) => {
-                    if (property === 'photo') {
-                        item.progress = event.detail.progress;
-                    }
-                });
-            });
-        },
-
-        async upload() {
-            if (this.uploading) {
-                return;
-            }
-
-            this.uploading = true;
-
-            while (this.queue.length > 0) {
-                const item = this.queue.shift();
-                item.status = 'uploading';
-                item.progress = 0;
-
-                try {
-                    await this.send('photo', item.blobs.photo, item);
-                    await this.send('thumbnail', item.blobs.thumbnail, item);
-
-                    if (await this.$wire.savePhoto(item.stepId, item.replacedPhotoId) !== true) {
-                        throw new Error('not saved');
-                    }
-
-                    URL.revokeObjectURL(item.url);
-                    this.pending[item.stepId] = this.pendingOf(item.stepId).filter((pending) => pending.key !== item.key);
-                } catch {
-                    item.status = 'failed';
-                }
-            }
-
-            this.uploading = false;
         },
 
         isMenuOf(photoId) {

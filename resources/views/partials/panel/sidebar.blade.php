@@ -64,7 +64,18 @@
         [
             'name' => 'Checkpoint',
             'icon' => 'check-square',
-            'disabled' => true,
+            'active' => request()->routeIs('intranet.checkpoints.*'),
+            'submenu' => [
+                [
+                    'name' => 'Registrar checkpoint',
+                    'route' => route('intranet.checkpoints.pending'),
+                    'active' => request()->routeIs('intranet.checkpoints.*'),
+                ],
+                [
+                    'name' => 'Checkpoints',
+                    'disabled' => true,
+                ],
+            ],
         ],
         ['header' => 'Administración'],
         [

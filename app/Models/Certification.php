@@ -66,6 +66,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CertificationStep> $steps
  * @property-read Collection<int, CertificationReopening> $reopenings
  * @property-read CertificationReopening|null $lastReopening
+ * @property-read Checkpoint|null $checkpoint
  * @property-read Collection<int, SecurityDeviceReplacement> $replacements
  */
 #[Fillable([
@@ -222,6 +223,16 @@ class Certification extends Model
     public function steps(): HasMany
     {
         return $this->hasMany(CertificationStep::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Get the checkpoint of the certification, once someone opened the unit to do it (H34).
+     *
+     * @return HasOne<Checkpoint, $this>
+     */
+    public function checkpoint(): HasOne
+    {
+        return $this->hasOne(Checkpoint::class);
     }
 
     /**
