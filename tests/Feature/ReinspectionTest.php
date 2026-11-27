@@ -30,8 +30,10 @@ use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportTesting\Testable;
@@ -252,6 +254,26 @@ class ReinspectionTest extends TestCase
             ->assertRedirect(route('intranet.checkpoints.pending'));
 
         $this->assertTrue($this->checkpoint->refresh()->isClosed());
+    }
+
+    public function test_the_pdf_shows_the_final_series_of_the_checkpoint_and_a_box_for_each_reinspection(): void
+    {
+        $this->reinspectAndClose('WXG900');
+        $this->checkpointForm()->call('mark', $this->mark('WXG900')->id, true)->call('finish')->assertHasNoErrors();
+
+        $data = null;
+        Event::listen('composing: pdf.certifications.checkpoint', function (View $view) use (&$data): void {
+            $data = $view->getData();
+        });
+        $this->actingAs($this->inspector)->get(route('intranet.certifications.pdf', $this->certification))->assertOk();
+        $this->assertNotNull($data);
+        $page = view('pdf.certifications.checkpoint', $data)->render();
+
+        $this->assertStringContainsString('Reinspección 1', $page);
+        $this->assertStringContainsString('«Cinta rota.»', $page);
+        $this->assertMatchesRegularExpression('/<s>WXG002<\/s> →\s*<strong>WXG900<\/strong>/u', $page);
+        $this->assertMatchesRegularExpression('/WXG900<\/td>\s*<td>Evaporadores cerrados<\/td>\s*<td><span[^>]*>✓ Correcta<\/span><\/td>\s*<td>[^<]*· reinspección 1<\/td>/u', $page);
+        $this->assertDoesNotMatchRegularExpression('/<td>WXG002<\/td>/u', $page);
     }
 
     public function test_a_new_series_marked_incorrect_starts_another_reinspection(): void
