@@ -1,6 +1,7 @@
 # Sprint 4 · SIGLA 2.0 (TOS)
 
 **Estado:** aprobado por el Scrum Master el 2026-11-23.
+**Cerrado:** viernes 27 de noviembre de 2026.
 **Fechas:** lunes 23 al viernes 27 de noviembre de 2026 (1 semana).
 **Capacidad:** 20 horas en total (10 del Scrum Master y 10 del asistente desarrollador), como en el Sprint 3 (confirmado por el usuario el 2026-11-23). Unas 2 horas se reservan para los eventos del sprint; quedan unas 18 para tareas.
 **Unidad de estimación:** horas.
