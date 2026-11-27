@@ -14,12 +14,17 @@ class ProviderSeeder extends Seeder
     public const string HUNTER_RUC = '20504292968';
 
     /**
-     * The initial providers with RUC, as document number => [business name, address].
+     * The initial providers with RUC. The RUC is a field and not the key of the list, because PHP would turn a numeric
+     * key into an integer.
      *
-     * @var array<string, array{0: string, 1: string|null}>
+     * @var list<array{document_number: string, business_name: string, address: string|null}>
      */
     public const array PROVIDERS = [
-        self::HUNTER_RUC => ['AUTOSAFE SAC', 'AV. JOSE PARDO NRO. 434 INT. 1301 LIMA LIMA MIRAFLORES'],
+        [
+            'document_number' => self::HUNTER_RUC,
+            'business_name' => 'AUTOSAFE SAC',
+            'address' => 'AV. JOSE PARDO NRO. 434 INT. 1301 LIMA LIMA MIRAFLORES',
+        ],
     ];
 
     /**
@@ -28,10 +33,10 @@ class ProviderSeeder extends Seeder
      */
     public function run(): void
     {
-        foreach (self::PROVIDERS as $documentNumber => [$businessName, $address]) {
+        foreach (self::PROVIDERS as $provider) {
             Provider::withTrashed()->firstOrCreate(
-                ['identity_id' => Identity::RUC, 'document_number' => $documentNumber],
-                ['business_name' => $businessName, 'address' => $address],
+                ['identity_id' => Identity::RUC, 'document_number' => $provider['document_number']],
+                ['business_name' => $provider['business_name'], 'address' => $provider['address']],
             );
         }
     }
