@@ -11,7 +11,7 @@ use Livewire\Component;
 /**
  * The detail of a checkpoint, only to read (H36, criterion 3): its status, the unit and its transport, each
  * reinspection, each step with its photos or with its series marked, and the observations with the extra photos.
- * Without a PDF for now (criterion 5).
+ * Once closed, it goes at the end of the PDF of the certification (T97).
  */
 class Record extends Component
 {

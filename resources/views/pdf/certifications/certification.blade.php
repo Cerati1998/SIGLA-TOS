@@ -149,4 +149,9 @@
             @endforeach
         </div>
     @endforeach
+
+    {{-- The checkpoint, once closed, ends the PDF (T97). --}}
+    @if (($checkpoint ?? null) !== null)
+        @include('pdf.certifications.checkpoint')
+    @endif
 @endsection

@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Certifications\DescribeCertification;
 use App\Actions\Certifications\ListPendingInspections;
+use App\Actions\Checkpoints\DescribeCheckpoint;
 use App\Enums\CertificationStatus;
 use App\Models\Certification;
 use App\Models\CertificationPhoto;
+use App\Models\CheckpointPhoto;
 use App\Models\User;
 use App\Services\PhotoStorage;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -45,19 +47,29 @@ class CertificationController extends Controller
      * Show the PDF of a closed certification: its header, the devices placed on the drawings of the container and the
      * photos of each section (H20, criteria 5 and 6). Each photo goes shrunk from the whole photo, not from its
      * thumbnail, so it stays sharp when zoomed and the PDF does not carry the photos as they are (T85). There is no PDF
-     * while it is in reinspection (H35, criterion 9).
+     * while it is in reinspection (H35, criterion 9). Once its checkpoint is closed, the PDF ends with it: its data, the
+     * series verified, its reinspections and its photos (T97).
      */
-    public function pdf(Request $request, Certification $certification, DescribeCertification $describeCertification, PhotoStorage $photoStorage): Response
+    public function pdf(Request $request, Certification $certification, DescribeCertification $describeCertification, DescribeCheckpoint $describeCheckpoint, PhotoStorage $photoStorage): Response
     {
         abort_unless($certification->isClosed() && ! $certification->isInReinspection(), 404);
 
         /** @var User $user */
         $user = $request->user();
+        $checkpoint = $certification->checkpoint;
+        $closedCheckpoint = $checkpoint !== null && $checkpoint->isClosed() ? $checkpoint : null;
 
         return Pdf::loadView('pdf.certifications.certification', [
             ...$describeCertification->handle($certification),
             'certification' => $certification,
-            'photoData' => fn (CertificationPhoto $photo): string => $photoStorage->resizedDataUri($photo->path, self::PDF_PHOTO_SIDE),
+            'photoData' => fn (CertificationPhoto|CheckpointPhoto $photo): string => $photoStorage->resizedDataUri($photo->path, self::PDF_PHOTO_SIDE),
+            'checkpoint' => $closedCheckpoint === null ? null : [
+                ...$describeCheckpoint->handle($closedCheckpoint),
+                'checkpoint' => $closedCheckpoint,
+                'containerPhoto' => $closedCheckpoint->container_photo_path === null
+                    ? null
+                    : $photoStorage->resizedDataUri($closedCheckpoint->container_photo_path, self::PDF_PHOTO_SIDE),
+            ],
             'generatedBy' => $user->name,
         ])
             ->setPaper('a4')

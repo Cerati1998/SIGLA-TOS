@@ -25,8 +25,10 @@ use App\Models\SecurityDevice;
 use App\Models\SecurityDeviceLot;
 use App\Models\SecurityDeviceType;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -121,6 +123,28 @@ class CheckpointDoorTapeTest extends TestCase
             ->assertSeeText('Observación: «La cinta de la puerta llegó rota.»');
     }
 
+    public function test_the_pdf_of_the_certification_ends_with_the_checkpoint_only_once_it_is_closed(): void
+    {
+        $this->mark('WXG001', true);
+        $this->mark('WXG010', false);
+
+        $this->assertNull($this->checkpointPageOfThePdf());
+
+        $this->form()->set('observations', 'La cinta de la puerta llegó rota.')->call('finish')->assertHasNoErrors();
+
+        $page = $this->checkpointPageOfThePdf();
+
+        $this->assertNotNull($page);
+        $this->assertStringContainsString('Certificación de contenedor · Checkpoint', $page);
+        $this->assertStringContainsString('Cerrado con observación', $page);
+        $this->assertStringContainsString('«La cinta de la puerta llegó rota.»', $page);
+        $this->assertMatchesRegularExpression('/WXG001<\/td>\s*<td>Evaporadores cerrados<\/td>\s*<td><span[^>]*>✓ Correcta<\/span>/u', $page);
+        $this->assertMatchesRegularExpression('/WXG010<\/td>\s*<td>Kit de precintos en piso<\/td>\s*<td><span[^>]*>✗ Incorrecta<\/span> · sin reinspección/u', $page);
+        $this->assertStringContainsString('Placa, cédula y transporte', $page);
+        $this->assertStringContainsString('Checkpoint · 1 foto', $page);
+        $this->assertStringNotContainsString('Reinspección 1', $page);
+    }
+
     public function test_the_list_shows_and_filters_the_checkpoints_closed_with_an_observation(): void
     {
         $this->mark('WXG001', true);
@@ -179,6 +203,22 @@ class CheckpointDoorTapeTest extends TestCase
 
         $this->assertTrue(CertificationSection::query()->where('name', 'Verificación de sello cable')->sole()->skips_reinspection);
         $this->assertFalse(CertificationSection::query()->where('name', 'Panorámica de puertas')->sole()->skips_reinspection);
+    }
+
+    /**
+     * Download the PDF of the certification and get its checkpoint page, rendered with the data the PDF gave it, or null
+     * when the PDF has no checkpoint.
+     */
+    private function checkpointPageOfThePdf(): ?string
+    {
+        $data = null;
+        Event::listen('composing: pdf.certifications.checkpoint', function (View $view) use (&$data): void {
+            $data = $view->getData();
+        });
+
+        $this->actingAs($this->inspector)->get(route('intranet.certifications.pdf', $this->certification))->assertOk();
+
+        return $data === null ? null : view('pdf.certifications.checkpoint', $data)->render();
     }
 
     private function form(): Testable

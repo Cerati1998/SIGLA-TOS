@@ -157,8 +157,6 @@
                 @include('pages.checkpoints.partials.record-photos', ['photos' => $extraPhotos, 'label' => 'Fotos extra', 'lima' => $lima])
             </div>
         </div>
-
-        <span class="border-t border-line pt-3 pb-1 text-sm text-ink-muted">Solo consulta; sin PDF por ahora.</span>
     </flux:card>
 
     <template x-teleport="body">
