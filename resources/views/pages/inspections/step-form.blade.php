@@ -25,7 +25,7 @@
     };
 @endphp
 
-<div x-data="inspectionSteps({ start: {{ $firstPending === false ? 0 : $firstPending }}, total: {{ $total }}, container: @js($certification->container), closed: @js($readOnly) })"
+<div x-data="inspectionSteps({ total: {{ $total }}, container: @js($certification->container), closed: @js($readOnly) })" data-start="{{ $firstPending === false ? 0 : $firstPending }}"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
@@ -330,15 +330,23 @@
 
 @script
 <script>
-    Alpine.data('inspectionSteps', ({ start, total, container, closed }) => ({
+    Alpine.data('inspectionSteps', ({ total, container, closed }) => ({
         ...window.photoUploads(container),
-        current: start,
+        current: 0,
         total,
         closed,
         canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
         menu: null,
+
+        /**
+         * The first section comes from data-start, read only once: in x-data it would change when a photo completes the
+         * section, and Alpine would move the inspector to another one.
+         */
+        init() {
+            this.current = Number(this.$el.dataset.start);
+        },
 
         go(index) {
             this.menu = null;

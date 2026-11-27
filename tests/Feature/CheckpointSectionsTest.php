@@ -234,6 +234,7 @@ class CheckpointSectionsTest extends TestCase
         $this->assertSame(['Evaporadores cerrados', 'Ventilador'], $verification->verifiedSections->pluck('name')->sort()->values()->all());
         $this->assertSame(CheckpointSectionKind::Photos, CertificationSection::query()->where('name', 'Sello cable')->sole()->checkpoint_kind);
         $this->assertDatabaseCount('certification_section_verifications', 4);
+        $this->assertSame(['Verificación de cinta de puerta'], CertificationSection::query()->where('skips_reinspection', true)->pluck('name')->all());
     }
 
     /**

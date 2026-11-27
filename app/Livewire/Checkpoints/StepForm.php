@@ -139,15 +139,15 @@ class StepForm extends Component
 
     /**
      * Get the sections of the certification that a reinspection would reopen, each with its type and the incorrect
-     * series it has, for its window (H35, criterion 1).
+     * series it has, for its window (H35, criterion 1). The series of a step that does not ask for a reinspection are
+     * left out (T93).
      *
      * @return list<array{section: string, type: string, series: list<string>}>
      */
     #[Computed]
     public function incorrectSections(): array
     {
-        $incorrect = $this->steps->flatMap(fn (CheckpointStep $step) => $step->marks)
-            ->filter(fn (CheckpointMark $mark): bool => $mark->is_correct === false)
+        $incorrect = $this->steps->flatMap(fn (CheckpointStep $step) => $step->reinspectionMarks())
             ->mapWithKeys(fn (CheckpointMark $mark): array => [$mark->security_device_id => $mark->device->serial_number]);
 
         if ($incorrect->isEmpty()) {

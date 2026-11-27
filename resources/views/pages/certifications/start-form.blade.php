@@ -90,7 +90,7 @@
                         <div role="status" class="flex flex-col items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
                             <span>
                                 La solicitud {{ $gateOutRequest['reference'] }} (contenedor <strong>{{ $existingCertification->container }}</strong>) ya tiene una certificación,
-                                iniciada el {{ $existingCertification->started_at->format('d/m/Y') }} a las {{ $existingCertification->started_at->format('H:i') }}
+                                iniciada el {{ $existingCertification->started_at->copy()->timezone(config('app.display_timezone'))->format('d/m/Y') }} a las {{ $existingCertification->started_at->copy()->timezone(config('app.display_timezone'))->format('H:i') }}
                                 por <strong>{{ $existingCertification->certifier->name }}</strong>.
                             </span>
                             <flux:button variant="primary" :href="route('intranet.certifications.show', $existingCertification)" wire:navigate class="max-md:h-13 max-md:w-full">Abrir certificación</flux:button>

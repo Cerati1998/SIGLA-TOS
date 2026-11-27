@@ -73,6 +73,21 @@ class CheckpointTest extends TestCase
             ->assertDontSeeText('ABCU0000003');
     }
 
+    public function test_the_closing_times_are_shown_in_lima_time(): void
+    {
+        $certification = $this->certification();
+        $certification->forceFill(['closed_at' => '2026-11-27 15:49:00'])->save();
+
+        Livewire::actingAs($this->inspector)->test(UnitPicker::class)
+            ->assertSeeText('Certificación cerrada el 27/11/2026 a las 10:49')
+            ->assertDontSeeText('a las 15:49');
+
+        $checkpoint = $this->open($certification);
+        $checkpoint->forceFill(['closed_at' => '2026-11-27 16:05:00', 'closed_by' => $this->inspector->id])->save();
+
+        $this->stepForm($checkpoint)->assertSeeText('el 27/11/2026 a las 11:05: solo lectura.');
+    }
+
     public function test_opening_a_unit_starts_its_checkpoint_with_the_active_checkpoint_sections_and_the_series_to_verify(): void
     {
         $certification = $this->certification();
@@ -145,6 +160,23 @@ class CheckpointTest extends TestCase
         $this->assertSame(1, $photoStep->photos()->count());
         $this->assertSame(1, $checkpoint->extraPhotos()->count());
         $this->assertSame($this->inspector->id, $photoStep->photos()->sole()->uploaded_by);
+    }
+
+    public function test_the_trash_button_over_a_photo_is_offered_only_while_the_checkpoint_is_not_closed(): void
+    {
+        Storage::fake('local');
+        $checkpoint = $this->open($this->certification());
+
+        $this->stepForm($checkpoint)
+            ->set('photo', UploadedFile::fake()->image('foto.jpg'))
+            ->set('thumbnail', UploadedFile::fake()->image('miniatura.jpg'))
+            ->call('savePhoto', $checkpoint->steps[0]->id, null)
+            ->assertSee('Ver la foto 1')
+            ->assertSee('Eliminar la foto 1');
+
+        $checkpoint->forceFill(['closed_at' => now(), 'closed_by' => $this->inspector->id])->save();
+
+        $this->stepForm($checkpoint)->assertSee('Foto 1')->assertDontSee('Eliminar la foto 1');
     }
 
     public function test_a_verification_step_does_not_take_photos(): void

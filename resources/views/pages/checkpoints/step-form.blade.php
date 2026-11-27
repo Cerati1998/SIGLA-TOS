@@ -18,12 +18,15 @@
     $photoSteps = $allSteps->reject(fn ($step) => $step->isVerification());
     $marks = $allSteps->flatMap(fn ($step) => $step->marks);
     $incorrect = $marks->filter(fn ($mark) => $mark->is_correct === false);
+    $reinspectionMarks = $allSteps->flatMap(fn ($step) => $step->reinspectionMarks());
+    $skippedStepIds = $allSteps->filter(fn ($step) => $step->skips_reinspection)->modelKeys();
+    $needsObservation = $incorrect->contains(fn ($mark) => in_array($mark->checkpoint_step_id, $skippedStepIds, true));
     $complete = $allSteps->every(fn ($step) => $step->isComplete());
-    $canFinish = ! $closed && $complete && $incorrect->isEmpty();
-    $canStartReinspection = ! $closed && $complete && $incorrect->isNotEmpty();
+    $canFinish = ! $closed && $complete && $reinspectionMarks->isEmpty();
+    $canStartReinspection = ! $closed && $complete && $reinspectionMarks->isNotEmpty();
 @endphp
 
-<div x-data="checkpointSteps({ start: {{ $start }}, total: {{ $hasFinal ? $total + 1 : $total }}, container: @js($container), closed: @js($closed) })"
+<div x-data="checkpointSteps({ total: {{ $hasFinal ? $total + 1 : $total }}, container: @js($container), closed: @js($closed) })" data-start="{{ $start }}"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
@@ -31,12 +34,12 @@
     @if ($checkpointClosed)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
             <x-feather name="lock" class="mt-0.5 size-4 shrink-0" />
-            <span>Checkpoint cerrado por {{ $checkpoint->closer?->name }} el {{ $checkpoint->closed_at?->format('d/m/Y') }} a las {{ $checkpoint->closed_at?->format('H:i') }}: solo lectura.</span>
+            <span>Checkpoint cerrado por {{ $checkpoint->closer?->name }} el {{ $checkpoint->closed_at?->copy()->timezone(config('app.display_timezone'))->format('d/m/Y') }} a las {{ $checkpoint->closed_at?->copy()->timezone(config('app.display_timezone'))->format('H:i') }}: solo lectura.</span>
         </p>
     @elseif ($openReinspection !== null)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
             <x-feather name="alert-triangle" class="mt-0.5 size-4 shrink-0" />
-            <span>En reinspección desde el {{ $openReinspection->created_at?->format('d/m/Y') }} a las {{ $openReinspection->created_at?->format('H:i') }}, iniciada por {{ $openReinspection->starter->name }}. Motivo: «{{ $openReinspection->reason }}». Solo lectura hasta que se cierre la reinspección.</span>
+            <span>En reinspección desde el {{ $openReinspection->created_at?->copy()->timezone(config('app.display_timezone'))->format('d/m/Y') }} a las {{ $openReinspection->created_at?->copy()->timezone(config('app.display_timezone'))->format('H:i') }}, iniciada por {{ $openReinspection->starter->name }}. Motivo: «{{ $openReinspection->reason }}». Solo lectura hasta que se cierre la reinspección.</span>
         </p>
     @elseif ($round !== null)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">
@@ -119,7 +122,7 @@
                 <flux:button x-on:click="previous" x-bind:disabled="current === 0" icon="chevron-left">Atrás</flux:button>
                 <flux:button variant="primary" x-show="current < {{ $finalIndex }}" x-on:click="next" icon:trailing="chevron-right">Siguiente paso</flux:button>
                 @unless ($closed)
-                    @if ($incorrect->isNotEmpty())
+                    @if ($reinspectionMarks->isNotEmpty())
                         <flux:button x-show="current === {{ $finalIndex }}" x-cloak x-on:click="$openModal('reinspection-start')" :disabled="! $canStartReinspection" class="border-0! bg-highlight! text-white!">Iniciar reinspección</flux:button>
                     @else
                         <flux:button variant="primary" x-show="current === {{ $finalIndex }}" x-cloak wire:click="finish" wire:loading.attr="disabled" wire:target="finish" :disabled="! $canFinish">Finalizar y cerrar</flux:button>
@@ -137,7 +140,7 @@
             Siguiente paso <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
         </button>
         @unless ($closed)
-            @if ($incorrect->isNotEmpty())
+            @if ($reinspectionMarks->isNotEmpty())
                 <button type="button" x-show="current === {{ $finalIndex }}" x-cloak x-on:click="$openModal('reinspection-start')" @disabled(! $canStartReinspection)
                     class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-highlight text-base font-medium text-white disabled:opacity-50">
                     Iniciar reinspección
@@ -151,7 +154,7 @@
         @endunless
     </div>
 
-    @if ($incorrect->isNotEmpty() && ! $closed)
+    @if ($reinspectionMarks->isNotEmpty() && ! $closed)
         @php $incorrectSections = $this->incorrectSections; @endphp
         <livewire:checkpoints.reinspection-modal :checkpoint="$checkpoint" :sections="$incorrectSections" :key="'reinspection-modal-'.md5(json_encode($incorrectSections))" />
     @endif
@@ -201,9 +204,9 @@
             </div>
             <div class="flex flex-none flex-col gap-3 p-4 pb-6">
                 <span class="text-sm">Subida por <strong x-text="viewer?.by"></strong> el <span x-text="viewer?.at"></span>.</span>
-                <div x-show="canCapture" class="grid grid-cols-2 gap-2.5">
-                    <button type="button" x-on:click="replace" class="inline-flex h-13 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
-                    <button type="button" x-on:click="remove" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
+                <div x-show="! closed" class="flex gap-2.5">
+                    <button type="button" x-show="canCapture" x-on:click="replace" class="inline-flex h-13 flex-1 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
+                    <button type="button" x-on:click="remove(viewer)" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 flex-1 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
                 </div>
             </div>
         </div>
@@ -212,16 +215,26 @@
 
 @script
 <script>
-    Alpine.data('checkpointSteps', ({ start, total, container, closed }) => ({
+    Alpine.data('checkpointSteps', ({ total, container, closed }) => ({
         ...window.photoUploads(container),
-        current: start,
+        current: 0,
         total,
         closed,
         canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
+        menu: null,
+
+        /**
+         * The first step comes from data-start, read only once: in x-data it would change when a photo completes the
+         * step, and Alpine would move the inspector to the next one.
+         */
+        init() {
+            this.current = Number(this.$el.dataset.start);
+        },
 
         go(index) {
+            this.menu = null;
             this.current = index;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
@@ -238,7 +251,34 @@
             }
         },
 
+        isMenuOf(photoId) {
+            return this.menu?.photoId === photoId;
+        },
+
+        tapPhoto(photo) {
+            if (this.closed) {
+                this.openViewer(photo);
+
+                return;
+            }
+
+            this.menu = this.isMenuOf(photo.photoId) ? null : photo;
+        },
+
+        closeMenu() {
+            this.menu = null;
+        },
+
+        viewFromMenu() {
+            this.openViewer(this.menu);
+        },
+
+        removeFromMenu() {
+            this.remove(this.menu);
+        },
+
         openViewer(photo) {
+            this.menu = null;
             this.viewer = photo;
         },
 
@@ -248,11 +288,12 @@
             this.takePhoto(stepId, photoId);
         },
 
-        remove() {
-            const { stepId, photoId, section } = this.viewer;
+        remove(photo) {
+            const { stepId, photoId, section } = photo;
 
             window.confirmAction('¿Borrar esta foto?', `Se quita de «${section}». No se puede deshacer.`, () => {
                 this.viewer = null;
+                this.menu = null;
                 this.$wire.deletePhoto(stepId, photoId);
             });
         },
