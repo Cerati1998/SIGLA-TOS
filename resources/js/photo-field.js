@@ -2,7 +2,9 @@
  * A single required photo of a form inside a modal (T77): taken with the camera of the phone, compressed in the
  * browser with `window.preparePhoto` and uploaded at once to two properties of the Livewire form, the photo and its
  * thumbnail. It shows the photo taken, opens it in a viewer, takes it again or removes it. The server checks the photo
- * again when the form is saved. The watermark starts with a label, or with what a function gives when the label changes
+ * again when the form is saved. A form that edits a record shows the photo it already has with `showSaved`; removing
+ * that photo dispatches `photo-removed`, so the form can forget it when it is saved (H40). `pick` chooses the photo
+ * from the phone instead of the camera, when the field offers it. The watermark starts with a label, or with what a function gives when the label changes
  * with the record of the modal.
  */
 document.addEventListener('alpine:init', () => {
@@ -12,6 +14,7 @@ document.addEventListener('alpine:init', () => {
         uploading: false,
         failed: false,
         viewerOpen: false,
+        saved: false,
 
         init() {
             this.$watch(() => this.$wire.get(photoProperty), (value) => {
@@ -27,6 +30,17 @@ document.addEventListener('alpine:init', () => {
 
         take() {
             this.$refs.camera.click();
+        },
+
+        pick() {
+            this.$refs.gallery.click();
+        },
+
+        showSaved(photoUrl, thumbnailUrl) {
+            this.forget();
+            this.photoUrl = photoUrl;
+            this.thumbnailUrl = thumbnailUrl;
+            this.saved = true;
         },
 
         openViewer() {
@@ -64,6 +78,7 @@ document.addEventListener('alpine:init', () => {
                 await this.send(thumbnailProperty, thumbnail);
 
                 this.release();
+                this.saved = false;
                 this.photoUrl = URL.createObjectURL(photo);
                 this.thumbnailUrl = URL.createObjectURL(thumbnail);
             } catch {
@@ -80,6 +95,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         remove() {
+            if (this.saved) {
+                this.$dispatch('photo-removed');
+            }
+
             this.viewerOpen = false;
             this.$wire.set(photoProperty, null, false);
             this.$wire.set(thumbnailProperty, null, false);
@@ -91,10 +110,11 @@ document.addEventListener('alpine:init', () => {
             this.photoUrl = null;
             this.thumbnailUrl = null;
             this.failed = false;
+            this.saved = false;
         },
 
         release() {
-            [this.photoUrl, this.thumbnailUrl].filter((url) => url !== null).forEach((url) => URL.revokeObjectURL(url));
+            [this.photoUrl, this.thumbnailUrl].filter((url) => url?.startsWith('blob:')).forEach((url) => URL.revokeObjectURL(url));
         },
     }));
 });
