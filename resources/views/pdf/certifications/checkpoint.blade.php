@@ -35,7 +35,7 @@
             <td>
                 <table class="datos">
                     <tr><td class="rotulo">Estado:</td><td style="font-weight: bold;">{{ $record->status()->label() }}</td></tr>
-                    <tr><td class="rotulo">Iniciado:</td><td>{{ $at($record->created_at) }} · {{ $record->starter?->name ?? '—' }}</td></tr>
+                    <tr><td class="rotulo">Iniciado:</td><td>{{ $at($record->created_at) }}@if ($record->starter !== null) · {{ $record->starter->name }}@endif</td></tr>
                     <tr><td class="rotulo">Cerrado:</td><td>{{ $at($record->closed_at) }} · {{ $record->closer?->name ?? '—' }}</td></tr>
                     <tr><td class="rotulo">Pasos:</td><td>{{ $checkpoint['steps']->count() }} · {{ trans_choice(':count foto|:count fotos', $checkpoint['photos']) }} · {{ trans_choice(':count serie|:count series', $checkpoint['series']) }}</td></tr>
                 </table>
@@ -53,7 +53,7 @@
 
     <p class="seccion" style="margin-top: 14px;">Series verificadas</p>
     <table class="lista">
-        <thead><tr><th>Paso</th><th>Serie</th><th>Sección de la certificación</th><th>Resultado</th><th>Quién y cuándo</th></tr></thead>
+        <thead><tr><th style="width: 27%;">Paso</th><th style="width: 13%;">Serie</th><th style="width: 21%;">Sección de la certificación</th><th style="width: 17%;">Resultado</th><th>Quién y cuándo</th></tr></thead>
         <tbody>
             @forelse ($rows as $row)
                 @php
@@ -64,7 +64,7 @@
                     <td>{{ $row['step']->position }} · {{ $row['step']->section->name }}</td>
                     <td>{{ $mark->device->serial_number }}</td>
                     <td>{{ $checkpoint['deviceSections'][$mark->security_device_id] ?? '—' }}</td>
-                    <td><span style="font-weight: bold; color: {{ $text['color'] }};">{{ $text['label'] }}</span>@if ($mark->is_correct === false && $row['step']->skips_reinspection) · sin reinspección @endif</td>
+                    <td><span style="font-weight: bold; color: {{ $text['color'] }}; white-space: nowrap;">{{ $text['label'] }}</span>@if ($mark->is_correct === false && $row['step']->skips_reinspection) · sin reinspección @endif</td>
                     <td>{{ $mark->marker?->name ?? '—' }} · {{ $at($mark->marked_at) }}@if ($row['round'] !== null) · reinspección {{ $row['round'] }}@endif</td>
                 </tr>
             @empty
