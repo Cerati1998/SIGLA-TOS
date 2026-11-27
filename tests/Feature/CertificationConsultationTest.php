@@ -19,6 +19,8 @@ use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\PhotoStorage;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Frame;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -112,6 +114,49 @@ class CertificationConsultationTest extends TestCase
         $this->assertStringContainsString('CTA1234567', $html);
         $this->assertStringContainsString('Interior · puertas abiertas', $html);
         $this->assertStringContainsString('Inspección externa', $html);
+    }
+
+    public function test_in_the_pdf_each_device_is_marked_with_its_number_over_the_spot_of_its_section(): void
+    {
+        $certification = $this->certification('ABCU1234567', closed: true);
+
+        $pdf = Pdf::loadView('pdf.certifications.certification', [
+            ...app(DescribeCertification::class)->handle($certification),
+            'certification' => $certification,
+            'photoData' => fn (): string => '',
+            'generatedBy' => 'Inspector Uno',
+        ])->setPaper('a4');
+
+        /** @var list<array{x: float, y: float, w: float, h: float}> $drawings */
+        $drawings = [];
+        /** @var array<int, array{x: float, y: float, w: float, h: float}> $marks */
+        $marks = [];
+        /** @var list<string> $paintOrder */
+        $paintOrder = [];
+        $pdf->getDomPDF()->setCallbacks([[
+            'event' => 'end_frame',
+            'f' => function (Frame $frame) use (&$drawings, &$marks, &$paintOrder): void {
+                $node = $frame->get_node();
+                $box = $frame->get_border_box();
+                $box = ['x' => (float) $box['x'], 'y' => (float) $box['y'], 'w' => (float) $box['w'], 'h' => (float) $box['h']];
+
+                if ($node->nodeName === 'img' && abs($box['w'] - 165) < 1) {
+                    $drawings[] = $box;
+                    $paintOrder[] = 'drawing';
+                } elseif ($node->nodeName === 'div' && str_contains((string) $node->attributes?->getNamedItem('style')?->nodeValue, 'position: absolute')) {
+                    $marks[(int) trim((string) $node->textContent)] = $box;
+                    $paintOrder[] = 'mark';
+                }
+            },
+        ]]);
+        $pdf->output();
+
+        $this->assertCount(3, $drawings);
+        $this->assertSame([1], array_keys($marks));
+        $this->assertSame(['drawing', 'mark', 'drawing', 'drawing'], $paintOrder);
+        [$inside] = $drawings;
+        $this->assertEqualsWithDelta($inside['x'] + 0.50 * $inside['w'], $marks[1]['x'] + $marks[1]['w'] / 2, 2);
+        $this->assertEqualsWithDelta($inside['y'] + 0.18 * $inside['h'], $marks[1]['y'] + $marks[1]['h'] / 2, 2);
     }
 
     public function test_the_pdf_takes_each_photo_from_the_whole_photo_shrunk_to_at_most_1024_px(): void

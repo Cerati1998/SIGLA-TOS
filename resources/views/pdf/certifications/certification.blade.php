@@ -1,10 +1,10 @@
 @php
     use App\Enums\CertificationSectionType;
+    use App\Enums\ContainerDrawing;
 
     $lima = fn ($date) => $date?->copy()->timezone('America/Lima');
     $value = fn (?string $text): string => $text === null || $text === '' ? '—' : $text;
     $logo = 'data:image/png;base64,'.base64_encode((string) file_get_contents(public_path('images/sigla-logo-cropped.png')));
-    $drawing = fn (string $name): string => 'data:image/svg+xml;base64,'.base64_encode((string) file_get_contents(resource_path("images/pdf/{$name}.svg")));
     $schedule = function (array $inspection) use ($lima): string {
         if ($inspection['startedAt'] === null) {
             return '—';
@@ -13,14 +13,21 @@
         return $lima($inspection['startedAt'])->format('H:i').' a '.$lima($inspection['finishedAt'])->format('H:i').' · '.implode(', ', $inspection['inspectors']);
     };
     $byType = collect($inspections)->keyBy(fn (array $inspection): string => $inspection['type']->value);
+    $drawingWidth = 220;
     $number = 0;
-    $devicesOf = fn (CertificationSectionType $type) => $steps->where('type', $type)
-        ->flatMap(fn ($step) => $step->devices->map(fn ($device) => ['device' => $device, 'section' => $step->section->name]))
-        ->values();
-    $views = [
-        ['type' => CertificationSectionType::Internal, 'drawings' => [['container-inside', 'Interior · puertas abiertas']]],
-        ['type' => CertificationSectionType::External, 'drawings' => [['container-doors', 'Exterior · lado de las puertas'], ['container-machine', 'Exterior · lado de la máquina']]],
-    ];
+    $views = [];
+
+    foreach ([CertificationSectionType::Internal, CertificationSectionType::External] as $type) {
+        $views[] = [
+            'type' => $type,
+            'drawings' => ContainerDrawing::forType($type),
+            'devices' => $steps->where('type', $type)
+                ->flatMap(fn ($step) => $step->devices->map(fn ($device): array => ['device' => $device, 'section' => $step->section->name]))
+                ->values()
+                ->map(fn (array $row, int $index): array => [...$row, 'number' => $number + $index + 1]),
+        ];
+        $number += end($views)['devices']->count();
+    }
 @endphp
 
 @extends('pdf.layout')
@@ -71,18 +78,24 @@
             <table class="sin-corte" style="{{ $loop->first ? '' : 'border-top: 1px solid #c9ced6;' }}">
                 <tr>
                     <td style="width: 232px; vertical-align: top; padding: 10px 12px 10px 0; text-align: center;">
-                        @foreach ($view['drawings'] as [$file, $caption])
-                            <img src="{{ $drawing($file) }}" alt="" style="width: 220px; {{ $loop->first ? '' : 'margin-top: 8px;' }}">
-                            <div style="font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #4b5563; letter-spacing: 0.5px; margin-top: 2px;">{{ $caption }}</div>
+                        @foreach ($view['drawings'] as $drawing)
+                            {{-- Each device of a section with a spot on the drawing carries its number there (T73). The marks go before the image: after it, dompdf draws the image above its box. --}}
+                            <div style="position: relative; width: {{ $drawingWidth }}px; height: {{ round($drawing->heightAt($drawingWidth), 1) }}px; {{ $loop->first ? '' : 'margin-top: 8px;' }}">
+                                @foreach ($drawing->marks($view['devices'], $drawingWidth) as $mark)
+                                    <div style="position: absolute; z-index: 1; left: {{ round($mark['left'] - 6.5, 1) }}px; top: {{ round($mark['top'] - 6.5, 1) }}px; width: 13px; height: 13px; line-height: 13px; border-radius: 7px; background: #002f7f; color: #ffffff; font-size: 7px; font-weight: bold; text-align: center;">{{ $mark['number'] }}</div>
+                                @endforeach
+                                <img src="{{ $drawing->dataUri() }}" alt="" style="display: block; width: {{ $drawingWidth }}px;">
+                            </div>
+                            <div style="font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #4b5563; letter-spacing: 0.5px; margin-top: 2px;">{{ $drawing->caption() }}</div>
                         @endforeach
                     </td>
                     <td style="vertical-align: top; padding: 10px 0;">
                         <table class="lista">
                             <thead><tr><th class="derecha" style="width: 24px;">N.º</th><th>Serie</th><th>Dispositivo</th><th>Sección</th></tr></thead>
                             <tbody>
-                                @forelse ($devicesOf($view['type']) as $row)
+                                @forelse ($view['devices'] as $row)
                                     <tr @class(['par' => $loop->even])>
-                                        <td class="derecha">{{ ++$number }}</td>
+                                        <td class="derecha">{{ $row['number'] }}</td>
                                         <td>{{ $row['device']->serial_number }}</td>
                                         <td>{{ $row['device']->lot->securityDeviceType->name }}</td>
                                         <td>{{ $row['section'] }}</td>
