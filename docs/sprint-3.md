@@ -1,6 +1,7 @@
 # Sprint 3 · SIGLA 2.0 (TOS)
 
 **Estado:** aprobado por el Scrum Master el 2026-11-13.
+**Cerrado:** viernes 20 de noviembre de 2026.
 **Fechas:** lunes 16 al viernes 20 de noviembre de 2026 (1 semana).
 **Capacidad:** 20 horas en total (10 del Scrum Master y 10 del asistente desarrollador). Unas 2 horas se reservan para los eventos del sprint; quedan unas 18 para tareas.
 **Unidad de estimación:** horas.
