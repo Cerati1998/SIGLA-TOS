@@ -8,6 +8,7 @@
 
     <livewire:gps-devices.create-modal />
     <livewire:gps-devices.edit-modal />
+    <livewire:gps-devices.connectivity-modal />
 
     {{-- After the device windows, so that they open on top of them from «Agregar». --}}
     <livewire:gps-device-models.create-modal />
