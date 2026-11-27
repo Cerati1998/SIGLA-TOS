@@ -882,7 +882,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   9. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
   10. La pantalla se puede usar bien desde el celular.
 - Sin seeder: el usuario carga los modelos en pantalla, porque todavía no se sabe qué modelo es cada código del proveedor (`240` y `247`).
-- En el menú: un grupo nuevo, «Candados GPS», con «Modelos GPS», que después recibirá el inventario.
+- En el menú: «Modelos GPS» va en Maestros, debajo de «Tipos de dispositivo», y el grupo Administración pasa justo encima de Configuración (cambio del usuario del 2026-11-27, al probar; en T89 se había aprobado un grupo propio, «Candados GPS»).
 - Diseño: «H39 · Modelos GPS», «H39 · Nuevo modelo GPS», «H39 · Estados de modelos GPS» y «H39 · Móvil · Nuevo modelo GPS», página «E10 · Candados GPS» del lienzo, sobre la plantilla "Lista con tabla" y las zonas de patio (H26), aprobado por el usuario el 2026-11-27. (Cambiado el 2026-11-27: en T89 se había aprobado construir sin diseño propio, como H06, pero la rule «Diseño en el lienzo» pide uno para toda vista nueva y el usuario eligió diseñarlo.)
 - Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
 

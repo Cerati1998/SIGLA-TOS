@@ -78,26 +78,6 @@
                 ],
             ],
         ],
-        ['header' => 'Candados GPS'],
-        [
-            'name' => 'Modelos GPS',
-            'icon' => 'lock',
-            'route' => route('intranet.gps-device-models.index'),
-            'active' => request()->routeIs('intranet.gps-device-models.*'),
-        ],
-        ['header' => 'Administración'],
-        [
-            'name' => 'Usuarios',
-            'icon' => 'users',
-            'route' => route('intranet.users.index'),
-            'active' => request()->routeIs('intranet.users.*'),
-        ],
-        [
-            'name' => 'Sucursales',
-            'icon' => 'map-pin',
-            'route' => route('intranet.branches.index'),
-            'active' => request()->routeIs('intranet.branches.*'),
-        ],
         ['header' => 'Maestros'],
         [
             'name' => 'Líneas navieras',
@@ -141,6 +121,12 @@
             'active' => request()->routeIs('intranet.security-device-types.*'),
         ],
         [
+            'name' => 'Modelos GPS',
+            'icon' => 'lock',
+            'route' => route('intranet.gps-device-models.index'),
+            'active' => request()->routeIs('intranet.gps-device-models.*'),
+        ],
+        [
             'name' => 'Secciones de certificación',
             'icon' => 'layers',
             'route' => route('intranet.certification-sections.index'),
@@ -167,6 +153,19 @@
                     'active' => request()->routeIs('intranet.vehicle-bodies.*'),
                 ],
             ],
+        ],
+        ['header' => 'Administración'],
+        [
+            'name' => 'Usuarios',
+            'icon' => 'users',
+            'route' => route('intranet.users.index'),
+            'active' => request()->routeIs('intranet.users.*'),
+        ],
+        [
+            'name' => 'Sucursales',
+            'icon' => 'map-pin',
+            'route' => route('intranet.branches.index'),
+            'active' => request()->routeIs('intranet.branches.*'),
         ],
         ['header' => 'Configuración'],
         [

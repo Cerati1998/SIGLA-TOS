@@ -1322,7 +1322,7 @@ Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie inc
 
 ### 5.33 `gps_device_models` · `en código`
 
-Modelos de dispositivo GPS (H39). Se gestionan en Candados GPS → Modelos GPS.
+Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |

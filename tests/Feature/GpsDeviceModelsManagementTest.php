@@ -52,7 +52,7 @@ class GpsDeviceModelsManagementTest extends TestCase
 
         $this->get(route('intranet.gps-device-models.index'))
             ->assertOk()
-            ->assertSeeInOrder(['Candados GPS', 'Modelos GPS', 'Administración'])
+            ->assertSeeInOrder(['Maestros', 'Tipos de dispositivo', 'Modelos GPS', 'Administración', 'Usuarios', 'Configuración'])
             ->assertSee(route('intranet.gps-device-models.index'))
             ->assertSeeText('Rastreo del Norte S.A.C.')
             ->assertSeeText('Hunter Block')
