@@ -140,7 +140,7 @@ class StepForm extends Component
     /**
      * Get the sections of the certification that a reinspection would reopen, each with its type and the incorrect
      * series it has, for its window (H35, criterion 1). The series of a step that does not ask for a reinspection are
-     * left out (T91).
+     * left out (T93).
      *
      * @return list<array{section: string, type: string, series: list<string>}>
      */

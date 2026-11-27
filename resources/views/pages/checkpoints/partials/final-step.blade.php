@@ -1,4 +1,4 @@
-{{-- The last step of the checkpoint: observations and extra photos, both optional, the summary and «Finalizar» (H34, criteria 7 to 9). With an incorrect series in a step that does not ask for a reinspection, the observations are required (T91). --}}
+{{-- The last step of the checkpoint: observations and extra photos, both optional, the summary and «Finalizar» (H34, criteria 7 to 9). With an incorrect series in a step that does not ask for a reinspection, the observations are required (T93). --}}
 <div class="flex flex-col gap-2">
     <h3 class="m-0 font-heading text-h3 font-medium text-brand">Observaciones y fotos extra</h3>
     <div class="flex flex-wrap gap-2">

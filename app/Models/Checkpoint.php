@@ -218,7 +218,7 @@ class Checkpoint extends Model
 
     /**
      * Keep the marks that count and are incorrect: a closed checkpoint only keeps them in the steps that do not ask for a
-     * reinspection (T91).
+     * reinspection (T93).
      *
      * @param  Builder<CheckpointMark>  $marks
      */
@@ -238,7 +238,7 @@ class Checkpoint extends Model
     }
 
     /**
-     * Get the incorrect marks that ask for a reinspection, from the steps loaded with their marks (T91).
+     * Get the incorrect marks that ask for a reinspection, from the steps loaded with their marks (T93).
      *
      * @return SupportCollection<int, CheckpointMark>
      */
@@ -249,7 +249,7 @@ class Checkpoint extends Model
 
     /**
      * Whether an incorrect series is in a step that does not ask for a reinspection: then the observations are required
-     * to close it or to start a reinspection (T91). It reads the steps loaded with their marks.
+     * to close it or to start a reinspection (T93). It reads the steps loaded with their marks.
      */
     public function needsObservation(): bool
     {

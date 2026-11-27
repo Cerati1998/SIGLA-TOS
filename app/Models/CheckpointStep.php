@@ -22,7 +22,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property int $checkpoint_id
  * @property int $certification_section_id
  * @property CheckpointSectionKind $kind
- * @property bool $skips_reinspection Whether an incorrect series of the step does not ask for a reinspection (T91).
+ * @property bool $skips_reinspection Whether an incorrect series of the step does not ask for a reinspection (T93).
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -111,7 +111,7 @@ class CheckpointStep extends Model
     }
 
     /**
-     * Get the incorrect marks of the step that ask for a reinspection: none when the step does not ask for one (T91).
+     * Get the incorrect marks of the step that ask for a reinspection: none when the step does not ask for one (T93).
      * It reads the marks already loaded.
      *
      * @return SupportCollection<int, CheckpointMark>

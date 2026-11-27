@@ -81,7 +81,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
 | `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
 | `gps_device_models` | E10 · H39 | `en código` | (nueva; modelos de dispositivo GPS) |
-| `certification_sections.skips_reinspection`, `checkpoint_steps.skips_reinspection` | E6 · T91 | `en código` | (nuevas columnas) |
+| `gps_devices` | E10 · H40 | `en código` | (nueva; inventario de candados GPS) |
+| `certification_sections.skips_reinspection`, `checkpoint_steps.skips_reinspection` | E6 · T93 | `en código` | (nuevas columnas) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -674,6 +675,32 @@ erDiagram
   }
 ```
 
+### 4.12 Dispositivos GPS (E10)
+
+Cada candado o GPS físico (H40), de un modelo de H39, propio o alquilado a un proveedor, en una sucursal. Se registran a mano; traerlos desde 24HM es H41.
+
+```mermaid
+erDiagram
+  gps_device_models ||--o{ gps_devices : "modelo"
+  providers |o--o{ gps_devices : "alquila"
+  branches ||--o{ gps_devices : "sucursal"
+
+  gps_devices {
+    bigint id PK
+    string code UK
+    bigint monitoring_asset_id "null, UK"
+    bigint gps_device_model_id FK
+    string ownership
+    bigint rental_provider_id FK "null si es propio"
+    bigint branch_id FK
+    string status
+    string notes "null"
+    string photo_path "null"
+    string thumbnail_path "null"
+    datetime deleted_at
+  }
+```
+
 ## 5. Diccionario de tablas
 
 Notación: `UK` único · `FK` llave foránea. Todo es `NOT NULL` salvo donde dice «null».
@@ -888,7 +915,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
 | `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna), `external` (Externa) o `checkpoint` (Checkpoint, H33). Las puertas no son un tipo (P1). Las certificaciones solo copian las internas y externas. |
 | `checkpoint_kind` | varchar(20) (null) | Enum de PHP `CheckpointSectionKind`, solo en las de checkpoint (H33): `photos` (pide al menos una foto) o `verification` (marca cada serie de las secciones que verifica, sin fotos). Null en las internas y externas. |
-| `skips_reinspection` | boolean, default false | Solo en las de verificación (T91): una serie incorrecta de esta sección no pide reinspección, y el checkpoint se cierra con una observación obligatoria. La migración deja marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27). |
+| `skips_reinspection` | boolean, default false | Solo en las de verificación (T93): una serie incorrecta de esta sección no pide reinspección, y el checkpoint se cierra con una observación obligatoria. La migración deja marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27). |
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos, uno solo para internas, externas y de checkpoint (H33); cada inspección y el checkpoint toman solo las suyas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
@@ -1237,7 +1264,7 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 
 ### 5.27 `checkpoints` · `en código`
 
-El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está en proceso hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); cerrado con una marca incorrecta que cuenta (de un paso con `skips_reinspection`), está cerrado con observación (T91). El listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está en proceso hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); cerrado con una marca incorrecta que cuenta (de un paso con `skips_reinspection`), está cerrado con observación (T93). El listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -1263,7 +1290,7 @@ Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`
 | `checkpoint_id` | bigint FK → `checkpoints.id` | Índice con `position`. |
 | `certification_section_id` | bigint FK → `certification_sections.id` | UK junto con `checkpoint_id`. |
 | `kind` | varchar(20) | Enum de PHP `CheckpointSectionKind`: `photos` o `verification`, copiado de `checkpoint_kind`. |
-| `skips_reinspection` | boolean, default false | Copiado de `certification_sections.skips_reinspection`, solo en los pasos de verificación (T91). |
+| `skips_reinspection` | boolean, default false | Copiado de `certification_sections.skips_reinspection`, solo en los pasos de verificación (T93). |
 | `position` | smallint | Orden del paso. |
 | `timestamps` | | |
 
@@ -1340,6 +1367,24 @@ Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `Gps
 | `monitoring_device_type_code` | varchar(20) (null) | Código de tipo (`IdTipoDispositivo` de 24HM, por ejemplo `240`). El par con `monitoring_product_code` es UK (`gps_device_models_monitoring_codes_unique`), aunque el otro modelo esté desactivado (criterio 3); dos modelos sin códigos no chocan, porque los null no se comparan. |
 | `description` | varchar(255) (null) | Opcional. Vacía se guarda como null. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 5). Los modelos no se eliminan. |
+
+### 5.34 `gps_devices` · `en código`
+
+Dispositivos GPS (H40): el inventario de candados propios y alquilados. Se gestionan en Bodega → Dispositivos GPS. Sin seeder: los activos de 24HM los traerá H41.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `code` | varchar(30) UK | El que lleva el equipo y el `Alias` de 24HM (HBR140). Se guarda en mayúsculas; no se repite, aunque el dispositivo esté desactivado. |
+| `monitoring_asset_id` | bigint unsigned (null) UK | El `IdActivo` de 24HM, opcional y solo números (hasta 12 dígitos). No se repite. Enlaza el dispositivo con H41. |
+| `gps_device_model_id` | bigint FK → `gps_device_models.id` | Se elige con un selector que busca en el servidor (solo activos), o se crea ahí mismo con «Agregar»; se conserva uno desactivado que el dispositivo ya tenía. |
+| `ownership` | varchar(10) | Enum de PHP `GpsDeviceOwnership`: `own` o `rented`. |
+| `rental_provider_id` | bigint FK → `providers.id` (null) | El proveedor que lo alquila; obligatorio con `rented` y null con `own`. Solo activos, salvo el que ya tenía. |
+| `branch_id` | bigint FK → `branches.id` | Sucursal activa, salvo la que ya tenía. |
+| `status` | varchar(20) | Enum de PHP `GpsDeviceStatus`. Por ahora solo `available` (Disponible), por defecto; el despacho, la instalación y el retiro suman sus estados. |
+| `notes` | varchar(500) (null) | Observaciones. Vacías se guardan como null. |
+| `photo_path`, `thumbnail_path` | varchar(255) (null) | La foto de referencia y su miniatura (criterio 1b), en el disco privado (`storage/app/private/gps-devices`), comprimidas en el navegador con la marca de agua del código, la fecha y la hora. Solo se sirven con sesión, también las de un dispositivo desactivado. Una foto nueva reemplaza a la anterior y quitarla la borra, una vez guardado el dispositivo. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at`: el dispositivo queda de baja (criterio 5). No se eliminan. |
 
 ## 6. Cambios del ER original que ya aplican
 

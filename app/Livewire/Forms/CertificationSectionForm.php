@@ -45,7 +45,7 @@ class CertificationSectionForm extends Form
     public string $checkpointKind = '';
 
     /**
-     * Whether an incorrect series in a checkpoint section of verification does not ask for a reinspection (T91).
+     * Whether an incorrect series in a checkpoint section of verification does not ask for a reinspection (T93).
      */
     public bool $skipsReinspection = false;
 
