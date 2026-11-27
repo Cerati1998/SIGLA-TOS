@@ -34,12 +34,12 @@
     @if ($checkpointClosed)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-success p-3.5 text-sm text-badge-success-ink">
             <x-feather name="lock" class="mt-0.5 size-4 shrink-0" />
-            <span>Checkpoint cerrado por {{ $checkpoint->closer?->name }} el {{ $checkpoint->closed_at?->format('d/m/Y') }} a las {{ $checkpoint->closed_at?->format('H:i') }}: solo lectura.</span>
+            <span>Checkpoint cerrado por {{ $checkpoint->closer?->name }} el {{ $checkpoint->closed_at?->copy()->timezone(config('app.display_timezone'))->format('d/m/Y') }} a las {{ $checkpoint->closed_at?->copy()->timezone(config('app.display_timezone'))->format('H:i') }}: solo lectura.</span>
         </p>
     @elseif ($openReinspection !== null)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
             <x-feather name="alert-triangle" class="mt-0.5 size-4 shrink-0" />
-            <span>En reinspección desde el {{ $openReinspection->created_at?->format('d/m/Y') }} a las {{ $openReinspection->created_at?->format('H:i') }}, iniciada por {{ $openReinspection->starter->name }}. Motivo: «{{ $openReinspection->reason }}». Solo lectura hasta que se cierre la reinspección.</span>
+            <span>En reinspección desde el {{ $openReinspection->created_at?->copy()->timezone(config('app.display_timezone'))->format('d/m/Y') }} a las {{ $openReinspection->created_at?->copy()->timezone(config('app.display_timezone'))->format('H:i') }}, iniciada por {{ $openReinspection->starter->name }}. Motivo: «{{ $openReinspection->reason }}». Solo lectura hasta que se cierre la reinspección.</span>
         </p>
     @elseif ($round !== null)
         <p class="m-0 flex items-start gap-2.5 rounded-control bg-badge-info p-3.5 text-sm text-badge-info-ink">

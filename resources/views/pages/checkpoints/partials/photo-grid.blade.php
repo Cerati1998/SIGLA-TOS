@@ -2,7 +2,7 @@
 <div class="grid grid-cols-3 gap-2 md:grid-cols-5">
     @foreach ($photos as $photo)
         <button type="button" wire:key="photo-{{ $photo->id }}"
-            x-on:click="openViewer({ stepId: @js($stepId), photoId: {{ $photo->id }}, section: @js($label), url: @js(route('intranet.checkpoint-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at?->format('d/m/Y').' a las '.$photo->created_at?->format('H:i')) })"
+            x-on:click="openViewer({ stepId: @js($stepId), photoId: {{ $photo->id }}, section: @js($label), url: @js(route('intranet.checkpoint-photos.show', $photo)), by: @js($photo->uploader->name), at: @js($photo->created_at?->copy()->timezone(config('app.display_timezone'))->format('d/m/Y').' a las '.$photo->created_at?->copy()->timezone(config('app.display_timezone'))->format('H:i')) })"
             class="relative aspect-square overflow-hidden rounded-lg bg-control" aria-label="Ver la foto {{ $loop->iteration }}">
             <img src="{{ route('intranet.checkpoint-photos.thumbnail', $photo) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
             <span class="absolute top-1.5 right-1.5 flex size-5.5 items-center justify-center rounded-full bg-status-green text-white" aria-hidden="true">

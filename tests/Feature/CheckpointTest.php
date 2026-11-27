@@ -73,6 +73,21 @@ class CheckpointTest extends TestCase
             ->assertDontSeeText('ABCU0000003');
     }
 
+    public function test_the_closing_times_are_shown_in_lima_time(): void
+    {
+        $certification = $this->certification();
+        $certification->forceFill(['closed_at' => '2026-11-27 15:49:00'])->save();
+
+        Livewire::actingAs($this->inspector)->test(UnitPicker::class)
+            ->assertSeeText('Certificación cerrada el 27/11/2026 a las 10:49')
+            ->assertDontSeeText('a las 15:49');
+
+        $checkpoint = $this->open($certification);
+        $checkpoint->forceFill(['closed_at' => '2026-11-27 16:05:00', 'closed_by' => $this->inspector->id])->save();
+
+        $this->stepForm($checkpoint)->assertSeeText('el 27/11/2026 a las 11:05: solo lectura.');
+    }
+
     public function test_opening_a_unit_starts_its_checkpoint_with_the_active_checkpoint_sections_and_the_series_to_verify(): void
     {
         $certification = $this->certification();
