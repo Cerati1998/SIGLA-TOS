@@ -19,6 +19,9 @@ use App\Models\ShippingLine;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\PhotoStorage;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Canvas;
+use Dompdf\Frame;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -114,6 +117,49 @@ class CertificationConsultationTest extends TestCase
         $this->assertStringContainsString('Inspección externa', $html);
     }
 
+    public function test_in_the_pdf_each_device_is_marked_with_its_number_over_the_spot_of_its_section(): void
+    {
+        $certification = $this->certification('ABCU1234567', closed: true);
+
+        $pdf = Pdf::loadView('pdf.certifications.certification', [
+            ...app(DescribeCertification::class)->handle($certification),
+            'certification' => $certification,
+            'photoData' => fn (): string => '',
+            'generatedBy' => 'Inspector Uno',
+        ])->setPaper('a4');
+
+        /** @var list<array{x: float, y: float, w: float, h: float}> $drawings */
+        $drawings = [];
+        /** @var array<int, array{x: float, y: float, w: float, h: float}> $marks */
+        $marks = [];
+        /** @var list<string> $paintOrder */
+        $paintOrder = [];
+        $pdf->getDomPDF()->setCallbacks([[
+            'event' => 'end_frame',
+            'f' => function (Frame $frame) use (&$drawings, &$marks, &$paintOrder): void {
+                $node = $frame->get_node();
+                $box = $frame->get_border_box();
+                $box = ['x' => (float) $box['x'], 'y' => (float) $box['y'], 'w' => (float) $box['w'], 'h' => (float) $box['h']];
+
+                if ($node->nodeName === 'img' && abs($box['w'] - 165) < 1) {
+                    $drawings[] = $box;
+                    $paintOrder[] = 'drawing';
+                } elseif ($node->nodeName === 'div' && str_contains((string) $node->attributes?->getNamedItem('style')?->nodeValue, 'position: absolute')) {
+                    $marks[(int) trim((string) $node->textContent)] = $box;
+                    $paintOrder[] = 'mark';
+                }
+            },
+        ]]);
+        $pdf->output();
+
+        $this->assertCount(3, $drawings);
+        $this->assertSame([1], array_keys($marks));
+        $this->assertSame(['drawing', 'mark', 'drawing', 'drawing'], $paintOrder);
+        [$inside] = $drawings;
+        $this->assertEqualsWithDelta($inside['x'] + 0.50 * $inside['w'], $marks[1]['x'] + $marks[1]['w'] / 2, 2);
+        $this->assertEqualsWithDelta($inside['y'] + 0.18 * $inside['h'], $marks[1]['y'] + $marks[1]['h'] / 2, 2);
+    }
+
     public function test_the_pdf_takes_each_photo_from_the_whole_photo_shrunk_to_at_most_1024_px(): void
     {
         Storage::fake('local');
@@ -124,6 +170,63 @@ class CertificationConsultationTest extends TestCase
         $this->assertSame([1024, 768], $this->sizeOf($photoStorage->resizedDataUri('certifications/1/grande.jpg', 1024)));
         $this->assertSame([800, 600], $this->sizeOf($photoStorage->resizedDataUri('certifications/1/chica.jpg', 1024)));
         $this->assertSame('', $photoStorage->resizedDataUri('certifications/1/no-existe.jpg', 1024));
+    }
+
+    public function test_in_the_pdf_each_section_title_shares_its_page_with_its_first_photos_and_portrait_photos_fit_a_fixed_height(): void
+    {
+        Storage::fake('local');
+        $certification = $this->certification('ABCU1234567', closed: true);
+        foreach ([2, 4, 1, 5, 3, 2, 6, 1, 4] as $index => $photos) {
+            $step = CertificationStep::factory()->create([
+                'certification_id' => $certification->id,
+                'certification_section_id' => CertificationSection::factory()->create(['type' => CertificationSectionType::Internal])->id,
+                'type' => CertificationSectionType::Internal,
+                'position' => $index + 3,
+            ]);
+            CertificationPhoto::factory()->count($photos)->create(['certification_step_id' => $step->id, 'uploaded_by' => $this->inspector->id]);
+        }
+
+        CertificationPhoto::query()->each(function (CertificationPhoto $photo): void {
+            Storage::disk('local')->put($photo->path, (string) UploadedFile::fake()->image('foto.jpg', 768, 1024)->get());
+        });
+
+        $photoStorage = app(PhotoStorage::class);
+        $pdf = Pdf::loadView('pdf.certifications.certification', [
+            ...app(DescribeCertification::class)->handle($certification),
+            'certification' => $certification,
+            'photoData' => fn (CertificationPhoto $photo): string => $photoStorage->resizedDataUri($photo->path, 1024),
+            'generatedBy' => 'Inspector Uno',
+        ])->setPaper('a4');
+
+        /** @var list<array{string, int, float}> $frames */
+        $frames = [];
+        $pdf->getDomPDF()->setCallbacks([[
+            'event' => 'end_frame',
+            'f' => function (Frame $frame, Canvas $canvas) use (&$frames): void {
+                $node = $frame->get_node();
+
+                if ($node->nodeName === 'img' && str_starts_with((string) $node->attributes?->getNamedItem('src')?->nodeValue, 'data:image/jpeg')) {
+                    $frames[] = ['photo', $canvas->get_page_number(), $frame->get_content_box()['h']];
+                } elseif ($node->nodeName === '#text' && $node->parentNode?->nodeName === 'span' && preg_match('/^\d+ · /', trim((string) $node->nodeValue)) === 1) {
+                    $frames[] = ['title', $canvas->get_page_number(), 0.0];
+                }
+            },
+        ]]);
+        $pdf->output();
+
+        $titles = 0;
+
+        foreach ($frames as $index => [$kind, $page, $height]) {
+            if ($kind === 'title') {
+                $titles++;
+                $this->assertSame('photo', $frames[$index + 1][0] ?? null);
+                $this->assertSame($page, $frames[$index + 1][1], "El título {$titles} quedó en una hoja y su primera foto en otra.");
+            } else {
+                $this->assertLessThanOrEqual(170.0, round($height, 1));
+            }
+        }
+
+        $this->assertSame(11, $titles);
     }
 
     public function test_guests_cannot_open_the_detail_or_the_pdf(): void
