@@ -102,7 +102,7 @@ Pedida por el usuario el 2026-11-27, último día del sprint; el usuario la marc
 ### Pedido urgente del 2026-11-27
 Pedido por el usuario el 2026-11-27, último día del sprint, a partir de la daily con el equipo y los interesados; el usuario lo marcó como urgente (acuerdo 3). Las horas son una propuesta de Claude Code.
 - [x] **T89** · Aprobar H39 (E10): cerrar sus suposiciones por confirmar (catálogo propio y no una categoría más de H06, la lista fija de categorías, la apertura, los códigos del proveedor de monitoreo y si su par es único, el nombre único por marca, qué se edita, la falta de seeder, el grupo del menú y el diseño desde la plantilla). Quién: Scrum Master con Claude Code. 0.25 h. Frena a T90. (Hecho el 2026-11-27 con Claude Code, en la rama de T90. El usuario decidió que la categoría es una lista fija, sin pantalla, y que la marca es un proveedor de E8, y aprobó las demás suposiciones tal como estaban.)
-- [ ] **T90** · H39 · Gestionar modelos de dispositivo GPS, con su categoría fija y su marca. Deja `docs/database.md` al día. Quién: Claude Code. 1.5 h. Empieza cuando T89 esté cerrada.
+- [ ] **T90** · H39 · Gestionar modelos de dispositivo GPS, con su categoría fija y su marca. Incluye su diseño en la página «E10 · Candados GPS» del lienzo, aprobado por el usuario el 2026-11-27 antes de construir (rule «Diseño en el lienzo»). Deja `docs/database.md` al día. Quién: Claude Code. 1.5 h. Empieza cuando T89 esté cerrada.
 
 ## Total estimado
 | Bloque | Tareas | Horas |
@@ -153,7 +153,7 @@ Ninguna tarea espera un merge. Lo único que frena el trabajo es una decisión p
 | — | T87 · H30 · PDF del despacho a granel | `fix/T87-pdf-despacho-granel` | `main` | diseño aprobado |
 | — | T88 · H20 · Fotos del PDF con su título | `fix/T88-fotos-pdf-saltos` | `main` | diseño aprobado |
 | — | T89 · Aprobar H39 | `docs/T89-catalogo-gps` | `main` | nada |
-| — | T90 · H39 · Modelos GPS | `feature/H39-modelos-gps` | rama de T89 | T89 |
+| — | T90 · H39 · Modelos GPS | `feature/H39-modelos-gps` | rama de T89 | T89 y diseño aprobado |
 
 - **Ramas encadenadas.** Cada historia de E6 parte de la anterior porque usa lo que esta deja: las secciones de checkpoint de H33, el checkpoint de H34 y la reinspección de H35. Su PR va hacia `main` y, mientras la base no se mergee, muestra también los commits de la base.
 - **Orden de merge:** T69, T70, T71 y T72, en ese orden.

@@ -869,8 +869,8 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
      - nombre, por ejemplo Hunter Block;
      - marca: un proveedor activo de la tabla maestra (H10), obligatorio;
      - categoría, de una lista fija: Candado para contenedor, Cerradura de puerta, Candado para unidad liviana, Candado portátil, GPS portátil y Control de tolva;
-     - tipo de apertura, remota o manual;
-     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales;
+     - tipo de apertura: remota, manual o «Sin apertura», para los GPS portátiles y los de tolva (agregado al aprobar el diseño, el 2026-11-27);
+     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales: van los dos o ninguno (agregado al aprobar el diseño, el 2026-11-27);
      - descripción opcional.
   2. No se pueden crear dos modelos con el mismo nombre en la misma marca, aunque uno esté desactivado. En marcas distintas, sí.
   3. El par código de producto y código de tipo no se repite entre modelos, para que más adelante cada unidad que reporta el proveedor caiga en un solo modelo.
@@ -883,7 +883,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   10. La pantalla se puede usar bien desde el celular.
 - Sin seeder: el usuario carga los modelos en pantalla, porque todavía no se sabe qué modelo es cada código del proveedor (`240` y `247`).
 - En el menú: un grupo nuevo, «Candados GPS», con «Modelos GPS», que después recibirá el inventario.
-- Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo, como H06.
+- Diseño: «H39 · Modelos GPS», «H39 · Nuevo modelo GPS», «H39 · Estados de modelos GPS» y «H39 · Móvil · Nuevo modelo GPS», página «E10 · Candados GPS» del lienzo, sobre la plantilla "Lista con tabla" y las zonas de patio (H26), aprobado por el usuario el 2026-11-27. (Cambiado el 2026-11-27: en T89 se había aprobado construir sin diseño propio, como H06, pero la rule «Diseño en el lienzo» pide uno para toda vista nueva y el usuario eligió diseñarlo.)
 - Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
 
 ## Fuera del Product Goal (ideas para después, sin historias)
