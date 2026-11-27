@@ -115,28 +115,23 @@
 
             @foreach ($typeSteps as $step)
                 @php $currentPhotos = $step->photos->whereNull('superseded_by_replacement_id'); @endphp
+                @php $photoRows = $currentPhotos->chunk(3)->values(); @endphp
                 <div class="caja" style="padding: 8px 12px; margin-bottom: 10px;">
-                    <div style="padding-bottom: 5px; margin-bottom: 8px; border-bottom: 1px solid #c9ced6;">
-                        <span style="font-size: 11px; font-weight: bold;">{{ $step->position }} · {{ $step->section->name }}</span>
-                        <span style="font-size: 9px; color: #4b5563; margin-left: 8px;">
-                            {{ $step->type->label() }} · {{ $step->devices->isEmpty() ? 'Solo foto' : $step->devices->pluck('serial_number')->implode(', ') }} · {{ trans_choice(':count foto|:count fotos', $currentPhotos->count()) }}
-                        </span>
+                    {{-- The title goes in one block with the first row of photos, so a page never ends on a title alone (T88). --}}
+                    <div class="sin-corte">
+                        <div style="padding-bottom: 5px; margin-bottom: 8px; border-bottom: 1px solid #c9ced6;">
+                            <span style="font-size: 11px; font-weight: bold;">{{ $step->position }} · {{ $step->section->name }}</span>
+                            <span style="font-size: 9px; color: #4b5563; margin-left: 8px;">
+                                {{ $step->type->label() }} · {{ $step->devices->isEmpty() ? 'Solo foto' : $step->devices->pluck('serial_number')->implode(', ') }} · {{ trans_choice(':count foto|:count fotos', $currentPhotos->count()) }}
+                            </span>
+                        </div>
+                        @if ($photoRows->isNotEmpty())
+                            @include('pdf.certifications.photo-row', ['row' => $photoRows->first()])
+                        @endif
                     </div>
-                    <table>
-                        @foreach ($currentPhotos->chunk(3) as $row)
-                            <tr class="sin-corte">
-                                @foreach ($row as $photo)
-                                    <td style="width: 33.33%; vertical-align: top; padding: 0 5px 10px;">
-                                        <img src="{{ $photoData($photo) }}" alt="" style="width: 100%; border: 1px solid #c9ced6;">
-                                        <div style="font-size: 8px; color: #4b5563; margin-top: 2px;">{{ $photo->uploader->name }} · {{ $lima($photo->created_at)?->format('d/m/Y H:i') }}</div>
-                                    </td>
-                                @endforeach
-                                @for ($empty = $row->count(); $empty < 3; $empty++)
-                                    <td style="width: 33.33%;"></td>
-                                @endfor
-                            </tr>
-                        @endforeach
-                    </table>
+                    @foreach ($photoRows->slice(1) as $row)
+                        @include('pdf.certifications.photo-row', ['row' => $row])
+                    @endforeach
                 </div>
             @endforeach
         </div>
