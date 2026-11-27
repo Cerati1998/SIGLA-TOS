@@ -144,8 +144,8 @@ class CertificationConsultationTest extends TestCase
                 if ($node->nodeName === 'img' && abs($box['w'] - 165) < 1) {
                     $drawings[] = $box;
                     $paintOrder[] = 'drawing';
-                } elseif ($node->nodeName === 'div' && str_contains((string) $node->attributes?->getNamedItem('style')?->nodeValue, 'position: absolute')) {
-                    $marks[(int) trim((string) $node->textContent)] = $box;
+                } elseif ($node->nodeName === '#text' && str_contains((string) $node->parentNode?->attributes?->getNamedItem('style')?->nodeValue, 'position: absolute')) {
+                    $marks[(int) trim((string) $node->nodeValue)] = $box;
                     $paintOrder[] = 'mark';
                 }
             },

@@ -79,10 +79,10 @@
                 <tr>
                     <td style="width: 232px; vertical-align: top; padding: 10px 12px 10px 0; text-align: center;">
                         @foreach ($view['drawings'] as $drawing)
-                            {{-- Each device of a section with a spot on the drawing carries its number there (T73). The marks go before the image: after it, dompdf draws the image above its box. --}}
+                            {{-- Each device of a section with a spot on the drawing carries its number there (T73). The marks go before the image: after it, dompdf draws the image above its box. Each mark is the number alone, in black, and its box goes 7 px above the spot because dompdf puts the baseline lower than a browser, so the digits are centered on the spot. --}}
                             <div style="position: relative; width: {{ $drawingWidth }}px; height: {{ round($drawing->heightAt($drawingWidth), 1) }}px; {{ $loop->first ? '' : 'margin-top: 8px;' }}">
                                 @foreach ($drawing->marks($view['devices'], $drawingWidth) as $mark)
-                                    <div style="position: absolute; z-index: 1; left: {{ round($mark['left'] - 6.5, 1) }}px; top: {{ round($mark['top'] - 6.5, 1) }}px; width: 13px; height: 13px; line-height: 13px; border-radius: 7px; background: #002f7f; color: #ffffff; font-size: 7px; font-weight: bold; text-align: center;">{{ $mark['number'] }}</div>
+                                    <div style="position: absolute; z-index: 1; left: {{ round($mark['left'] - 7, 1) }}px; top: {{ round($mark['top'] - 7, 1) }}px; width: 14px; height: 10px; line-height: 10px; color: #1f2937; font-size: 9px; font-weight: bold; text-align: center;">{{ $mark['number'] }}</div>
                                 @endforeach
                                 <img src="{{ $drawing->dataUri() }}" alt="" style="display: block; width: {{ $drawingWidth }}px;">
                             </div>
