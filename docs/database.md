@@ -80,6 +80,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `checkpoints`, `checkpoint_steps`, `checkpoint_photos`, `checkpoint_marks` | E6 · H34 | `en código` | (nuevas) |
 | `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
 | `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
+| `gps_device_models` | E10 · H39 | `en código` | (nueva; modelos de dispositivo GPS) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -646,6 +647,27 @@ erDiagram
     bigint certification_step_id FK
     bigint security_device_id FK
     bigint security_device_replacement_id FK, UK "null: sin reemplazar"
+  }
+```
+
+### 4.11 Modelos de dispositivo GPS (E10)
+
+Los modelos de los dispositivos GPS (H39): candados, cerraduras y GPS portátiles. La marca es un proveedor; la categoría y la apertura son enums de PHP, sin tabla (decisión del usuario del 2026-11-27). Las unidades físicas que reporta el proveedor de monitoreo llegan después.
+
+```mermaid
+erDiagram
+  providers ||--o{ gps_device_models : "marca"
+
+  gps_device_models {
+    bigint id PK
+    bigint brand_id FK
+    string name "UK con brand_id"
+    string category
+    string opening_type
+    string monitoring_product_code "null, UK con monitoring_device_type_code"
+    string monitoring_device_type_code "null"
+    string description "null"
+    datetime deleted_at
   }
 ```
 
@@ -1297,6 +1319,22 @@ Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie inc
 | `security_device_id` | bigint FK → `security_devices.id` | El dispositivo de la serie incorrecta, que pasa a Descartado al reemplazarlo. |
 | `security_device_replacement_id` | bigint FK → `security_device_replacements.id` null | UK. Su reemplazo; null mientras falta reemplazarlo. |
 | `timestamps` | | |
+
+### 5.33 `gps_device_models` · `en código`
+
+Modelos de dispositivo GPS (H39). Se gestionan en Candados GPS → Modelos GPS.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `brand_id` | bigint FK → `providers.id` | La marca es un proveedor (decisión del usuario del 2026-11-27). Se elige con el selector de proveedores, que busca en el servidor y solo ofrece activos, o se crea ahí mismo con «Agregar»; se conserva una desactivada que el modelo ya tenía. |
+| `name` | varchar(100) | UK compuesta con `brand_id`, aunque el modelo esté desactivado (criterio 2). El mismo nombre puede repetirse en otra marca. |
+| `category` | varchar(30) | Enum de PHP `GpsDeviceCategory`: `container_lock`, `door_lock`, `light_vehicle_lock`, `portable_lock`, `portable_tracker` o `hopper_control`. Lista fija, sin pantalla. |
+| `opening_type` | varchar(10) | Enum de PHP `GpsOpeningType`: `remote`, `manual` o `none` (sin apertura, para GPS portátiles y de tolva). |
+| `monitoring_product_code` | varchar(20) (null) | Código de producto que reporta el proveedor de monitoreo (`IdProducto` de 24HM, por ejemplo `BR`), en mayúsculas. Va junto con `monitoring_device_type_code` o los dos quedan en null. |
+| `monitoring_device_type_code` | varchar(20) (null) | Código de tipo (`IdTipoDispositivo` de 24HM, por ejemplo `240`). El par con `monitoring_product_code` es UK (`gps_device_models_monitoring_codes_unique`), aunque el otro modelo esté desactivado (criterio 3); dos modelos sin códigos no chocan, porque los null no se comparan. |
+| `description` | varchar(255) (null) | Opcional. Vacía se guarda como null. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 5). Los modelos no se eliminan. |
 
 ## 6. Cambios del ER original que ya aplican
 
