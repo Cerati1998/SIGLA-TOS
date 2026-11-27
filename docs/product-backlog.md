@@ -697,6 +697,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   5. El PDF se descarga solo de una certificación cerrada. Lleva la cabecera (con el nombre y el DNI del conductor, del catálogo de conductores), los dispositivos asignados y las fotos por sección, con el formato de PDF del lienzo.
   6. En el PDF, los dispositivos asignados van con tres dibujos propios del contenedor: el interior con las puertas abiertas, con su lista de dispositivos de las secciones internas, y los dos exteriores (lado de las puertas y lado de la máquina) juntos, con una sola lista de las secciones externas. Cada dispositivo lleva su serie y su sección.
   7. El listado y el detalle se usan bien desde el celular.
+  8. Con el checkpoint cerrado (cerrado o cerrado con observación), el PDF termina con él, en una hoja nueva con el mismo formato: sus datos (estado, quién lo inició y lo cerró, y cuándo, la observación), las series verificadas con su resultado final, un recuadro por cada reinspección (motivo, quién la inició y la cerró, la sección reabierta, el reemplazo y la segunda verificación) y, con el formato de las fotos de la inspección, las fotos de cada paso, las extra y la del contenedor. Antes de cerrarse, el PDF queda sin checkpoint (cambiado por el usuario el 2026-11-27, T94).
 - Fuera: tabla de daños por área (EIR del gate out), lista de procedimientos de seguridad y trazabilidad GPS.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
@@ -705,6 +706,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Corrección del 2026-11-25 (T85), pedida por el usuario: en el PDF (criterio 5), cada foto se arma desde la foto completa, reducida a 1024 px por su lado más largo, y no desde su miniatura, para que se lea al hacer zoom; van 3 fotos por fila en vez de 4. Diseño: «H20 · PDF · Fotos por sección», página E5 del lienzo, aprobado por el usuario el 2026-11-25.
 - Corrección del 2026-11-27 (T88), pedida por el usuario: en el PDF (criterio 5), el título de una sección va siempre en la misma hoja que su primera fila de fotos, y cada foto cabe en un alto fijo, así que las verticales del celular salen más angostas y centradas en su columna. Diseño: «H20 · PDF · Fotos por sección», página E5 del lienzo, aprobado por el usuario el 2026-11-27.
 - Mejora del 2026-11-27 (T73), aprobada por el usuario: en el PDF (criterio 6), los dibujos del contenedor pasan a ser los tres PNG de `public/images/container-eir/`, y cada dispositivo lleva su N.º de la lista en un círculo azul sobre el lugar de su sección; los de una misma sección van uno al lado del otro. Cada sección del catálogo tiene un lugar fijo en el código (`ContainerDrawing`); las secciones que no son un lugar del contenedor (EIR, DNI del conductor, Precinto de vacío provisional, Número de contenedor interno y Panorámica del contenedor) y las que agregue el administrador salen solo en la lista. Izquierda y derecha se ven parado frente a las puertas, mirando hacia adentro. Diseño: «T73 · Lugar de cada sección en los dibujos» y «H20 · PDF · Página 1», página E5 del lienzo, aprobados por el usuario el 2026-11-27.
+- Cambio del 2026-11-27 (T94), pedido por el usuario: el checkpoint cerrado va al final del PDF (criterio 8), y el checkpoint no tiene un PDF propio (H36, criterio 5). Diseño: «H20 · PDF · Checkpoint», página E5 del lienzo, aprobado por el usuario el 2026-11-27.
 - Corrección del 2026-11-27, pedida por el usuario al probar T73 en el despliegue: el número salía por debajo del centro del círculo azul y se veía a medias. Cada marca es ahora solo el número en negro, sin fondo, con su centro sobre el lugar de la sección. Diseño: «H20 · PDF · Página 1», página E5 del lienzo, actualizado el 2026-11-27.
 
 **H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
@@ -759,7 +761,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   - En la reinspección se rehacen solo las secciones de la certificación enlazadas a las series con ✗, no la certificación entera.
   - Los dispositivos nuevos llegan por un despacho a granel con motivo Operación (H30), que ya enlaza los dispositivos al kit del contenedor. No hace falta un motivo nuevo ni un segundo kit.
   - No hay secciones opcionales: todas las secciones, también las de checkpoint, son obligatorias y piden al menos una foto (aclarado por el usuario en T67; antes se había anotado que cada sección de checkpoint se marcaba como obligatoria u opcional). Las observaciones y las fotos extra del final no son secciones del catálogo y siguen siendo opcionales.
-  - El checkpoint no lleva PDF por ahora; solo se consulta en su detalle (H36).
+  - El checkpoint no tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94; antes, por decisión del 2026-11-23, solo se consultaba en su detalle).
   - El retiro de candado, que la app actual tiene en su menú, queda fuera.
   - H24 (roles y permisos) no entra en el Sprint 4: queda para el Sprint 5, con E6 ya probado.
 - Lo conversado antes, que estas historias reemplazan: buscar la certificación cerrada sin checkpoint cerrado, validar las series de las cintas y sellos de las partes externas (marcando cada una como correcta o no), subir foto por ítem y fotos de la unidad (tracto, semirremolque, puertas), iniciar la reinspección con su motivo, bloquear el cierre mientras la unidad esté en reinspección. Flujo de reinspección conversado: (1) checkpoint la inicia, (2) bodega carga la nueva asignación [E4], (3) el inspector certificado reinspecciona [E5], (4) checkpoint valida y cierra. Las secciones se reemplazan completas.
@@ -839,7 +841,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   2. Cada fila muestra el avance (por ejemplo, 9/14 pasos) y la acción «Ver».
   3. El detalle es de solo consulta: datos de la certificación, cada sección con sus fotos, cada verificación con su marca ✓/✗, las observaciones y las fotos extra, y cada reinspección con su motivo, quién la inició y la cerró, y los dispositivos que se reemplazaron.
   4. Desde el detalle de la certificación (H20) se llega a su checkpoint, si tiene.
-  5. Sin PDF por ahora (decisión del usuario del 2026-11-23).
+  5. No tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94; antes, sin PDF por decisión del 2026-11-23).
   6. Por ahora todos los usuarios con sesión ven todos los checkpoints; los roles llegan con H24.
   7. El listado y el detalle se usan bien desde el celular.
 
@@ -927,7 +929,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Técnicos reefer y estructura, customer, inspector estructura gate in.
 - Extranet: operadores y sus usuarios.
 - Tipos de contenedor distintos de 40'.
-- PDF del checkpoint (decisión del usuario del 2026-11-23: por ahora solo se consulta en su detalle, H36).
+- PDF propio del checkpoint: el checkpoint cerrado va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94).
 - Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23). (En revisión desde el 2026-11-27: la daily pide su retiro en el checkpoint; ver E10.)
 
 ## Suposiciones por confirmar
