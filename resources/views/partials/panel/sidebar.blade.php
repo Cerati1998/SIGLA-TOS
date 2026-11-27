@@ -78,6 +78,13 @@
                 ],
             ],
         ],
+        ['header' => 'Candados GPS'],
+        [
+            'name' => 'Modelos GPS',
+            'icon' => 'lock',
+            'route' => route('intranet.gps-device-models.index'),
+            'active' => request()->routeIs('intranet.gps-device-models.*'),
+        ],
         ['header' => 'Administración'],
         [
             'name' => 'Usuarios',
