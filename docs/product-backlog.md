@@ -16,10 +16,12 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Por ahora solo trae H39 (categorías de dispositivo GPS) y H40 (tipos de dispositivo GPS). Sus "por confirmar" se cierran en T89 antes de construir, en el Sprint 4 (T90 y T91).
+
 Product Goal: ver `docs/product-goal.md`.
 
 ## Orden de las épicas (aprobado)
-E1, E7, E8, E2, E3, E4, E9, E5, E6.
+E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6.
 
 ## Roles del módulo (todos INTRANET)
 - Admin
@@ -845,6 +847,54 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   - Lo empezado y sin terminar se llama «En proceso» en todo el sistema, en vez de «A medias»: Asignaciones, las listas de unidades de la inspección y de «Registrar checkpoint», y los checkpoints.
   - Las migas son «Inicio / Checkpoints», sin «Checkpoint», que solo es el grupo del menú. «Acciones» va en cuarta columna también en escritorio, como en Asignaciones. La lista empieza por los últimos checkpoints iniciados.
 
+### E10 · Candados GPS (pedida por el usuario el 2026-11-27)
+- Que el sistema conozca los dispositivos GPS que se colocan a las unidades (candados, cerraduras y GPS portátiles) y que reporta la plataforma del proveedor de monitoreo, para después llevar su inventario, su instalación en la certificación y su retiro en el checkpoint.
+- Sale de la daily del 2026-11-27 con el equipo y los interesados. Por decisión del usuario del 2026-11-27, hoy solo entran dos catálogos: la **categoría** (H39) y el **tipo de dispositivo GPS**, es decir, el modelo (H40). Las unidades físicas que reporta el proveedor (por ejemplo HBR140 o HBR141) quedan sin historia por ahora.
+- Las categorías y los tipos toman como referencia los productos de Hunter para gestión y seguimiento de activos: Hunter Block (candado externo para contenedores, apertura remota), Truck Lock (cerradura de puertas posteriores de unidades pesadas, apertura remota), Candado Inteligente (unidades livianas, apertura remota), Block R (candado portátil, apertura manual), Hunter Box y Track Pro (GPS portátiles) y Tolva control (plataformas de carga).
+- Un dispositivo GPS es distinto de un dispositivo de seguridad de E2: se reutiliza y vuelve a bodega, puede ser propio o alquilado, y lo reporta el proveedor. Por eso va en catálogos propios y no como una categoría más de H06 (suposición por confirmar).
+- Integración con el proveedor de monitoreo (24HM), revisada el 2026-11-27. No se construye todavía:
+  - Servicio SOAP en `https://xservice.24hm.net/xws/wsService`. Su WSDL anuncia la dirección en `http`, así que la URL `https` se fija en la configuración. Las credenciales van solo en `.env`.
+  - `ConsultarActivo` devuelve los activos de la cuenta, en JSON dentro de un texto: `IdActivo`, `Alias`, `Etiqueta`, `EstadoServicio`, `EstadoOperativo`, `VID`, `IdProducto` (por ejemplo `BR`), `IdTipoDispositivo` (por ejemplo `240` o `247`) y su último reporte (fecha, posición y dirección). Los errores llegan como `{"Error": ...}`, a veces con el JSON mal formado.
+  - No tiene una operación para dar de alta un dispositivo: el proveedor los activa en su plataforma y SIGLA los lee.
+- Depende de: E8, si H40 usa la tabla maestra de proveedores (suposición por confirmar). La usarán las historias de inventario, instalación y retiro, que todavía no existen.
+
+**H39 · Gestionar categorías de dispositivo GPS**
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar categorías de dispositivo GPS, para agrupar los tipos de dispositivo GPS según su uso.
+- Criterios de aceptación:
+  1. Se crea una categoría con nombre y una descripción opcional (la descripción es una suposición por confirmar).
+  2. No se pueden crear dos categorías con el mismo nombre, aunque una esté desactivada.
+  3. Se editan el nombre y la descripción.
+  4. Una categoría se desactiva en vez de borrarla, con Soft Deletes, y se reactiva desde la lista. Una categoría desactivada no aparece al crear ni al editar un tipo de dispositivo GPS (H40), pero se conserva en los tipos que ya la tienen.
+  5. Las categorías no se eliminan, aunque no se hayan usado: solo se desactivan.
+  6. Hay una lista de categorías, ordenada por nombre, que se puede buscar por nombre y filtrar por estado. Muestra cuántos tipos de dispositivo GPS tiene cada una (suposición por confirmar).
+  7. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
+  8. La pantalla se puede usar bien desde el celular.
+- Seeder (suposición por confirmar): Candado para contenedor, Cerradura de puerta, Candado para unidad liviana, Candado portátil, GPS portátil y Control de tolva, a partir de los productos de Hunter.
+- En el menú (suposición por confirmar): un grupo nuevo, «Candados GPS», con «Categorías GPS» y «Tipos GPS» (H40), que después recibirá el inventario.
+- Diseño (suposición por confirmar): se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo, como H06.
+
+**H40 · Gestionar tipos de dispositivo GPS**
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar los tipos de dispositivo GPS (los modelos), cada uno en su categoría, para saber qué equipos GPS existen y reconocerlos después en la plataforma del proveedor de monitoreo.
+- Criterios de aceptación:
+  1. Se crea un tipo con:
+     - nombre, por ejemplo Hunter Block;
+     - categoría, de las activas de H39;
+     - proveedor, de la tabla maestra de E8 y opcional (suposición por confirmar);
+     - tipo de apertura, remota o manual (suposición por confirmar);
+     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales (suposición por confirmar);
+     - descripción opcional.
+  2. No se pueden crear dos tipos con el mismo nombre, aunque uno esté desactivado.
+  3. El par código de producto y código de tipo no se repite entre tipos, para que más adelante cada unidad que reporta el proveedor caiga en un solo tipo (suposición por confirmar).
+  4. Se editan todos los datos, también la categoría, porque todavía no hay unidades que dependan del tipo (suposición por confirmar).
+  5. Un tipo se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista.
+  6. Los tipos no se eliminan, aunque no se hayan usado: solo se desactivan.
+  7. Hay una lista de tipos, ordenada por nombre, que se puede buscar por nombre o código y filtrar por categoría y estado.
+  8. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
+  9. La pantalla se puede usar bien desde el celular.
+- Sin seeder: el usuario carga los tipos en pantalla, porque todavía no se sabe qué modelo es cada código del proveedor (`240` y `247`) (suposición por confirmar).
+- Diseño (suposición por confirmar): se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo, como H06.
+- Fuera: las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
+
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.
 - Gestión de patio y stock. (El catálogo de zonas de H26 sí entra, solo como lista para elegir.)
@@ -853,7 +903,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Extranet: operadores y sus usuarios.
 - Tipos de contenedor distintos de 40'.
 - PDF del checkpoint (decisión del usuario del 2026-11-23: por ahora solo se consulta en su detalle, H36).
-- Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23).
+- Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23). (En revisión desde el 2026-11-27: la daily pide su retiro en el checkpoint; ver E10.)
 
 ## Suposiciones por confirmar
 - Los inspectores siempre tienen internet.
