@@ -42,6 +42,17 @@ return [
         'timeout' => env('API_TIMEOUT', 8),
     ],
 
+    /*
+     * The monitoring platform of the GPS devices (E10). Its SOAP service is called by its https address, because its
+     * WSDL announces http. The credentials only live in .env.
+     */
+    'gps_24hm' => [
+        'url' => env('GPS_24HM_URL', 'https://xservice.24hm.net/xws/wsService'),
+        'user' => env('GPS_24HM_USER'),
+        'password' => env('GPS_24HM_PASSWORD'),
+        'timeout' => env('GPS_24HM_TIMEOUT', 15),
+    ],
+
     'sigla1' => [
         'url' => env('SIGLA1_API_URL'),
         'token' => env('SIGLA1_API_TOKEN'),

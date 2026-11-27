@@ -67,3 +67,8 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Proveedor del alquiler | `rental_provider_id` | Un proveedor (`providers`); la relación es `rentalProvider()` (H40, aprobado por el usuario el 2026-11-27). |
 | Estado (del dispositivo GPS) | `status` | Enum `GpsDeviceStatus`, por ahora solo `available` (disponible). Desactivado es `deleted_at` (H40, aprobado por el usuario el 2026-11-27). |
 | Foto de referencia | `photo_path`, `thumbnail_path` | La foto del dispositivo GPS y su miniatura, en el disco privado (H40, aprobado por el usuario el 2026-11-27). |
+| Último reporte (de 24HM) | `last_reported_at`, `last_latitude`, `last_longitude`, `last_address`, `service_status`, `operational_status`, `supply_voltage` | Lo que 24HM dice del dispositivo GPS en su último reporte: fecha y hora (UTC), posición, dirección, estados y voltaje (H42, aprobado por el usuario el 2026-11-27). |
+| Última verificación | `last_checked_at` | Cuándo se consultó a 24HM por última vez con éxito (H42, aprobado por el usuario el 2026-11-27). |
+| Conectividad | `GpsConnectivity` | Enum: `connected` (Conectado, reportó hace menos de 24 horas), `no_signal` (Sin señal) y `unchecked` (Sin verificar) (H42, aprobado por el usuario el 2026-11-27). |
+| Cliente de 24HM | `Gps24hmClient`, `MonitoringReport` | La clase que habla con el servicio SOAP de 24HM y el último reporte que devuelve (H42, aprobado por el usuario el 2026-11-27). |
+| Plataforma de monitoreo | `MonitoringPlatform` | Interfaz de la plataforma a la que reportan los dispositivos GPS; hoy la única es 24HM (`Gps24hmClient`). Otro proveedor suma su propio cliente (H42, decisión del usuario del 2026-11-27). |

@@ -3,6 +3,10 @@
         <i class="fa-solid fa-pen text-sm" aria-hidden="true"></i>
     </x-wire-button>
 
+    <x-wire-button primary x-on:click="$dispatch('show-gps-device-connectivity', { gpsDeviceId: id })" title="Conectividad" aria-label="Conectividad" xs>
+        <i class="fa-solid fa-tower-broadcast text-sm" aria-hidden="true"></i>
+    </x-wire-button>
+
     @if ($gpsDevice->trashed())
         <x-wire-button primary x-on:click="$wire.reactivate(id)" wire:loading.attr="disabled" wire:target="deactivate,reactivate" title="Reactivar" aria-label="Reactivar" xs>
             <i class="fa-solid fa-rotate-left text-sm" aria-hidden="true"></i>
