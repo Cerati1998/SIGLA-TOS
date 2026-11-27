@@ -133,11 +133,11 @@ class GpsDeviceModelForm extends Form
     /**
      * Create the model.
      */
-    public function store(): void
+    public function store(): GpsDeviceModel
     {
         $this->validateNormalized();
 
-        GpsDeviceModel::query()->create($this->gpsDeviceModelAttributes());
+        return GpsDeviceModel::query()->create($this->gpsDeviceModelAttributes());
     }
 
     /**

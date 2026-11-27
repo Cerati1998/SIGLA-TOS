@@ -11,15 +11,17 @@ class CreateModal extends Component
     public GpsDeviceModelForm $form;
 
     /**
-     * Create the model and refresh the table.
+     * Create the model, refresh the table and tell the page which model was created, so that a form that opened this
+     * window (as the GPS device form, H40) can choose it.
      */
     public function save(): void
     {
-        $this->form->store();
+        $gpsDeviceModel = $this->form->store();
         $this->form->reset();
 
         $this->dispatch('toast', icon: 'success', title: 'Modelo GPS guardado', text: 'El modelo GPS se creó correctamente.');
         $this->dispatch('refreshDatatable');
+        $this->dispatch('gps-device-model-created', gpsDeviceModelId: $gpsDeviceModel->id);
     }
 
     /**
