@@ -45,6 +45,11 @@ class CertificationSectionForm extends Form
     public string $checkpointKind = '';
 
     /**
+     * Whether an incorrect series in a checkpoint section of verification does not ask for a reinspection (T88).
+     */
+    public bool $skipsReinspection = false;
+
+    /**
      * The internal or external sections a checkpoint section of verification shows (H33).
      *
      * @var list<int|string>
@@ -76,6 +81,7 @@ class CertificationSectionForm extends Form
         $this->name = $certificationSection->name;
         $this->type = $certificationSection->type->value;
         $this->checkpointKind = $certificationSection->checkpoint_kind->value ?? '';
+        $this->skipsReinspection = $certificationSection->skips_reinspection;
         $this->savedVerifiedSectionIds = $certificationSection->verifiedSections->modelKeys();
         $this->verifiedSectionIds = array_values($this->savedVerifiedSectionIds);
         $this->savedDeviceTypeIds = $certificationSection->securityDeviceTypes->modelKeys();
@@ -186,6 +192,7 @@ class CertificationSectionForm extends Form
             'checkpointKind' => [Rule::requiredIf($this->isCheckpoint()), 'nullable', Rule::enum(CheckpointSectionKind::class)],
             'verifiedSectionIds' => [Rule::requiredIf($this->isVerification()), 'array', $this->onlyVerifiableSections(...)],
             'verifiedSectionIds.*' => ['integer', 'distinct'],
+            'skipsReinspection' => ['boolean'],
             'devices' => ['array', $this->onlyChoosableDevices(...)],
             'devices.*.id' => ['required', 'integer', 'distinct'],
             'devices.*.quantity' => ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY],
@@ -243,6 +250,7 @@ class CertificationSectionForm extends Form
                 'name' => $this->name,
                 'type' => $this->type,
                 'checkpoint_kind' => $this->storedCheckpointKind(),
+                'skips_reinspection' => $this->isVerification() && $this->skipsReinspection,
                 'sort_order' => $order->nextPosition(),
             ]);
 
@@ -262,6 +270,7 @@ class CertificationSectionForm extends Form
                 'name' => $this->name,
                 'type' => $this->type,
                 'checkpoint_kind' => $this->storedCheckpointKind(),
+                'skips_reinspection' => $this->isVerification() && $this->skipsReinspection,
             ]);
 
             $this->syncContents($certificationSection);

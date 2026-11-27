@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property CertificationSectionType $type
  * @property CheckpointSectionKind|null $checkpoint_kind What a checkpoint section asks for; null for the other types.
+ * @property bool $skips_reinspection Whether an incorrect series in this verification section does not ask for a reinspection (T88).
  * @property int|null $sort_order Position among the active sections; null while it is deactivated.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -28,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, SecurityDeviceType> $securityDeviceTypes
  * @property-read Collection<int, CertificationSection> $verifiedSections
  */
-#[Fillable(['name', 'type', 'checkpoint_kind', 'sort_order'])]
+#[Fillable(['name', 'type', 'checkpoint_kind', 'skips_reinspection', 'sort_order'])]
 class CertificationSection extends Model
 {
     /** @use HasFactory<CertificationSectionFactory> */
@@ -44,6 +45,7 @@ class CertificationSection extends Model
         return [
             'type' => CertificationSectionType::class,
             'checkpoint_kind' => CheckpointSectionKind::class,
+            'skips_reinspection' => 'boolean',
             'sort_order' => 'integer',
         ];
     }

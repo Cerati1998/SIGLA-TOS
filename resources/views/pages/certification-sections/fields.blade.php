@@ -121,6 +121,18 @@
 
             @include('pages.certification-sections.verified-sections')
         </section>
+
+        <section x-show="isVerification" x-cloak class="flex flex-col gap-4" aria-labelledby="{{ $prefix }}-step-reinspection">
+            <x-panel.form-step number="4" id="{{ $prefix }}-step-reinspection" title="¿Una ✗ pide reinspección?" text="Solo para secciones de verificación." />
+
+            <label for="{{ $prefix }}-skips-reinspection" class="flex cursor-pointer items-start gap-2.5 rounded-card border border-control p-3 has-checked:border-2 has-checked:border-brand has-checked:bg-badge-info lg:ms-10">
+                <input id="{{ $prefix }}-skips-reinspection" type="checkbox" wire:model="form.skipsReinspection" class="mt-1 size-4.5 flex-none accent-brand">
+                <span class="flex flex-col gap-0.5">
+                    <span class="font-semibold text-ink">Una ✗ aquí no pide reinspección</span>
+                    <span class="text-[13px] text-ink-muted">El checkpoint se cierra igual, con una observación obligatoria. Por ejemplo, en «Verificación de cinta de puerta».</span>
+                </span>
+            </label>
+        </section>
     </div>
 
     @include('pages.certification-sections.inspector-preview')

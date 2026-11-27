@@ -85,6 +85,14 @@ class CertificationSectionCatalogSeeder extends Seeder
         'Panorámica de puertas' => [],
     ];
 
+    /**
+     * The verification sections where an incorrect series does not ask for a reinspection (T88, team decision of
+     * 2026-11-27).
+     *
+     * @var list<string>
+     */
+    public const array SKIPS_REINSPECTION = ['Verificación de cinta de puerta'];
+
     public function __construct(private CertificationSectionOrder $order) {}
 
     /**
@@ -106,6 +114,7 @@ class CertificationSectionCatalogSeeder extends Seeder
                 $section = $this->section($name, CertificationSectionType::Checkpoint, $kind);
 
                 if ($section->wasRecentlyCreated) {
+                    $section->update(['skips_reinspection' => in_array($name, self::SKIPS_REINSPECTION, true)]);
                     $section->verifiedSections()->sync(array_map(
                         fn (array $link): int => $this->find($link[0], $link[1])->id,
                         $verified,

@@ -3,7 +3,6 @@
 namespace App\Actions\Checkpoints;
 
 use App\Models\Checkpoint;
-use App\Models\CheckpointMark;
 use App\Models\CheckpointStep;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -12,10 +11,16 @@ use Illuminate\Validation\ValidationException;
 /**
  * Close a checkpoint (H34, criteria 8 and 9): every photo step has a photo, every series is marked and all of them are
  * correct. It keeps the observations and who closed it and when. With an incorrect series it is not closed: it starts a
- * reinspection instead (H35), and while it waits for one it is not closed either.
+ * reinspection instead (H35), and while it waits for one it is not closed either. An incorrect series in a step that
+ * does not ask for a reinspection does not stop it, but then the observations are required (T88).
  */
 class CloseCheckpoint
 {
+    /**
+     * The message when an incorrect series that does not ask for a reinspection has no observation (T88).
+     */
+    public const string OBSERVATION_REQUIRED = 'Escribe la observación: hay una serie incorrecta que no pide reinspección.';
+
     public function handle(Checkpoint $checkpoint, ?string $observations, User $closer): Checkpoint
     {
         return DB::transaction(function () use ($checkpoint, $observations, $closer): Checkpoint {
@@ -33,8 +38,12 @@ class CloseCheckpoint
                 throw ValidationException::withMessages(['checkpoint' => 'Falta completar pasos: cada paso de fotos necesita una foto y cada serie, su marca.']);
             }
 
-            if (self::hasIncorrectSeries($checkpoint)) {
+            if ($checkpoint->reinspectionMarks()->isNotEmpty()) {
                 throw ValidationException::withMessages(['checkpoint' => 'Hay series incorrectas: inicia la reinspección.']);
+            }
+
+            if ($checkpoint->needsObservation() && self::clean($observations) === null) {
+                throw ValidationException::withMessages(['observations' => self::OBSERVATION_REQUIRED]);
             }
 
             $checkpoint->forceFill([
@@ -53,16 +62,6 @@ class CloseCheckpoint
     public static function isComplete(Checkpoint $checkpoint): bool
     {
         return $checkpoint->steps->every(fn (CheckpointStep $step): bool => $step->isComplete());
-    }
-
-    /**
-     * Whether any series was marked incorrect, reading the marks already loaded.
-     */
-    public static function hasIncorrectSeries(Checkpoint $checkpoint): bool
-    {
-        return $checkpoint->steps->contains(
-            fn (CheckpointStep $step): bool => $step->marks->contains(fn (CheckpointMark $mark): bool => $mark->is_correct === false)
-        );
     }
 
     /**

@@ -39,6 +39,18 @@
                 @endif
             </span>
         </p>
+    @elseif ($status === CheckpointStatus::ClosedWithObservation)
+        <p class="m-0 flex items-start gap-2 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">
+            <x-feather name="alert-circle" class="mt-0.5 size-4" />
+            <span>
+                <strong>Cerrado con observación</strong> el {{ $at($checkpoint->closed_at) }} por <strong>{{ $checkpoint->closer?->name }}</strong>: una serie incorrecta está en un paso que no pide reinspección.
+                Observación: «{{ $checkpoint->observations }}».
+                {{ $started }}@if ($checkpoint->starter !== null) por <strong>{{ $checkpoint->starter->name }}</strong>@endif.
+                @if ($reinspections->isNotEmpty())
+                    Tuvo <strong>{{ trans_choice(':count reinspección|:count reinspecciones', $reinspections->count()) }}</strong>.
+                @endif
+            </span>
+        </p>
     @elseif ($status === CheckpointStatus::InReinspection)
         @php $open = $checkpoint->openReinspection; @endphp
         <p class="m-0 flex items-start gap-2 rounded-control bg-badge-warning p-3.5 text-sm text-badge-warning-ink">

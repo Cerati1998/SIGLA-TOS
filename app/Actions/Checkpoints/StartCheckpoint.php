@@ -45,6 +45,7 @@ class StartCheckpoint
                 $step = $checkpoint->steps()->create([
                     'certification_section_id' => $section->id,
                     'kind' => $kind,
+                    'skips_reinspection' => $kind === CheckpointSectionKind::Verification && $section->skips_reinspection,
                     'position' => $index + 1,
                 ]);
 

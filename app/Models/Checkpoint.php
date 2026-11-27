@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * The checkpoint of a certification (H34): one per certification, born the first time someone opens the unit, with the
@@ -192,6 +193,7 @@ class Checkpoint extends Model
     public function status(): CheckpointStatus
     {
         return match (true) {
+            $this->isClosed() && $this->incorrectMarks()->isNotEmpty() => CheckpointStatus::ClosedWithObservation,
             $this->isClosed() => CheckpointStatus::Closed,
             $this->isInReinspection() => CheckpointStatus::InReinspection,
             default => CheckpointStatus::InProgress,
@@ -207,10 +209,51 @@ class Checkpoint extends Model
     protected function whereStatus(Builder $query, CheckpointStatus $status): void
     {
         match ($status) {
-            CheckpointStatus::Closed => $query->whereNotNull('checkpoints.closed_at'),
+            CheckpointStatus::Closed => $query->whereNotNull('checkpoints.closed_at')->whereDoesntHave('allMarks', self::incorrect(...)),
+            CheckpointStatus::ClosedWithObservation => $query->whereNotNull('checkpoints.closed_at')->whereHas('allMarks', self::incorrect(...)),
             CheckpointStatus::InReinspection => $query->whereNull('checkpoints.closed_at')->has('openReinspection'),
             CheckpointStatus::InProgress => $query->whereNull('checkpoints.closed_at')->doesntHave('openReinspection'),
         };
+    }
+
+    /**
+     * Keep the marks that count and are incorrect: a closed checkpoint only keeps them in the steps that do not ask for a
+     * reinspection (T88).
+     *
+     * @param  Builder<CheckpointMark>  $marks
+     */
+    private static function incorrect(Builder $marks): void
+    {
+        $marks->where('checkpoint_marks.is_correct', false)->whereNull('checkpoint_marks.superseded_by_reinspection_id');
+    }
+
+    /**
+     * Get the incorrect marks that count, from the steps loaded with their marks.
+     *
+     * @return SupportCollection<int, CheckpointMark>
+     */
+    public function incorrectMarks(): SupportCollection
+    {
+        return $this->steps->flatMap(fn (CheckpointStep $step) => $step->incorrectMarks())->values()->toBase();
+    }
+
+    /**
+     * Get the incorrect marks that ask for a reinspection, from the steps loaded with their marks (T88).
+     *
+     * @return SupportCollection<int, CheckpointMark>
+     */
+    public function reinspectionMarks(): SupportCollection
+    {
+        return $this->steps->flatMap(fn (CheckpointStep $step) => $step->reinspectionMarks())->values()->toBase();
+    }
+
+    /**
+     * Whether an incorrect series is in a step that does not ask for a reinspection: then the observations are required
+     * to close it or to start a reinspection (T88). It reads the steps loaded with their marks.
+     */
+    public function needsObservation(): bool
+    {
+        return $this->steps->contains(fn (CheckpointStep $step): bool => $step->skips_reinspection && $step->incorrectMarks()->isNotEmpty());
     }
 
     /**

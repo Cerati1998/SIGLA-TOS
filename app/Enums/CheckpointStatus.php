@@ -4,13 +4,15 @@ namespace App\Enums;
 
 /**
  * Where a checkpoint is, worked out from its closing and its reinspections; it is not stored (H36). It waits En
- * reinspección while a reinspection it started is open (H35).
+ * reinspección while a reinspection it started is open (H35). It is closed with an observation when it was closed with
+ * an incorrect series in a step that does not ask for a reinspection (T88).
  */
 enum CheckpointStatus: string
 {
     case InProgress = 'in_progress';
     case InReinspection = 'in_reinspection';
     case Closed = 'closed';
+    case ClosedWithObservation = 'closed_with_observation';
 
     /**
      * Get the name shown on screen.
@@ -21,6 +23,7 @@ enum CheckpointStatus: string
             self::InProgress => 'En proceso',
             self::InReinspection => 'En reinspección',
             self::Closed => 'Cerrado',
+            self::ClosedWithObservation => 'Cerrado con observación',
         };
     }
 
@@ -33,6 +36,7 @@ enum CheckpointStatus: string
             self::InProgress => 'info',
             self::InReinspection => 'highlight',
             self::Closed => 'success',
+            self::ClosedWithObservation => 'warning',
         };
     }
 }

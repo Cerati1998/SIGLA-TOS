@@ -18,9 +18,12 @@
     $photoSteps = $allSteps->reject(fn ($step) => $step->isVerification());
     $marks = $allSteps->flatMap(fn ($step) => $step->marks);
     $incorrect = $marks->filter(fn ($mark) => $mark->is_correct === false);
+    $reinspectionMarks = $allSteps->flatMap(fn ($step) => $step->reinspectionMarks());
+    $skippedStepIds = $allSteps->filter(fn ($step) => $step->skips_reinspection)->modelKeys();
+    $needsObservation = $incorrect->contains(fn ($mark) => in_array($mark->checkpoint_step_id, $skippedStepIds, true));
     $complete = $allSteps->every(fn ($step) => $step->isComplete());
-    $canFinish = ! $closed && $complete && $incorrect->isEmpty();
-    $canStartReinspection = ! $closed && $complete && $incorrect->isNotEmpty();
+    $canFinish = ! $closed && $complete && $reinspectionMarks->isEmpty();
+    $canStartReinspection = ! $closed && $complete && $reinspectionMarks->isNotEmpty();
 @endphp
 
 <div x-data="checkpointSteps({ start: {{ $start }}, total: {{ $hasFinal ? $total + 1 : $total }}, container: @js($container), closed: @js($closed) })"
@@ -119,7 +122,7 @@
                 <flux:button x-on:click="previous" x-bind:disabled="current === 0" icon="chevron-left">Atrás</flux:button>
                 <flux:button variant="primary" x-show="current < {{ $finalIndex }}" x-on:click="next" icon:trailing="chevron-right">Siguiente paso</flux:button>
                 @unless ($closed)
-                    @if ($incorrect->isNotEmpty())
+                    @if ($reinspectionMarks->isNotEmpty())
                         <flux:button x-show="current === {{ $finalIndex }}" x-cloak x-on:click="$openModal('reinspection-start')" :disabled="! $canStartReinspection" class="border-0! bg-highlight! text-white!">Iniciar reinspección</flux:button>
                     @else
                         <flux:button variant="primary" x-show="current === {{ $finalIndex }}" x-cloak wire:click="finish" wire:loading.attr="disabled" wire:target="finish" :disabled="! $canFinish">Finalizar y cerrar</flux:button>
@@ -137,7 +140,7 @@
             Siguiente paso <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
         </button>
         @unless ($closed)
-            @if ($incorrect->isNotEmpty())
+            @if ($reinspectionMarks->isNotEmpty())
                 <button type="button" x-show="current === {{ $finalIndex }}" x-cloak x-on:click="$openModal('reinspection-start')" @disabled(! $canStartReinspection)
                     class="inline-flex h-13 items-center justify-center gap-2 rounded-control bg-highlight text-base font-medium text-white disabled:opacity-50">
                     Iniciar reinspección
@@ -151,7 +154,7 @@
         @endunless
     </div>
 
-    @if ($incorrect->isNotEmpty() && ! $closed)
+    @if ($reinspectionMarks->isNotEmpty() && ! $closed)
         @php $incorrectSections = $this->incorrectSections; @endphp
         <livewire:checkpoints.reinspection-modal :checkpoint="$checkpoint" :sections="$incorrectSections" :key="'reinspection-modal-'.md5(json_encode($incorrectSections))" />
     @endif
