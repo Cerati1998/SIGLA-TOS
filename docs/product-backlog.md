@@ -16,7 +16,7 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
-**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), también urgente; H41 (sincronizar con 24HM) queda sin aprobar. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), H41 (sincronizar con 24HM, descartada por el usuario el 2026-11-27: los dispositivos se registran a mano) y H42 (probar la conectividad de un dispositivo), todas urgentes; H41 y H42 se aprobaron en T94. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -697,7 +697,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   5. El PDF se descarga solo de una certificación cerrada. Lleva la cabecera (con el nombre y el DNI del conductor, del catálogo de conductores), los dispositivos asignados y las fotos por sección, con el formato de PDF del lienzo.
   6. En el PDF, los dispositivos asignados van con tres dibujos propios del contenedor: el interior con las puertas abiertas, con su lista de dispositivos de las secciones internas, y los dos exteriores (lado de las puertas y lado de la máquina) juntos, con una sola lista de las secciones externas. Cada dispositivo lleva su serie y su sección.
   7. El listado y el detalle se usan bien desde el celular.
-  8. Con el checkpoint cerrado (cerrado o cerrado con observación), el PDF termina con él, en una hoja nueva con el mismo formato: sus datos (estado, quién lo inició y lo cerró, y cuándo, la observación), las series verificadas con su resultado final, un recuadro por cada reinspección (motivo, quién la inició y la cerró, la sección reabierta, el reemplazo y la segunda verificación) y, con el formato de las fotos de la inspección, las fotos de cada paso, las extra y la del contenedor. Antes de cerrarse, el PDF queda sin checkpoint (cambiado por el usuario el 2026-11-27, T94).
+  8. Con el checkpoint cerrado (cerrado o cerrado con observación), el PDF termina con él, en una hoja nueva con el mismo formato: sus datos (estado, quién lo inició y lo cerró, y cuándo, la observación), las series verificadas con su resultado final, un recuadro por cada reinspección (motivo, quién la inició y la cerró, la sección reabierta, el reemplazo y la segunda verificación) y, con el formato de las fotos de la inspección, las fotos de cada paso, las extra y la del contenedor. Antes de cerrarse, el PDF queda sin checkpoint (cambiado por el usuario el 2026-11-27, T97).
 - Fuera: tabla de daños por área (EIR del gate out), lista de procedimientos de seguridad y trazabilidad GPS.
 - Versión conversada, a revisar: lista filtrable por fecha, naviera, inspector y estado; búsqueda por contenedor, booking o placa; detalle con los datos guardados de la solicitud, transportista, conductor, vehículos, kit y fotos por sección; solo consulta; datos personales del conductor visibles solo para roles que los necesitan; quién ve todas o solo las suyas (por confirmar).
 - Pendiente: la generación del PDF de la certificación (hoy ya existe un formato "Registro de contenedores" con contenedor, fecha, horas y cintas por zona) y en qué momento se genera.
@@ -706,7 +706,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Corrección del 2026-11-25 (T85), pedida por el usuario: en el PDF (criterio 5), cada foto se arma desde la foto completa, reducida a 1024 px por su lado más largo, y no desde su miniatura, para que se lea al hacer zoom; van 3 fotos por fila en vez de 4. Diseño: «H20 · PDF · Fotos por sección», página E5 del lienzo, aprobado por el usuario el 2026-11-25.
 - Corrección del 2026-11-27 (T88), pedida por el usuario: en el PDF (criterio 5), el título de una sección va siempre en la misma hoja que su primera fila de fotos, y cada foto cabe en un alto fijo, así que las verticales del celular salen más angostas y centradas en su columna. Diseño: «H20 · PDF · Fotos por sección», página E5 del lienzo, aprobado por el usuario el 2026-11-27.
 - Mejora del 2026-11-27 (T73), aprobada por el usuario: en el PDF (criterio 6), los dibujos del contenedor pasan a ser los tres PNG de `public/images/container-eir/`, y cada dispositivo lleva su N.º de la lista en un círculo azul sobre el lugar de su sección; los de una misma sección van uno al lado del otro. Cada sección del catálogo tiene un lugar fijo en el código (`ContainerDrawing`); las secciones que no son un lugar del contenedor (EIR, DNI del conductor, Precinto de vacío provisional, Número de contenedor interno y Panorámica del contenedor) y las que agregue el administrador salen solo en la lista. Izquierda y derecha se ven parado frente a las puertas, mirando hacia adentro. Diseño: «T73 · Lugar de cada sección en los dibujos» y «H20 · PDF · Página 1», página E5 del lienzo, aprobados por el usuario el 2026-11-27.
-- Cambio del 2026-11-27 (T94), pedido por el usuario: el checkpoint cerrado va al final del PDF (criterio 8), y el checkpoint no tiene un PDF propio (H36, criterio 5). Diseño: «H20 · PDF · Checkpoint», página E5 del lienzo, aprobado por el usuario el 2026-11-27.
+- Cambio del 2026-11-27 (T97), pedido por el usuario: el checkpoint cerrado va al final del PDF (criterio 8), y el checkpoint no tiene un PDF propio (H36, criterio 5). Diseño: «H20 · PDF · Checkpoint», página E5 del lienzo, aprobado por el usuario el 2026-11-27.
 - Corrección del 2026-11-27, pedida por el usuario al probar T73 en el despliegue: el número salía por debajo del centro del círculo azul y se veía a medias. Cada marca es ahora solo el número en negro, sin fondo, con su centro sobre el lugar de la sección. Diseño: «H20 · PDF · Página 1», página E5 del lienzo, actualizado el 2026-11-27.
 
 **H32 · Anular la asignación de un kit** (pedida por el cliente y aprobada por el usuario el 2026-11-20)
@@ -761,7 +761,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   - En la reinspección se rehacen solo las secciones de la certificación enlazadas a las series con ✗, no la certificación entera.
   - Los dispositivos nuevos llegan por un despacho a granel con motivo Operación (H30), que ya enlaza los dispositivos al kit del contenedor. No hace falta un motivo nuevo ni un segundo kit.
   - No hay secciones opcionales: todas las secciones, también las de checkpoint, son obligatorias y piden al menos una foto (aclarado por el usuario en T67; antes se había anotado que cada sección de checkpoint se marcaba como obligatoria u opcional). Las observaciones y las fotos extra del final no son secciones del catálogo y siguen siendo opcionales.
-  - El checkpoint no tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94; antes, por decisión del 2026-11-23, solo se consultaba en su detalle).
+  - El checkpoint no tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T97; antes, por decisión del 2026-11-23, solo se consultaba en su detalle).
   - El retiro de candado, que la app actual tiene en su menú, queda fuera.
   - H24 (roles y permisos) no entra en el Sprint 4: queda para el Sprint 5, con E6 ya probado.
 - Lo conversado antes, que estas historias reemplazan: buscar la certificación cerrada sin checkpoint cerrado, validar las series de las cintas y sellos de las partes externas (marcando cada una como correcta o no), subir foto por ítem y fotos de la unidad (tracto, semirremolque, puertas), iniciar la reinspección con su motivo, bloquear el cierre mientras la unidad esté en reinspección. Flujo de reinspección conversado: (1) checkpoint la inicia, (2) bodega carga la nueva asignación [E4], (3) el inspector certificado reinspecciona [E5], (4) checkpoint valida y cierra. Las secciones se reemplazan completas.
@@ -841,7 +841,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   2. Cada fila muestra el avance (por ejemplo, 9/14 pasos) y la acción «Ver».
   3. El detalle es de solo consulta: datos de la certificación, cada sección con sus fotos, cada verificación con su marca ✓/✗, las observaciones y las fotos extra, y cada reinspección con su motivo, quién la inició y la cerró, y los dispositivos que se reemplazaron.
   4. Desde el detalle de la certificación (H20) se llega a su checkpoint, si tiene.
-  5. No tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94; antes, sin PDF por decisión del 2026-11-23).
+  5. No tiene un PDF propio: una vez cerrado, va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T97; antes, sin PDF por decisión del 2026-11-23).
   6. Por ahora todos los usuarios con sesión ven todos los checkpoints; los roles llegan con H24.
   7. El listado y el detalle se usan bien desde el celular.
 
@@ -893,7 +893,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 
 **H40 · Gestionar dispositivos GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T91, con todas sus suposiciones)
 - Como usuario de bodega, quiero registrar, editar, desactivar y reactivar los dispositivos GPS, es decir, cada candado o GPS físico, con su modelo y si es propio o alquilado, para llevar su inventario.
-- Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla; traerlos desde 24HM es H41, aparte.
+- Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla. Traerlos desde 24HM era H41, descartada el 2026-11-27: todo se registra a mano.
 - Criterios de aceptación:
   1. Se registra un dispositivo con:
      - código, por ejemplo HBR140: el nombre que lleva el equipo y el `Alias` que le da 24HM;
@@ -901,7 +901,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
      - propiedad: propio o alquilado;
      - si es alquilado, el proveedor que lo alquila, de los activos de E8;
      - sucursal, de las activas;
-     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41;
+     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para verificar su conectividad (H42);
      - observaciones, opcionales.
      No se piden serie ni IMEI aparte: alcanzan el código y el ID de 24HM.
   1b. Cada dispositivo puede tener una foto de referencia, opcional: se toma con la cámara o se elige de la galería, se comprime en el navegador y lleva el código, la fecha y la hora como marca de agua, como las fotos de las inspecciones. En el modal se ve su miniatura, se abre en grande, se cambia o se quita; en la lista, la miniatura abre la foto en grande en otra pestaña. La foto se guarda en el disco privado y solo se ve con sesión (pedido del usuario del 2026-11-27, al aprobar el diseño).
@@ -914,13 +914,27 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   8. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
   9. La pantalla se puede usar bien desde el celular.
 - En el menú: «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
-- Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno.
+- Sin seeder: los activos que reporta 24HM se registran a mano (H41 se descartó el 2026-11-27).
 - Diseño: «H40 · Dispositivos GPS», «H40 · Nuevo dispositivo GPS», «H40 · Estados de dispositivos GPS» y «H40 · Móvil · Nuevo dispositivo GPS», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27. El diseño suma: el código en mayúsculas (hbr140 y HBR140 son el mismo), el modelo con el selector que busca en el servidor y «+ Agregar», el estado «Disponible» o «Desactivado», el menú en Bodega entre «Kits» y «Despachos», y la foto de referencia (criterio 1b), con «Elegir de la galería» además de «Tomar foto».
-- Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
+- Fuera: la sincronización con 24HM (H41, descartada), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
 
-**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; sin aprobar, no entra al sprint)
-- Como usuario de bodega, quiero traer desde 24HM los dispositivos GPS de la cuenta, para no registrarlos a mano y tener su último reporte.
-- Idea por revisar: `ConsultarActivo` crea o actualiza cada dispositivo por su `IdActivo`, con su `Alias` como código y el modelo que tenga sus códigos de producto y de tipo (H39). Los que no encuentran modelo quedan por configurar. Un dispositivo que ya no aparece no se borra. Necesita las credenciales nuevas de 24HM en el `.env`.
+**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; aprobada en T94; **descartada por el usuario el 2026-11-27**)
+- Se descarta: todos los dispositivos GPS se registran a mano (H40). No se traen desde 24HM. Su diseño queda en el lienzo marcado como descartado.
+
+**H42 · Probar la conectividad de un dispositivo GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T94)
+- Como usuario de bodega, quiero probar desde la lista si un dispositivo GPS reporta a 24HM, para saber si funciona antes de despacharlo.
+- No hay en 24HM una operación para probar la conexión: se consulta el activo y se mira su último reporte (revisado en el WSDL el 2026-11-27).
+- Criterios de aceptación:
+  1. Cada dispositivo de la lista tiene un botón más, «Conectividad», en azul, que abre un modal con los datos del dispositivo (código, modelo, propiedad, sucursal e ID de 24HM) y su último reporte guardado: «Conectado», «Sin señal» o «Sin verificar», la fecha y hora del último reporte y hace cuánto fue, la dirección, la posición, el estado de servicio, el estado operativo y el voltaje (cambiado por el usuario en T94, el 2026-11-27: el botón de la fila no consulta 24HM, abre el detalle).
+  2. En el modal, el botón «Verificar ahora» consulta `ConsultarActivoPorIdActivo` con el ID de 24HM, actualiza el último reporte y vuelve a calcular el estado. Sin ID de 24HM, el modal se abre igual y «Verificar ahora» queda desactivado, con un aviso de que falta el ID.
+  3. Es «Conectado» si el último reporte tiene menos de 24 horas, y «Sin señal» si es más antiguo.
+  4. Si 24HM no tiene ese activo, rechaza las credenciales, no responde o devuelve algo que no se entiende, se avisa el motivo.
+  5. El último reporte queda guardado en el dispositivo, con su fecha y hora, latitud, longitud, dirección, estado de servicio, estado operativo y voltaje.
+  6. Por ahora, cualquier usuario con sesión prueba. Los roles llegan con H24.
+  7. Se usa bien desde el celular.
+- Diseño: «H42 · Conectividad de un dispositivo GPS», «H42 · Estados de conectividad» y «H42 · Móvil · Conectividad», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27; la lista de H40 suma el botón azul «Conectividad», entre Editar y Desactivar. El estado de servicio y el operativo se muestran tal como llegan de 24HM (A, C) hasta saber qué significan.
+- Más de un proveedor de monitoreo (decisión del usuario del 2026-11-27, al construir): el código consulta una «plataforma de monitoreo» genérica (`MonitoringPlatform`) y 24HM es la primera. Los textos siguen diciendo 24HM, porque hoy es la única. Cuando llegue otro proveedor, su historia agrega la plataforma de cada modelo GPS (H39) y su propio cliente.
+- Fuera: los comandos al candado (abrir o cerrar), los históricos y la sincronización (H41, descartada).
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.
@@ -929,7 +943,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Técnicos reefer y estructura, customer, inspector estructura gate in.
 - Extranet: operadores y sus usuarios.
 - Tipos de contenedor distintos de 40'.
-- PDF propio del checkpoint: el checkpoint cerrado va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T94).
+- PDF propio del checkpoint: el checkpoint cerrado va al final del PDF de la certificación (H20, criterio 8; cambiado por el usuario el 2026-11-27, T97).
 - Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23). (En revisión desde el 2026-11-27: la daily pide su retiro en el checkpoint; ver E10.)
 
 ## Suposiciones por confirmar

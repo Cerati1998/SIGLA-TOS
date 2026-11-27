@@ -1,5 +1,5 @@
 {{--
-    The checkpoint at the end of the PDF of the certification, only once it is closed (T94): its data, each series it
+    The checkpoint at the end of the PDF of the certification, only once it is closed (T97): its data, each series it
     verified with its final result, a box for each reinspection and the photos of its steps, the extra ones and the one
     of the container, in the format of the photos of the inspection.
 --}}

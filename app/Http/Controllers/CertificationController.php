@@ -48,7 +48,7 @@ class CertificationController extends Controller
      * photos of each section (H20, criteria 5 and 6). Each photo goes shrunk from the whole photo, not from its
      * thumbnail, so it stays sharp when zoomed and the PDF does not carry the photos as they are (T85). There is no PDF
      * while it is in reinspection (H35, criterion 9). Once its checkpoint is closed, the PDF ends with it: its data, the
-     * series verified, its reinspections and its photos (T94).
+     * series verified, its reinspections and its photos (T97).
      */
     public function pdf(Request $request, Certification $certification, DescribeCertification $describeCertification, DescribeCheckpoint $describeCheckpoint, PhotoStorage $photoStorage): Response
     {
