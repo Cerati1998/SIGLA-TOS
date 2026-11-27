@@ -26,7 +26,7 @@
     $canStartReinspection = ! $closed && $complete && $reinspectionMarks->isNotEmpty();
 @endphp
 
-<div x-data="checkpointSteps({ start: {{ $start }}, total: {{ $hasFinal ? $total + 1 : $total }}, container: @js($container), closed: @js($closed) })"
+<div x-data="checkpointSteps({ total: {{ $hasFinal ? $total + 1 : $total }}, container: @js($container), closed: @js($closed) })" data-start="{{ $start }}"
     class="flex flex-col gap-4 max-md:pb-28">
 
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
@@ -204,9 +204,9 @@
             </div>
             <div class="flex flex-none flex-col gap-3 p-4 pb-6">
                 <span class="text-sm">Subida por <strong x-text="viewer?.by"></strong> el <span x-text="viewer?.at"></span>.</span>
-                <div x-show="canCapture" class="grid grid-cols-2 gap-2.5">
-                    <button type="button" x-on:click="replace" class="inline-flex h-13 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
-                    <button type="button" x-on:click="remove" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
+                <div x-show="! closed" class="flex gap-2.5">
+                    <button type="button" x-show="canCapture" x-on:click="replace" class="inline-flex h-13 flex-1 items-center justify-center rounded-control bg-white text-base font-medium text-brand">Reemplazar</button>
+                    <button type="button" x-on:click="remove(viewer)" wire:loading.attr="disabled" wire:target="deletePhoto" class="inline-flex h-13 flex-1 items-center justify-center rounded-control border border-white text-base font-medium text-white">Borrar</button>
                 </div>
             </div>
         </div>
@@ -215,16 +215,26 @@
 
 @script
 <script>
-    Alpine.data('checkpointSteps', ({ start, total, container, closed }) => ({
+    Alpine.data('checkpointSteps', ({ total, container, closed }) => ({
         ...window.photoUploads(container),
-        current: start,
+        current: 0,
         total,
         closed,
         canCapture: ! closed && window.matchMedia('(pointer: coarse)').matches,
         listOpen: false,
         viewer: null,
+        menu: null,
+
+        /**
+         * The first step comes from data-start, read only once: in x-data it would change when a photo completes the
+         * step, and Alpine would move the inspector to the next one.
+         */
+        init() {
+            this.current = Number(this.$el.dataset.start);
+        },
 
         go(index) {
+            this.menu = null;
             this.current = index;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
@@ -241,7 +251,34 @@
             }
         },
 
+        isMenuOf(photoId) {
+            return this.menu?.photoId === photoId;
+        },
+
+        tapPhoto(photo) {
+            if (this.closed) {
+                this.openViewer(photo);
+
+                return;
+            }
+
+            this.menu = this.isMenuOf(photo.photoId) ? null : photo;
+        },
+
+        closeMenu() {
+            this.menu = null;
+        },
+
+        viewFromMenu() {
+            this.openViewer(this.menu);
+        },
+
+        removeFromMenu() {
+            this.remove(this.menu);
+        },
+
         openViewer(photo) {
+            this.menu = null;
             this.viewer = photo;
         },
 
@@ -251,11 +288,12 @@
             this.takePhoto(stepId, photoId);
         },
 
-        remove() {
-            const { stepId, photoId, section } = this.viewer;
+        remove(photo) {
+            const { stepId, photoId, section } = photo;
 
             window.confirmAction('¿Borrar esta foto?', `Se quita de «${section}». No se puede deshacer.`, () => {
                 this.viewer = null;
+                this.menu = null;
                 this.$wire.deletePhoto(stepId, photoId);
             });
         },

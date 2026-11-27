@@ -22,7 +22,7 @@
         <x-feather name="camera" class="size-6.5" />
         Tomar foto
     </button>
-    <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente.</p>
+    <p x-show="canCapture" class="m-0 text-sm text-ink-muted">Se abre la cámara del teléfono. Al volver, la foto se sube sola y puedes tomar la siguiente. Toca una foto para verla o eliminarla.</p>
 
     @include('pages.checkpoints.partials.photo-grid', ['photos' => $step->photos, 'stepId' => $step->id, 'label' => $step->section->name])
 

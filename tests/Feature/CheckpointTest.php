@@ -162,6 +162,23 @@ class CheckpointTest extends TestCase
         $this->assertSame($this->inspector->id, $photoStep->photos()->sole()->uploaded_by);
     }
 
+    public function test_the_trash_button_over_a_photo_is_offered_only_while_the_checkpoint_is_not_closed(): void
+    {
+        Storage::fake('local');
+        $checkpoint = $this->open($this->certification());
+
+        $this->stepForm($checkpoint)
+            ->set('photo', UploadedFile::fake()->image('foto.jpg'))
+            ->set('thumbnail', UploadedFile::fake()->image('miniatura.jpg'))
+            ->call('savePhoto', $checkpoint->steps[0]->id, null)
+            ->assertSee('Ver la foto 1')
+            ->assertSee('Eliminar la foto 1');
+
+        $checkpoint->forceFill(['closed_at' => now(), 'closed_by' => $this->inspector->id])->save();
+
+        $this->stepForm($checkpoint)->assertSee('Foto 1')->assertDontSee('Eliminar la foto 1');
+    }
+
     public function test_a_verification_step_does_not_take_photos(): void
     {
         Storage::fake('local');
