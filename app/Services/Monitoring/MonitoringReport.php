@@ -6,7 +6,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * The last report of an asset of the monitoring platform, as it comes from 24HM: its alias, its codes and where and
- * when it reported for the last time (H41 and H42).
+ * when it reported for the last time (H42).
  */
 readonly class MonitoringReport
 {

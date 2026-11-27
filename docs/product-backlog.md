@@ -16,7 +16,7 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
-**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), H41 (sincronizar con 24HM) y H42 (probar la conectividad de un dispositivo), todas urgentes; H41 y H42 se aprobaron en T94. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), H41 (sincronizar con 24HM, descartada por el usuario el 2026-11-27: los dispositivos se registran a mano) y H42 (probar la conectividad de un dispositivo), todas urgentes; H41 y H42 se aprobaron en T94. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -891,7 +891,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 
 **H40 · Gestionar dispositivos GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T91, con todas sus suposiciones)
 - Como usuario de bodega, quiero registrar, editar, desactivar y reactivar los dispositivos GPS, es decir, cada candado o GPS físico, con su modelo y si es propio o alquilado, para llevar su inventario.
-- Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla; traerlos desde 24HM es H41, aparte.
+- Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla. Traerlos desde 24HM era H41, descartada el 2026-11-27: todo se registra a mano.
 - Criterios de aceptación:
   1. Se registra un dispositivo con:
      - código, por ejemplo HBR140: el nombre que lleva el equipo y el `Alias` que le da 24HM;
@@ -899,7 +899,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
      - propiedad: propio o alquilado;
      - si es alquilado, el proveedor que lo alquila, de los activos de E8;
      - sucursal, de las activas;
-     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41;
+     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para verificar su conectividad (H42);
      - observaciones, opcionales.
      No se piden serie ni IMEI aparte: alcanzan el código y el ID de 24HM.
   1b. Cada dispositivo puede tener una foto de referencia, opcional: se toma con la cámara o se elige de la galería, se comprime en el navegador y lleva el código, la fecha y la hora como marca de agua, como las fotos de las inspecciones. En el modal se ve su miniatura, se abre en grande, se cambia o se quita; en la lista, la miniatura abre la foto en grande en otra pestaña. La foto se guarda en el disco privado y solo se ve con sesión (pedido del usuario del 2026-11-27, al aprobar el diseño).
@@ -912,28 +912,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   8. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
   9. La pantalla se puede usar bien desde el celular.
 - En el menú: «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
-- Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno.
+- Sin seeder: los activos que reporta 24HM se registran a mano (H41 se descartó el 2026-11-27).
 - Diseño: «H40 · Dispositivos GPS», «H40 · Nuevo dispositivo GPS», «H40 · Estados de dispositivos GPS» y «H40 · Móvil · Nuevo dispositivo GPS», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27. El diseño suma: el código en mayúsculas (hbr140 y HBR140 son el mismo), el modelo con el selector que busca en el servidor y «+ Agregar», el estado «Disponible» o «Desactivado», el menú en Bodega entre «Kits» y «Despachos», y la foto de referencia (criterio 1b), con «Elegir de la galería» además de «Tomar foto».
-- Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
+- Fuera: la sincronización con 24HM (H41, descartada), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
 
-**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; entra al Sprint 4 como urgente el 2026-11-27; aprobada por el usuario el 2026-11-27 en T94)
-- Como usuario de bodega, quiero traer desde 24HM los dispositivos GPS de la cuenta, para no registrarlos a mano y tener su último reporte.
-- Criterios de aceptación:
-  1. En Dispositivos GPS hay un botón «Sincronizar con 24HM» que consulta `ConsultarActivo` y, por cada activo:
-     - si hay un dispositivo con su `IdActivo`, actualiza su último reporte, sin tocar su código, su modelo ni su propiedad;
-     - si no, y hay un dispositivo sin ID de 24HM cuyo código es el `Alias`, lo enlaza poniéndole el ID;
-     - si no, lo registra con el `Alias` como código y el modelo que tenga sus códigos de producto y de tipo (H39).
-  2. Un activo cuyo `IdProducto` e `IdTipoDispositivo` no tienen modelo no se registra: queda en el resumen como «sin modelo», para cargar los códigos en el modelo y volver a sincronizar.
-  3. Un dispositivo nuevo entra alquilado al proveedor que es la marca de su modelo, en la sucursal del usuario que sincroniza. Se puede corregir después en su edición (H40).
-  4. Al terminar se ve un resumen: cuántos se registraron, cuántos se enlazaron, cuántos se actualizaron y cuáles quedaron sin modelo.
-  5. Un dispositivo que ya no aparece en 24HM no se borra ni se desactiva.
-  6. Si 24HM no responde, rechaza las credenciales o devuelve algo que no se entiende (incluso su JSON mal formado), no cambia nada y se avisa el motivo.
-  7. Por ahora, cualquier usuario con sesión sincroniza. Los roles llegan con H24.
-- El último reporte se guarda en el dispositivo: fecha y hora, latitud, longitud, dirección, estado de servicio, estado operativo y voltaje. Lo comparte con H42.
-- La sincronización es solo con el botón, sin tarea programada.
-- Integración: servicio SOAP en `https://xservice.24hm.net/xws/wsService`, llamado con el cliente HTTP de Laravel y la URL fija (su WSDL anuncia `http`); las credenciales solo en `.env` y nunca en los logs; la clase que habla con 24HM la deja H42.
-- Diseño: en la página «E10 · Candados GPS» del lienzo, aprobado antes de construir.
-- Fuera: la tarea programada, los históricos de posición y de alertas, los comandos al candado y cambiar el alias o la etiqueta en 24HM.
+**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; aprobada en T94; **descartada por el usuario el 2026-11-27**)
+- Se descarta: todos los dispositivos GPS se registran a mano (H40). No se traen desde 24HM. Su diseño queda en el lienzo marcado como descartado.
 
 **H42 · Probar la conectividad de un dispositivo GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T94)
 - Como usuario de bodega, quiero probar desde la lista si un dispositivo GPS reporta a 24HM, para saber si funciona antes de despacharlo.
@@ -943,12 +927,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   2. En el modal, el botón «Verificar ahora» consulta `ConsultarActivoPorIdActivo` con el ID de 24HM, actualiza el último reporte y vuelve a calcular el estado. Sin ID de 24HM, el modal se abre igual y «Verificar ahora» queda desactivado, con un aviso de que falta el ID.
   3. Es «Conectado» si el último reporte tiene menos de 24 horas, y «Sin señal» si es más antiguo.
   4. Si 24HM no tiene ese activo, rechaza las credenciales, no responde o devuelve algo que no se entiende, se avisa el motivo.
-  5. El último reporte queda guardado en el dispositivo, con los mismos datos que H41.
+  5. El último reporte queda guardado en el dispositivo, con su fecha y hora, latitud, longitud, dirección, estado de servicio, estado operativo y voltaje.
   6. Por ahora, cualquier usuario con sesión prueba. Los roles llegan con H24.
   7. Se usa bien desde el celular.
 - Diseño: «H42 · Conectividad de un dispositivo GPS», «H42 · Estados de conectividad» y «H42 · Móvil · Conectividad», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27; la lista de H40 suma el botón azul «Conectividad», entre Editar y Desactivar. El estado de servicio y el operativo se muestran tal como llegan de 24HM (A, C) hasta saber qué significan.
 - Más de un proveedor de monitoreo (decisión del usuario del 2026-11-27, al construir): el código consulta una «plataforma de monitoreo» genérica (`MonitoringPlatform`) y 24HM es la primera. Los textos siguen diciendo 24HM, porque hoy es la única. Cuando llegue otro proveedor, su historia agrega la plataforma de cada modelo GPS (H39) y su propio cliente.
-- Fuera: los comandos al candado (abrir o cerrar), los históricos y la sincronización (H41).
+- Fuera: los comandos al candado (abrir o cerrar), los históricos y la sincronización (H41, descartada).
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.

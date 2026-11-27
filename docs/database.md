@@ -678,7 +678,7 @@ erDiagram
 
 ### 4.12 Dispositivos GPS (E10)
 
-Cada candado o GPS físico (H40), de un modelo de H39, propio o alquilado a un proveedor, en una sucursal. Se registran a mano; traerlos desde 24HM es H41.
+Cada candado o GPS físico (H40), de un modelo de H39, propio o alquilado a un proveedor, en una sucursal. Se registran a mano (H41, que los traía desde 24HM, se descartó el 2026-11-27).
 
 ```mermaid
 erDiagram
@@ -1373,13 +1373,13 @@ Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `Gps
 
 ### 5.34 `gps_devices` · `en código`
 
-Dispositivos GPS (H40): el inventario de candados propios y alquilados. Se gestionan en Bodega → Dispositivos GPS. Sin seeder: los activos de 24HM los traerá H41.
+Dispositivos GPS (H40): el inventario de candados propios y alquilados. Se gestionan en Bodega → Dispositivos GPS. Sin seeder: se registran a mano.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `code` | varchar(30) UK | El que lleva el equipo y el `Alias` de 24HM (HBR140). Se guarda en mayúsculas; no se repite, aunque el dispositivo esté desactivado. |
-| `monitoring_asset_id` | bigint unsigned (null) UK | El `IdActivo` de 24HM, opcional y solo números (hasta 12 dígitos). No se repite. Enlaza el dispositivo con H41. |
+| `monitoring_asset_id` | bigint unsigned (null) UK | El `IdActivo` de 24HM, opcional y solo números (hasta 12 dígitos). No se repite. Con él se verifica la conectividad (H42). |
 | `gps_device_model_id` | bigint FK → `gps_device_models.id` | Se elige con un selector que busca en el servidor (solo activos), o se crea ahí mismo con «Agregar»; se conserva uno desactivado que el dispositivo ya tenía. |
 | `ownership` | varchar(10) | Enum de PHP `GpsDeviceOwnership`: `own` o `rented`. |
 | `rental_provider_id` | bigint FK → `providers.id` (null) | El proveedor que lo alquila; obligatorio con `rented` y null con `own`. Solo activos, salvo el que ya tenía. |
@@ -1392,7 +1392,7 @@ Dispositivos GPS (H40): el inventario de candados propios y alquilados. Se gesti
 | `last_address` | varchar(255) (null) | Dirección del último reporte (`Calle`), con las comas ordenadas. |
 | `service_status`, `operational_status` | varchar(10) (null) | `EstadoServicio` y `EstadoOperativo` tal como llegan de 24HM (A, C), hasta saber qué significan. |
 | `supply_voltage` | decimal(5,2) (null) | `VoltajeAlimentacion`. |
-| `last_checked_at` | timestamp (null) | Cuándo se consultó a 24HM por última vez con éxito, con «Verificar ahora» (H42) o la sincronización (H41). |
+| `last_checked_at` | timestamp (null) | Cuándo se consultó a 24HM por última vez con éxito, con «Verificar ahora» (H42). |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`: el dispositivo queda de baja (criterio 5). No se eliminan. |
 
 ## 6. Cambios del ER original que ya aplican
