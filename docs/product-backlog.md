@@ -16,10 +16,12 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Por ahora solo trae H39 (modelos de dispositivo GPS, con su marca y su categoría). Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
+
 Product Goal: ver `docs/product-goal.md`.
 
 ## Orden de las épicas (aprobado)
-E1, E7, E8, E2, E3, E4, E9, E5, E6.
+E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6.
 
 ## Roles del módulo (todos INTRANET)
 - Admin
@@ -845,6 +847,45 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
   - Lo empezado y sin terminar se llama «En proceso» en todo el sistema, en vez de «A medias»: Asignaciones, las listas de unidades de la inspección y de «Registrar checkpoint», y los checkpoints.
   - Las migas son «Inicio / Checkpoints», sin «Checkpoint», que solo es el grupo del menú. «Acciones» va en cuarta columna también en escritorio, como en Asignaciones. La lista empieza por los últimos checkpoints iniciados.
 
+### E10 · Candados GPS (pedida por el usuario el 2026-11-27)
+- Que el sistema conozca los dispositivos GPS que se colocan a las unidades (candados, cerraduras y GPS portátiles) y que reporta la plataforma del proveedor de monitoreo, para después llevar su inventario, su instalación en la certificación y su retiro en el checkpoint.
+- Sale de la daily del 2026-11-27 con el equipo y los interesados. Decisiones del usuario del 2026-11-27:
+  - Hoy solo entra el catálogo de **modelos de dispositivo GPS** (H39). Las unidades físicas que reporta el proveedor (por ejemplo HBR140 o HBR141) quedan sin historia por ahora.
+  - La **categoría** del modelo es una lista fija en el código, como la categoría de los tipos de dispositivo de seguridad (H06): no tiene pantalla propia.
+  - El modelo depende de su **marca**, y la marca es un proveedor de la tabla maestra (H10). No hay un catálogo de marcas aparte.
+- Las categorías y los modelos toman como referencia los productos de Hunter para gestión y seguimiento de activos: Hunter Block (candado externo para contenedores, apertura remota), Truck Lock (cerradura de puertas posteriores de unidades pesadas, apertura remota), Candado Inteligente (unidades livianas, apertura remota), Block R (candado portátil, apertura manual), Hunter Box y Track Pro (GPS portátiles) y Tolva control (plataformas de carga).
+- Un dispositivo GPS es distinto de un dispositivo de seguridad de E2: se reutiliza y vuelve a bodega, puede ser propio o alquilado, y lo reporta el proveedor. Por eso va en un catálogo propio y no como una categoría más de H06.
+- Integración con el proveedor de monitoreo (24HM), revisada el 2026-11-27. No se construye todavía:
+  - Servicio SOAP en `https://xservice.24hm.net/xws/wsService`. Su WSDL anuncia la dirección en `http`, así que la URL `https` se fija en la configuración. Las credenciales van solo en `.env`.
+  - `ConsultarActivo` devuelve los activos de la cuenta, en JSON dentro de un texto: `IdActivo`, `Alias`, `Etiqueta`, `EstadoServicio`, `EstadoOperativo`, `VID`, `IdProducto` (por ejemplo `BR`), `IdTipoDispositivo` (por ejemplo `240` o `247`) y su último reporte (fecha, posición y dirección). Los errores llegan como `{"Error": ...}`, a veces con el JSON mal formado.
+  - No tiene una operación para dar de alta un dispositivo: el proveedor los activa en su plataforma y SIGLA los lee.
+- Las suposiciones de H39 se cerraron en T89: el usuario las aprobó todas el 2026-11-27.
+- Depende de: E8 (H10, proveedores, que dan la marca). La usarán las historias de inventario, instalación y retiro, que todavía no existen.
+
+**H39 · Gestionar modelos de dispositivo GPS**
+- Como usuario de la intranet, quiero crear, editar, desactivar y reactivar los modelos de dispositivo GPS, cada uno con su marca y su categoría, para saber qué equipos GPS existen y reconocerlos después en la plataforma del proveedor de monitoreo.
+- Criterios de aceptación:
+  1. Se crea un modelo con:
+     - nombre, por ejemplo Hunter Block;
+     - marca: un proveedor activo de la tabla maestra (H10), obligatorio;
+     - categoría, de una lista fija: Candado para contenedor, Cerradura de puerta, Candado para unidad liviana, Candado portátil, GPS portátil y Control de tolva;
+     - tipo de apertura: remota, manual o «Sin apertura», para los GPS portátiles y los de tolva (agregado al aprobar el diseño, el 2026-11-27);
+     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales: van los dos o ninguno (agregado al aprobar el diseño, el 2026-11-27);
+     - descripción opcional.
+  2. No se pueden crear dos modelos con el mismo nombre en la misma marca, aunque uno esté desactivado. En marcas distintas, sí.
+  3. El par código de producto y código de tipo no se repite entre modelos, para que más adelante cada unidad que reporta el proveedor caiga en un solo modelo.
+  4. Se editan todos los datos, también la marca y la categoría, porque todavía no hay unidades que dependan del modelo.
+  5. Un modelo se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista.
+  6. Los modelos no se eliminan, aunque no se hayan usado: solo se desactivan.
+  7. Un proveedor desactivado no aparece al crear ni al editar un modelo, pero se conserva en los modelos que ya lo tienen.
+  8. Hay una lista de modelos, ordenada por marca y nombre, que se puede buscar por nombre o código y filtrar por marca, categoría y estado.
+  9. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
+  10. La pantalla se puede usar bien desde el celular.
+- Seeder (cambiado por el usuario el 2026-11-27, al probar; en T89 se había aprobado sin seeder): `GpsDeviceModelSeeder` carga los siete modelos de Hunter para gestión y seguimiento de activos (Hunter Block, Truck Lock, Candado Inteligente, Block R, Hunter Box, Track Pro y Tolva control), con su categoría, su apertura y una descripción corta, sin códigos del proveedor de monitoreo, porque todavía no se sabe qué modelo es el `240` y cuál el `247`. Su marca es AUTOSAFE SAC (RUC 20504292968), la empresa de Hunter, que carga `ProviderSeeder` con su dirección (datos dados por el usuario el 2026-11-27). Los dos van en `DatabaseSeeder`. Ninguno toca lo que ya existe, aunque esté desactivado: el proveedor se reconoce por su RUC y el modelo por su nombre en la marca. Sin AUTOSAFE SAC activo, no se cargan los modelos.
+- En el menú: «Modelos GPS» va en Maestros, debajo de «Tipos de dispositivo», y el grupo Administración pasa justo encima de Configuración (cambio del usuario del 2026-11-27, al probar; en T89 se había aprobado un grupo propio, «Candados GPS»).
+- Diseño: «H39 · Modelos GPS», «H39 · Nuevo modelo GPS», «H39 · Estados de modelos GPS» y «H39 · Móvil · Nuevo modelo GPS», página «E10 · Candados GPS» del lienzo, sobre la plantilla "Lista con tabla" y las zonas de patio (H26), aprobado por el usuario el 2026-11-27. (Cambiado el 2026-11-27: en T89 se había aprobado construir sin diseño propio, como H06, pero la rule «Diseño en el lienzo» pide uno para toda vista nueva y el usuario eligió diseñarlo.)
+- Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
+
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.
 - Gestión de patio y stock. (El catálogo de zonas de H26 sí entra, solo como lista para elegir.)
@@ -853,7 +894,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6.
 - Extranet: operadores y sus usuarios.
 - Tipos de contenedor distintos de 40'.
 - PDF del checkpoint (decisión del usuario del 2026-11-23: por ahora solo se consulta en su detalle, H36).
-- Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23).
+- Retiro de candado, que hoy está en la app del checkpoint (decisión del usuario del 2026-11-23). (En revisión desde el 2026-11-27: la daily pide su retiro en el checkpoint; ver E10.)
 
 ## Suposiciones por confirmar
 - Los inspectores siempre tienen internet.

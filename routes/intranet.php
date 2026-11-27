@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('yard-zones', 'pages.yard-zones.index')->name('yard-zones.index');
 
+    Route::view('gps-device-models', 'pages.gps-device-models.index')->name('gps-device-models.index');
+
     Route::view('security-device-announcements', 'pages.security-device-announcements.index')->name('security-device-announcements.index');
 
     Route::view('security-device-announcements/create', 'pages.security-device-announcements.create')->name('security-device-announcements.create');
