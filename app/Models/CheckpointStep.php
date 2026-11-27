@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * A checkpoint section of the catalog (H33) copied into a checkpoint when it is born (H34), with what it asks for and
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $checkpoint_id
  * @property int $certification_section_id
  * @property CheckpointSectionKind $kind
+ * @property bool $skips_reinspection Whether an incorrect series of the step does not ask for a reinspection (T93).
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -29,7 +31,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CheckpointPhoto> $photos
  * @property-read Collection<int, CheckpointMark> $marks
  */
-#[Fillable(['checkpoint_id', 'certification_section_id', 'kind', 'position'])]
+#[Fillable(['checkpoint_id', 'certification_section_id', 'kind', 'skips_reinspection', 'position'])]
 class CheckpointStep extends Model
 {
     /** @use HasFactory<CheckpointStepFactory> */
@@ -44,6 +46,7 @@ class CheckpointStep extends Model
     {
         return [
             'kind' => CheckpointSectionKind::class,
+            'skips_reinspection' => 'boolean',
             'position' => 'integer',
         ];
     }
@@ -105,6 +108,31 @@ class CheckpointStep extends Model
     public function isVerification(): bool
     {
         return $this->kind === CheckpointSectionKind::Verification;
+    }
+
+    /**
+     * Get the incorrect marks of the step that ask for a reinspection: none when the step does not ask for one (T93).
+     * It reads the marks already loaded.
+     *
+     * @return SupportCollection<int, CheckpointMark>
+     */
+    public function reinspectionMarks(): SupportCollection
+    {
+        if ($this->skips_reinspection) {
+            return collect();
+        }
+
+        return $this->incorrectMarks();
+    }
+
+    /**
+     * Get the incorrect marks of the step, reading the marks already loaded.
+     *
+     * @return SupportCollection<int, CheckpointMark>
+     */
+    public function incorrectMarks(): SupportCollection
+    {
+        return $this->marks->filter(fn (CheckpointMark $mark): bool => $mark->is_correct === false)->values()->toBase();
     }
 
     /**

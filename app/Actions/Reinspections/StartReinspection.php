@@ -7,10 +7,8 @@ use App\Models\Certification;
 use App\Models\CertificationStep;
 use App\Models\Checkpoint;
 use App\Models\CheckpointMark;
-use App\Models\CheckpointStep;
 use App\Models\Reinspection;
 use App\Models\User;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -18,6 +16,8 @@ use Illuminate\Validation\ValidationException;
  * Start a reinspection from a checkpoint with incorrect series (H35, criteria 1 and 2): with every step complete, it
  * keeps the reason and who started it, and one device to replace for each incorrect series, with the section of the
  * certification where it is placed, which is reopened. The checkpoint is not closed and waits for it. All or nothing.
+ * The incorrect series of a step that does not ask for a reinspection are left as they are, and with one of them the
+ * observations of the checkpoint must be written first (T93).
  */
 class StartReinspection
 {
@@ -38,7 +38,7 @@ class StartReinspection
                 'started_by' => $user->id,
             ]);
 
-            $this->incorrectMarks($checkpoint)
+            $checkpoint->reinspectionMarks()
                 ->unique('security_device_id')
                 ->each(fn (CheckpointMark $mark) => $reinspection->devices()->create([
                     'certification_step_id' => $this->stepOf($certification, $mark)->id,
@@ -50,8 +50,8 @@ class StartReinspection
     }
 
     /**
-     * Refuse to start it when the checkpoint is closed or already in reinspection, when a step is still incomplete or
-     * when no series is incorrect.
+     * Refuse to start it when the checkpoint is closed or already in reinspection, when a step is still incomplete,
+     * when no series asks for a reinspection or when one that does not ask for it has no observation.
      *
      * @throws ValidationException
      */
@@ -62,27 +62,14 @@ class StartReinspection
             $checkpoint->isInReinspection() => 'El checkpoint ya está en reinspección.',
             $certification->isAnnulled() => 'Se anuló la asignación de su kit: no admite reinspección.',
             ! CloseCheckpoint::isComplete($checkpoint) => 'Falta completar pasos: cada paso de fotos necesita una foto y cada serie, su marca.',
-            $this->incorrectMarks($checkpoint)->isEmpty() => 'No hay series incorrectas: el checkpoint se puede cerrar.',
+            $checkpoint->reinspectionMarks()->isEmpty() => 'No hay series que pidan reinspección: el checkpoint se puede cerrar.',
+            $checkpoint->needsObservation() && $checkpoint->observations === null => CloseCheckpoint::OBSERVATION_REQUIRED,
             default => null,
         };
 
         if ($refusal !== null) {
             throw ValidationException::withMessages(['reinspection' => $refusal]);
         }
-    }
-
-    /**
-     * Get the marks that count and are incorrect, reading the marks already loaded.
-     *
-     * @return Collection<int, CheckpointMark>
-     */
-    private function incorrectMarks(Checkpoint $checkpoint): Collection
-    {
-        return $checkpoint->steps
-            ->flatMap(fn (CheckpointStep $step) => $step->marks)
-            ->filter(fn (CheckpointMark $mark): bool => $mark->is_correct === false)
-            ->values()
-            ->toBase();
     }
 
     /**

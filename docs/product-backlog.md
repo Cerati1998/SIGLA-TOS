@@ -16,7 +16,7 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
-**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), H41 (sincronizar con 24HM) y H42 (probar la conectividad de un dispositivo), todas urgentes; H41 y H42 se aprobaron en T93. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), H41 (sincronizar con 24HM) y H42 (probar la conectividad de un dispositivo), todas urgentes; H41 y H42 se aprobaron en T94. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -668,6 +668,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Cambio del 2026-11-24 (H38): mientras la certificación está en curso o reabierta, la inspección suma la opción «Dispositivos extra», para reemplazar un dispositivo del kit ya colocado por uno despachado a granel para esa asignación. La sección del reemplazo pide al menos una foto nueva (ver H38).
 - Corrección del 2026-11-25 (T85), pedida por el usuario: al tocar una foto de una sección salen sobre ella dos botones con icono, un ojo verde que abre el visor y una papelera roja que la borra con confirmación (criterio 9). La papelera sale solo en el teléfono y mientras la certificación no esté cerrada ni anulada; si no, o si la foto es de antes de un reemplazo, al tocarla se abre el visor directo. El visor muestra la fecha y la hora de la subida en la hora de Lima, como la marca de agua (criterio 8). Diseño: «H18 · Móvil · Paso de una sección» y «H18 · Móvil · Estados», página E5 del lienzo, aprobados por el usuario el 2026-11-25.
 - Corrección del 2026-11-25 (T86), pedida por el usuario al probar T85: en el teléfono, las miniaturas van 2 por fila. En escritorio ya no es solo lectura para las fotos (criterio 5): no se toman ni se reemplazan, pero al hacer clic en una foto salen el ojo y la papelera, y el visor ofrece «Borrar», como en el teléfono y con la misma condición (criterio 9). Diseño: «H18 · Paso de una sección en escritorio», «H18 · Móvil · Paso de una sección» y «H18 · Móvil · Estados», página E5 del lienzo, actualizados el 2026-11-25.
+- Corrección del 2026-11-27, encontrada al probar T93: al subir una foto que completaba la sección, la pantalla saltaba a la siguiente sección pendiente (o volvía a la primera, si ya no quedaban). Ahora se queda en la sección donde está el inspector, que toma las fotos que quiera y avanza con «Siguiente sección».
 
 **H19 · Cerrar y reaperturar la certificación** (aprobada el 2026-11-20 en T54; cambiada ese día en T58 por decisión del usuario: se cierra desde el listado de Asignaciones y se puede reaperturar)
 - Como inspector certificado, quiero cerrar la certificación cuando sus dos inspecciones están completas, y reaperturarla si hace falta corregirla, para dejarla terminada con sus dispositivos como usados.
@@ -754,7 +755,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Decisiones del usuario del 2026-11-23:
   - Los pasos no son fijos: salen del catálogo de secciones, como en la certificación. El catálogo suma un tercer tipo, Checkpoint (H33).
   - Cada sección de verificación se enlaza a una o más secciones de la certificación, internas o externas, y muestra las series que el sistema repartió ahí (H18). Se aceptan internas porque, según el documento de certificación, la cinta de puerta, el precinto de naviera y el sello cable quedan en secciones internas (cambiado por el usuario en T67; antes solo externas). El inspector marca cada serie como correcta (✓) o incorrecta (✗).
-  - Con una ✗ se inicia la reinspección, y el checkpoint no se cierra hasta que la serie quede correcta (H35).
+  - Con una ✗ se inicia la reinspección, y el checkpoint no se cierra hasta que la serie quede correcta (H35). Salvo en los pasos de verificación marcados «Una ✗ aquí no pide reinspección», como «Verificación de cinta de puerta»: su ✗ no pide reinspección y el checkpoint se cierra con una observación obligatoria (decisión del equipo del 2026-11-27, pedida por el usuario en T93).
   - En la reinspección se rehacen solo las secciones de la certificación enlazadas a las series con ✗, no la certificación entera.
   - Los dispositivos nuevos llegan por un despacho a granel con motivo Operación (H30), que ya enlaza los dispositivos al kit del contenedor. No hace falta un motivo nuevo ni un segundo kit.
   - No hay secciones opcionales: todas las secciones, también las de checkpoint, son obligatorias y piden al menos una foto (aclarado por el usuario en T67; antes se había anotado que cada sección de checkpoint se marcaba como obligatoria u opcional). Las observaciones y las fotos extra del final no son secciones del catálogo y siguen siendo opcionales.
@@ -779,10 +780,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   9. Cambiar las secciones no modifica checkpoints ya cerrados.
   10. Por ahora, cualquier usuario con sesión usa la pantalla; los roles llegan con H24.
   11. La pantalla se usa bien desde el celular.
+  12. Una sección de verificación se puede marcar «Una ✗ aquí no pide reinspección» (H34 y H35). El paso del checkpoint copia la marca cuando nace. El seeder y una migración dejan marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27, pedida por el usuario en T93).
 - Seeders (decisión del usuario del 2026-11-23, T67): las secciones internas y externas se cargan desde el documento «Proceso de certificación de contenedores» (`documentation/`), y las de checkpoint desde el video, menos «Candado satelital y sello», que queda fuera hasta decidir cómo se maneja una unidad sin candado. Hoy no hay seeder de secciones para producción: solo `LocalTestingSeeder` crea seis de ejemplo. El seeder carga solo las secciones (nombre, tipo y orden), sin sus dispositivos: qué lleva cada una lo configura el admin en pantalla (H12), con los tipos reales, porque el documento nombra dispositivos que aún no son tipos (bolsa de seguridad, precinto GPS, precintos de vacío). En la interna, los ítems repetidos del documento se llaman «Puerta lado derecho» (6), «Puerta lado izquierdo» (7), «Pared interna» (9) y «Cintas de pared interna» (10) (confirmado por el usuario el 2026-11-23). El ítem 1 de cada tabla (escribir el número de contenedor) no es sección. En la externa, los ítems 16 y 17 («Mostrar dibujo de contenedor parte externa derecha / izquierda», 1 foto) sí son secciones con foto: «Dibujo parte externa derecha» y «Dibujo parte externa izquierda» (decisión del usuario del 2026-11-23). Quedan 17 internas y 16 externas.
 - Seeder de checkpoint (aprobado por el usuario el 2026-11-23, T67), en este orden, después de las internas y externas: (1) Placa, cédula y transporte; (2) Panorámica del panel frontal; (3) Cintas de evaporadores y máquina; (4) Verificación de cintas de evaporadores → Evaporadores cerrados y Ventilador (externas); (5) Paredes, pisos externos y puertas; (6) Cinta de puerta; (7) Verificación de cinta de puerta → Kit de precintos en piso (interna); (8) Sellos de naviera; (9) Sello cable; (10) Verificación de sello cable → Puerta cerrada y panorámica (interna); (11) Cintas de puerta y checkpoint; (12) Panorámica de puertas. Las secciones sin enlace son de fotos. Sellos de naviera queda como sección de fotos, sin verificación propia.
 
-- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): la sección de checkpoint en el modal de H12 (Tipo, «¿Qué pide este paso?» y «¿Qué secciones verifica?»), con el listado de secciones de E3 actualizado.
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): la sección de checkpoint en el modal de H12 (Tipo, «¿Qué pide este paso?» y «¿Qué secciones verifica?»), con el listado de secciones de E3 actualizado. El paso 4, «¿Una ✗ pide reinspección?», se aprobó el 2026-11-27 (T93).
 
 **H34 · Hacer el checkpoint de una unidad** (aprobada el 2026-11-23 en T67)
 - Como inspector checkpoint, quiero recorrer las secciones del checkpoint de una unidad certificada, tomando sus fotos y verificando sus cintas y sellos, para confirmar que la unidad llega al puerto como salió del depot.
@@ -795,7 +797,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   6. **Paso de verificación:** se listan las series que la certificación dejó en las secciones enlazadas, y el inspector marca cada una como correcta (✓) o incorrecta (✗). La marca se guarda al tocarla. Si las secciones enlazadas no tienen dispositivos, el paso dice «Sin dispositivos que verificar».
   7. Al final hay un campo de observaciones y fotos extra, ambos opcionales.
   8. «Finalizar» se activa cuando cada sección de fotos tiene al menos una foto y cada serie de las secciones de verificación está marcada.
-  9. Si todas las series están en ✓, el checkpoint queda **cerrado**. Queda registrado quién lo cerró, con la fecha y la hora. Si hay alguna ✗, se pasa a la reinspección (H35).
+  9. Si todas las series están en ✓, el checkpoint queda **cerrado**. Queda registrado quién lo cerró, con la fecha y la hora. Si hay alguna ✗, se pasa a la reinspección (H35). Una ✗ en un paso que no pide reinspección (H33, criterio 12) no la pide: las observaciones se vuelven obligatorias y el checkpoint queda **cerrado con observación** (decisión del equipo del 2026-11-27, pedida por el usuario en T93).
   10. De cada foto y de cada marca queda quién la hizo y cuándo.
   11. Un checkpoint cerrado no se edita.
   12. Por ahora, cualquier usuario con sesión hace el checkpoint; los roles llegan con H24.
@@ -806,11 +808,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   - El checkpoint nace la primera vez que alguien abre la unidad: ahí copia las secciones activas de tipo Checkpoint, en su orden, como la certificación copia las suyas al asignar el kit (H18). Desde entonces, los cambios del catálogo no lo alteran, esté a medias o cerrado. Una unidad que nadie abrió sale «Sin empezar», con sus pasos contados sobre el catálogo de ese momento.
 
 - Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 (ronda 1 el 2026-11-23 y el menú el 2026-11-24): elegir la unidad, el paso de verificación con los botones «Correcta» e «Incorrecta», y el último paso con observaciones, fotos extra, resumen y «Finalizar». El paso de fotos es el de H18. Con todas las series correctas, el botón dice «Finalizar y cerrar». El botón opcional «Tomar foto del contenedor», con su miniatura y «Quitar», se aprobó el 2026-11-24.
+- Corrección del 2026-11-27, pedida por el usuario al probar T93: el paso de fotos se comporta como el de H18 (criterio 5). Al subir una foto, la pantalla se queda en el paso, para tomar más, y el inspector avanza con «Siguiente paso»; antes saltaba al siguiente paso pendiente. Al tocar una foto salen el ojo verde, que abre el visor, y la papelera roja, que la borra con confirmación (como T85 y T86), en las fotos de los pasos y en las fotos extra, mientras el checkpoint no esté cerrado ni en reinspección; el visor ofrece «Borrar» también en escritorio. Las miniaturas van 2 por fila en el teléfono. Sin diseño nuevo: es el de H18 aprobado en el lienzo.
 
 **H35 · Reinspección desde el checkpoint** (aprobada el 2026-11-23 en T67)
 - Como inspector checkpoint, quiero iniciar la reinspección cuando una cinta o un sello no está bien, para que el inspector certificado cambie solo lo que falló y yo vuelva a verificarlo antes de cerrar.
 - Criterios de aceptación:
-  1. Al finalizar un checkpoint con al menos una ✗, se pide un motivo obligatorio y confirmación. El checkpoint queda **En reinspección** y no se cierra.
+  1. Al finalizar un checkpoint con al menos una ✗, se pide un motivo obligatorio y confirmación. El checkpoint queda **En reinspección** y no se cierra. Las ✗ de un paso que no pide reinspección (H33, criterio 12) no cuentan: no se reabre su sección y, si hay alguna, antes se escribe la observación del checkpoint, porque la segunda vuelta no tiene el último paso (decisión del equipo del 2026-11-27, pedida por el usuario en T93; la observación antes de la reinspección, aprobada por el usuario en el lienzo).
   2. En la certificación se reabren solo las secciones donde el sistema dejó las series con ✗ (H18). La certificación queda **En reinspección** en el listado de Asignaciones (H20), con su motivo.
   3. Bodega despacha a granel los dispositivos nuevos con motivo Operación, eligiendo el contenedor (H30, sin cambios).
   4. Las unidades en reinspección aparecen en la lista de Inspección interna o externa (H18), según el tipo de las secciones reabiertas, marcadas «Reinspección» y con solo esas secciones.
@@ -832,7 +835,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 **H36 · Consultar checkpoints** (aprobada el 2026-11-23 en T67)
 - Como usuario de la intranet, quiero un listado de los checkpoints y su detalle, para seguir su avance y consultar lo verificado.
 - Criterios de aceptación:
-  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (en proceso, en reinspección o cerrado; «en proceso» en vez de «a medias» en todo el sistema, cambiado por el usuario el 2026-11-26), con búsqueda por contenedor, booking o placa.
+  1. Un listado de checkpoints, filtrable por fecha, naviera, inspector y estado (en proceso, en reinspección, cerrado o cerrado con observación; «en proceso» en vez de «a medias» en todo el sistema, cambiado por el usuario el 2026-11-26; «cerrado con observación», decisión del equipo del 2026-11-27, pedida por el usuario en T93), con búsqueda por contenedor, booking o placa.
   2. Cada fila muestra el avance (por ejemplo, 9/14 pasos) y la acción «Ver».
   3. El detalle es de solo consulta: datos de la certificación, cada sección con sus fotos, cada verificación con su marca ✓/✗, las observaciones y las fotos extra, y cada reinspección con su motivo, quién la inició y la cerró, y los dispositivos que se reemplazaron.
   4. Desde el detalle de la certificación (H20) se llega a su checkpoint, si tiene.
@@ -840,7 +843,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   6. Por ahora todos los usuarios con sesión ven todos los checkpoints; los roles llegan con H24.
   7. El listado y el detalle se usan bien desde el celular.
 
-- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): listado y detalle, en escritorio y teléfono. El detalle muestra las reinspecciones (motivo, sección reabierta, reemplazo y segunda verificación) y cada paso con sus fotos o sus series marcadas. El detalle de la certificación (H20) suma el botón «Ver checkpoint».
+- Diseño: página «E6 · Checkpoint» del lienzo, aprobado en T68 el 2026-11-24 (ronda 3): listado y detalle, en escritorio y teléfono. «Cerrado con observación», en naranja claro, se aprobó el 2026-11-27 (T93): en el listado, su filtro y el aviso del detalle, con la observación. El detalle muestra las reinspecciones (motivo, sección reabierta, reemplazo y segunda verificación) y cada paso con sus fotos o sus series marcadas. El detalle de la certificación (H20) suma el botón «Ver checkpoint».
 - Al construir (aprobado por el usuario el 2026-11-26, dibujado en el lienzo):
   - El checkpoint guarda quién lo inició: quien abre la unidad por primera vez en «Registrar checkpoint» (`checkpoints.started_by`). El detalle lo muestra en su aviso; los checkpoints anteriores muestran solo la fecha.
   - La columna «Inspector» muestra quién lo cerró o, mientras no está cerrado, quién tomó la última foto o marcó la última serie. El filtro «Inspector» encuentra el checkpoint si esa persona lo inició, lo cerró, tomó alguna foto o marcó alguna serie.
@@ -913,7 +916,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Diseño: «H40 · Dispositivos GPS», «H40 · Nuevo dispositivo GPS», «H40 · Estados de dispositivos GPS» y «H40 · Móvil · Nuevo dispositivo GPS», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27. El diseño suma: el código en mayúsculas (hbr140 y HBR140 son el mismo), el modelo con el selector que busca en el servidor y «+ Agregar», el estado «Disponible» o «Desactivado», el menú en Bodega entre «Kits» y «Despachos», y la foto de referencia (criterio 1b), con «Elegir de la galería» además de «Tomar foto».
 - Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
 
-**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; entra al Sprint 4 como urgente el 2026-11-27; aprobada por el usuario el 2026-11-27 en T93)
+**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; entra al Sprint 4 como urgente el 2026-11-27; aprobada por el usuario el 2026-11-27 en T94)
 - Como usuario de bodega, quiero traer desde 24HM los dispositivos GPS de la cuenta, para no registrarlos a mano y tener su último reporte.
 - Criterios de aceptación:
   1. En Dispositivos GPS hay un botón «Sincronizar con 24HM» que consulta `ConsultarActivo` y, por cada activo:
@@ -932,11 +935,11 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Diseño: en la página «E10 · Candados GPS» del lienzo, aprobado antes de construir.
 - Fuera: la tarea programada, los históricos de posición y de alertas, los comandos al candado y cambiar el alias o la etiqueta en 24HM.
 
-**H42 · Probar la conectividad de un dispositivo GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T93)
+**H42 · Probar la conectividad de un dispositivo GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T94)
 - Como usuario de bodega, quiero probar desde la lista si un dispositivo GPS reporta a 24HM, para saber si funciona antes de despacharlo.
 - No hay en 24HM una operación para probar la conexión: se consulta el activo y se mira su último reporte (revisado en el WSDL el 2026-11-27).
 - Criterios de aceptación:
-  1. Cada dispositivo de la lista tiene un botón más, «Conectividad», en azul, que abre un modal con los datos del dispositivo (código, modelo, propiedad, sucursal e ID de 24HM) y su último reporte guardado: «Conectado», «Sin señal» o «Sin verificar», la fecha y hora del último reporte y hace cuánto fue, la dirección, la posición, el estado de servicio, el estado operativo y el voltaje (cambiado por el usuario en T93, el 2026-11-27: el botón de la fila no consulta 24HM, abre el detalle).
+  1. Cada dispositivo de la lista tiene un botón más, «Conectividad», en azul, que abre un modal con los datos del dispositivo (código, modelo, propiedad, sucursal e ID de 24HM) y su último reporte guardado: «Conectado», «Sin señal» o «Sin verificar», la fecha y hora del último reporte y hace cuánto fue, la dirección, la posición, el estado de servicio, el estado operativo y el voltaje (cambiado por el usuario en T94, el 2026-11-27: el botón de la fila no consulta 24HM, abre el detalle).
   2. En el modal, el botón «Verificar ahora» consulta `ConsultarActivoPorIdActivo` con el ID de 24HM, actualiza el último reporte y vuelve a calcular el estado. Sin ID de 24HM, el modal se abre igual y «Verificar ahora» queda desactivado, con un aviso de que falta el ID.
   3. Es «Conectado» si el último reporte tiene menos de 24 horas, y «Sin señal» si es más antiguo.
   4. Si 24HM no tiene ese activo, rechaza las credenciales, no responde o devuelve algo que no se entiende, se avisa el motivo.

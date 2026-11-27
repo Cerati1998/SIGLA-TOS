@@ -82,6 +82,7 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
 | `gps_device_models` | E10 · H39 | `en código` | (nueva; modelos de dispositivo GPS) |
 | `gps_devices` | E10 · H40 | `en código` | (nueva; inventario de candados GPS) |
+| `certification_sections.skips_reinspection`, `checkpoint_steps.skips_reinspection` | E6 · T93 | `en código` | (nuevas columnas) |
 | `gps_devices.last_reported_at` y el resto del último reporte | E10 · H42 | `en código` | (nuevas columnas) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
@@ -244,6 +245,7 @@ erDiagram
     string name "UK con type"
     string type "internal, external, checkpoint"
     string checkpoint_kind "photos, verification; null si no es checkpoint"
+    boolean skips_reinspection "una ✗ no pide reinspección"
     smallint sort_order "null si está desactivada"
     datetime deleted_at
   }
@@ -614,6 +616,7 @@ erDiagram
     bigint checkpoint_id FK
     bigint certification_section_id FK
     string kind "photos, verification"
+    boolean skips_reinspection "copiado de la sección"
     smallint position
   }
   checkpoint_photos {
@@ -915,6 +918,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
 | `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna), `external` (Externa) o `checkpoint` (Checkpoint, H33). Las puertas no son un tipo (P1). Las certificaciones solo copian las internas y externas. |
 | `checkpoint_kind` | varchar(20) (null) | Enum de PHP `CheckpointSectionKind`, solo en las de checkpoint (H33): `photos` (pide al menos una foto) o `verification` (marca cada serie de las secciones que verifica, sin fotos). Null en las internas y externas. |
+| `skips_reinspection` | boolean, default false | Solo en las de verificación (T93): una serie incorrecta de esta sección no pide reinspección, y el checkpoint se cierra con una observación obligatoria. La migración deja marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27). |
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos, uno solo para internas, externas y de checkpoint (H33); cada inspección y el checkpoint toman solo las suyas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
@@ -1263,7 +1267,7 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 
 ### 5.27 `checkpoints` · `en código`
 
-El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está a medias hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); el listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está en proceso hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); cerrado con una marca incorrecta que cuenta (de un paso con `skips_reinspection`), está cerrado con observación (T93). El listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -1289,6 +1293,7 @@ Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`
 | `checkpoint_id` | bigint FK → `checkpoints.id` | Índice con `position`. |
 | `certification_section_id` | bigint FK → `certification_sections.id` | UK junto con `checkpoint_id`. |
 | `kind` | varchar(20) | Enum de PHP `CheckpointSectionKind`: `photos` o `verification`, copiado de `checkpoint_kind`. |
+| `skips_reinspection` | boolean, default false | Copiado de `certification_sections.skips_reinspection`, solo en los pasos de verificación (T93). |
 | `position` | smallint | Orden del paso. |
 | `timestamps` | | |
 

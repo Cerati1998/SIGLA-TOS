@@ -66,7 +66,8 @@
                     @if ($unit['lastChange'] !== null)
                         Último cambio de {{ $unit['lastChange']['by'] }}, {{ $unit['lastChange']['at']->diffForHumans() }}
                     @else
-                        Certificación cerrada el {{ $unit['closedAt']->format('d/m/Y') }} a las {{ $unit['closedAt']->format('H:i') }}
+                        @php $closedAt = $unit['closedAt']->timezone(config('app.display_timezone')); @endphp
+                        Certificación cerrada el {{ $closedAt->format('d/m/Y') }} a las {{ $closedAt->format('H:i') }}
                     @endif
                 </span>
             </button>
