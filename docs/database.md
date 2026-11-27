@@ -1322,7 +1322,7 @@ Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie inc
 
 ### 5.33 `gps_device_models` · `en código`
 
-Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS.
+Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `GpsDeviceModelSeeder` carga los siete modelos de Hunter, sin códigos, en el proveedor activo cuya razón social contiene «Hunter»; sin uno solo no carga nada, y no toca un modelo que ya existe en la marca, aunque esté desactivado. Se corre a mano: `php artisan db:seed --class=GpsDeviceModelSeeder`.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
