@@ -2,30 +2,39 @@
     'label',
     'name',
     'title',
+    'gallery' => false,
 ])
 
 {{--
-    A required photo of a form inside a modal (T77). It lives inside an element with `x-data="photoField(...)"`
+    A photo of a form inside a modal (T77). It lives inside an element with `x-data="photoField(...)"`
     (resources/js/photo-field.js), which takes, compresses and uploads the photo; the modal puts it on its root so its
-    save button can wait for the upload. `name` is the property whose error is shown.
+    save button can wait for the upload. `name` is the property whose error is shown. With `gallery`, the photo can
+    also be chosen from the phone instead of taken, and «Cambiar» opens the phone's own choice (H40); whether the photo
+    is required is up to the rules of the form.
 --}}
 <div class="flex flex-col gap-1.5">
     <span class="text-sm font-medium text-ink">{{ $label }}</span>
     <input type="file" accept="image/*" capture="environment" x-ref="camera" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
+    @if ($gallery)
+        <input type="file" accept="image/*" x-ref="gallery" x-on:change="captured" class="hidden" aria-hidden="true" tabindex="-1">
+    @endif
 
-    <button
-        type="button"
-        x-show="! hasPhoto && ! uploading"
-        x-on:click="take"
-        @class([
-            'flex h-30 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-card border-2 border-dashed text-base font-medium text-brand',
-            'border-danger bg-badge-danger' => $errors->has($name),
-            'border-control bg-surface' => ! $errors->has($name),
-        ])
-    >
-        <x-feather name="camera" class="size-6.5" />
-        Tomar foto
-    </button>
+    <div x-show="! hasPhoto && ! uploading" @class(['grid gap-2.5', 'grid-cols-2' => $gallery])>
+        @foreach ($gallery ? ['take' => ['camera', 'Tomar foto'], 'pick' => ['image', 'Elegir de la galería']] : ['take' => ['camera', 'Tomar foto']] as $action => [$icon, $text])
+            <button
+                type="button"
+                x-on:click="{{ $action }}"
+                @class([
+                    'flex h-30 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-card border-2 border-dashed text-base font-medium text-brand',
+                    'border-danger bg-badge-danger' => $errors->has($name),
+                    'border-control bg-surface' => ! $errors->has($name),
+                ])
+            >
+                <x-feather :name="$icon" class="size-6.5" />
+                {{ $text }}
+            </button>
+        @endforeach
+    </div>
 
     <p x-show="uploading" x-cloak role="status" class="m-0 flex h-30 items-center justify-center gap-2 rounded-card border border-line bg-surface text-sm text-ink-muted">
         <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -38,7 +47,7 @@
         </button>
         <div class="grid grid-cols-3 gap-2">
             <flux:button size="sm" x-on:click="openViewer" class="max-md:h-11">Ver en grande</flux:button>
-            <flux:button size="sm" x-on:click="take" class="max-md:h-11">Volver a tomar</flux:button>
+            <flux:button size="sm" x-on:click="{{ $gallery ? 'pick' : 'take' }}" class="max-md:h-11">{{ $gallery ? 'Cambiar' : 'Volver a tomar' }}</flux:button>
             <flux:button size="sm" x-on:click="remove" class="text-danger! max-md:h-11">Quitar</flux:button>
         </div>
     </div>
@@ -58,7 +67,7 @@
                 <img x-bind:src="photoUrl" alt="{{ $title }}" class="max-h-full max-w-full object-contain">
             </div>
             <div class="flex flex-none justify-center gap-2.5 p-4 pb-6">
-                <flux:button x-on:click="take" class="max-md:h-11">Volver a tomar</flux:button>
+                <flux:button x-on:click="{{ $gallery ? 'pick' : 'take' }}" class="max-md:h-11">{{ $gallery ? 'Cambiar' : 'Volver a tomar' }}</flux:button>
                 <flux:button x-on:click="remove" class="text-danger! max-md:h-11">Quitar</flux:button>
                 <flux:button variant="primary" x-on:click="closeViewer" class="max-md:h-11">Cerrar</flux:button>
             </div>

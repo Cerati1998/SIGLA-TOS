@@ -16,7 +16,7 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
-**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Por ahora solo trae H39 (modelos de dispositivo GPS, con su marca y su categoría). Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Trae H39 (modelos de dispositivo GPS, con su marca y su categoría) y, desde el 2026-11-27, H40 (catálogo de dispositivos GPS, con alta manual), también urgente; H41 (sincronizar con 24HM) queda sin aprobar. Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -885,6 +885,37 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - En el menú: «Modelos GPS» va en Maestros, debajo de «Tipos de dispositivo», y el grupo Administración pasa justo encima de Configuración (cambio del usuario del 2026-11-27, al probar; en T89 se había aprobado un grupo propio, «Candados GPS»).
 - Diseño: «H39 · Modelos GPS», «H39 · Nuevo modelo GPS», «H39 · Estados de modelos GPS» y «H39 · Móvil · Nuevo modelo GPS», página «E10 · Candados GPS» del lienzo, sobre la plantilla "Lista con tabla" y las zonas de patio (H26), aprobado por el usuario el 2026-11-27. (Cambiado el 2026-11-27: en T89 se había aprobado construir sin diseño propio, como H06, pero la rule «Diseño en el lienzo» pide uno para toda vista nueva y el usuario eligió diseñarlo.)
 - Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
+
+**H40 · Gestionar dispositivos GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T91, con todas sus suposiciones)
+- Como usuario de bodega, quiero registrar, editar, desactivar y reactivar los dispositivos GPS, es decir, cada candado o GPS físico, con su modelo y si es propio o alquilado, para llevar su inventario.
+- Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla; traerlos desde 24HM es H41, aparte.
+- Criterios de aceptación:
+  1. Se registra un dispositivo con:
+     - código, por ejemplo HBR140: el nombre que lleva el equipo y el `Alias` que le da 24HM;
+     - modelo, de los activos de H39;
+     - propiedad: propio o alquilado;
+     - si es alquilado, el proveedor que lo alquila, de los activos de E8;
+     - sucursal, de las activas;
+     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41;
+     - observaciones, opcionales.
+     No se piden serie ni IMEI aparte: alcanzan el código y el ID de 24HM.
+  1b. Cada dispositivo puede tener una foto de referencia, opcional: se toma con la cámara o se elige de la galería, se comprime en el navegador y lleva el código, la fecha y la hora como marca de agua, como las fotos de las inspecciones. En el modal se ve su miniatura, se abre en grande, se cambia o se quita; en la lista, la miniatura abre la foto en grande en otra pestaña. La foto se guarda en el disco privado y solo se ve con sesión (pedido del usuario del 2026-11-27, al aprobar el diseño).
+  2. No se pueden registrar dos dispositivos con el mismo código, ni con el mismo ID de 24HM, aunque uno esté desactivado.
+  3. Un dispositivo nuevo queda «Disponible». Los demás estados (despachado, instalado, retirado) llegan con las historias del despacho, la instalación y el retiro.
+  4. Se editan todos los datos, porque todavía no hay despachos que dependan del dispositivo.
+  5. Un dispositivo se desactiva (se da de baja) en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. No se eliminan.
+  6. Un modelo, un proveedor o una sucursal desactivados no aparecen al registrar ni al editar, pero se conservan en los dispositivos que ya los tienen.
+  7. Hay una lista de dispositivos, ordenada por código, que se puede buscar por código o ID de 24HM y filtrar por modelo, propiedad, sucursal y estado.
+  8. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
+  9. La pantalla se puede usar bien desde el celular.
+- En el menú: «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
+- Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno.
+- Diseño: «H40 · Dispositivos GPS», «H40 · Nuevo dispositivo GPS», «H40 · Estados de dispositivos GPS» y «H40 · Móvil · Nuevo dispositivo GPS», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27. El diseño suma: el código en mayúsculas (hbr140 y HBR140 son el mismo), el modelo con el selector que busca en el servidor y «+ Agregar», el estado «Disponible» o «Desactivado», el menú en Bodega entre «Kits» y «Despachos», y la foto de referencia (criterio 1b), con «Elegir de la galería» además de «Tomar foto».
+- Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
+
+**H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; sin aprobar, no entra al sprint)
+- Como usuario de bodega, quiero traer desde 24HM los dispositivos GPS de la cuenta, para no registrarlos a mano y tener su último reporte.
+- Idea por revisar: `ConsultarActivo` crea o actualiza cada dispositivo por su `IdActivo`, con su `Alias` como código y el modelo que tenga sus códigos de producto y de tipo (H39). Los que no encuentran modelo quedan por configurar. Un dispositivo que ya no aparece no se borra. Necesita las credenciales nuevas de 24HM en el `.env`.
 
 ## Fuera del Product Goal (ideas para después, sin historias)
 - Estimaciones.

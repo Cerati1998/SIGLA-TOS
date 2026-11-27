@@ -7,6 +7,8 @@ use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\CheckpointPhotoController;
 use App\Http\Controllers\ClientOptionsController;
 use App\Http\Controllers\DispatchedKitOptionsController;
+use App\Http\Controllers\GpsDeviceModelOptionsController;
+use App\Http\Controllers\GpsDevicePhotoController;
 use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\KitController;
 use App\Http\Controllers\KitDispatchController;
@@ -39,6 +41,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('yard-zones', 'pages.yard-zones.index')->name('yard-zones.index');
 
     Route::view('gps-device-models', 'pages.gps-device-models.index')->name('gps-device-models.index');
+
+    Route::post('gps-device-models/options', GpsDeviceModelOptionsController::class)->name('gps-device-models.options');
+
+    Route::view('gps-devices', 'pages.gps-devices.index')->name('gps-devices.index');
+
+    Route::get('gps-devices/{gpsDevice}/photo', [GpsDevicePhotoController::class, 'show'])->withTrashed()->name('gps-devices.photo');
+
+    Route::get('gps-devices/{gpsDevice}/photo/thumbnail', [GpsDevicePhotoController::class, 'thumbnail'])->withTrashed()->name('gps-devices.photo.thumbnail');
 
     Route::view('security-device-announcements', 'pages.security-device-announcements.index')->name('security-device-announcements.index');
 

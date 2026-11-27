@@ -59,3 +59,10 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Categoría (del modelo GPS) | `category` | Enum `GpsDeviceCategory`: `container_lock` (candado para contenedor), `door_lock` (cerradura de puerta), `light_vehicle_lock` (candado para unidad liviana), `portable_lock` (candado portátil), `portable_tracker` (GPS portátil) y `hopper_control` (control de tolva). Lista fija, sin pantalla (H39, aprobado por el usuario el 2026-11-27). |
 | Apertura (del modelo GPS) | `opening_type` | Enum `GpsOpeningType`: `remote` (remota), `manual` (manual) y `none` (sin apertura) (H39, aprobado por el usuario el 2026-11-27). |
 | Código de producto y código de tipo (del proveedor de monitoreo) | `monitoring_product_code`, `monitoring_device_type_code` | Los que reporta la plataforma de monitoreo por cada equipo: `IdProducto` e `IdTipoDispositivo` en 24HM (H39, aprobado por el usuario el 2026-11-27). |
+| Dispositivo GPS | `gps_device` | Tabla `gps_devices`, modelo `GpsDevice`: cada candado o GPS físico, como HBR140 (H40, aprobado por el usuario el 2026-11-27). |
+| Código (del dispositivo GPS) | `code` | El que lleva el equipo y el `Alias` de 24HM; se guarda en mayúsculas (H40, aprobado por el usuario el 2026-11-27). |
+| ID de 24HM | `monitoring_asset_id` | El `IdActivo` del dispositivo en 24HM (H40, aprobado por el usuario el 2026-11-27). |
+| Propiedad (del dispositivo GPS) | `ownership` | Enum `GpsDeviceOwnership`: `own` (propio) y `rented` (alquilado) (H40, aprobado por el usuario el 2026-11-27). |
+| Proveedor del alquiler | `rental_provider_id` | Un proveedor (`providers`); la relación es `rentalProvider()` (H40, aprobado por el usuario el 2026-11-27). |
+| Estado (del dispositivo GPS) | `status` | Enum `GpsDeviceStatus`, por ahora solo `available` (disponible). Desactivado es `deleted_at` (H40, aprobado por el usuario el 2026-11-27). |
+| Foto de referencia | `photo_path`, `thumbnail_path` | La foto del dispositivo GPS y su miniatura, en el disco privado (H40, aprobado por el usuario el 2026-11-27). |

@@ -26,6 +26,12 @@
             'active' => request()->routeIs('intranet.kits.*'),
         ],
         [
+            'name' => 'Dispositivos GPS',
+            'icon' => 'radio',
+            'route' => route('intranet.gps-devices.index'),
+            'active' => request()->routeIs('intranet.gps-devices.*'),
+        ],
+        [
             'name' => 'Despachos',
             'icon' => 'send',
             'active' => request()->routeIs('intranet.kit-dispatches.*', 'intranet.bulk-dispatches.*'),
