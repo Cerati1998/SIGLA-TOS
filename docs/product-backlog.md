@@ -16,7 +16,7 @@
 
 **Pedida y aprobada por el usuario el 2026-11-24:** H38 (reemplazar dispositivos del kit con dispositivos extra, E5), que sale de la reunión de correcciones del 2026-11-23 y cambia H18, H19, H20 y H30; la usa H35. Se construye en el Sprint 4 (T79), antes de la reinspección.
 
-**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Por ahora solo trae H39 (modelos de dispositivo GPS, con su marca y su categoría). Sus "por confirmar" se cierran en T89 antes de construir, en el Sprint 4 (T90).
+**Pedida por el usuario el 2026-11-27, como urgente (acuerdo 3 del Sprint 3):** E10 (candados GPS), que sale de la daily del 2026-11-27 con el equipo y los interesados. Por ahora solo trae H39 (modelos de dispositivo GPS, con su marca y su categoría). Sus "por confirmar" se cerraron en T89 y el usuario la aprobó el 2026-11-27. Se construye en el Sprint 4 (T90).
 
 Product Goal: ver `docs/product-goal.md`.
 
@@ -854,11 +854,12 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   - La **categoría** del modelo es una lista fija en el código, como la categoría de los tipos de dispositivo de seguridad (H06): no tiene pantalla propia.
   - El modelo depende de su **marca**, y la marca es un proveedor de la tabla maestra (H10). No hay un catálogo de marcas aparte.
 - Las categorías y los modelos toman como referencia los productos de Hunter para gestión y seguimiento de activos: Hunter Block (candado externo para contenedores, apertura remota), Truck Lock (cerradura de puertas posteriores de unidades pesadas, apertura remota), Candado Inteligente (unidades livianas, apertura remota), Block R (candado portátil, apertura manual), Hunter Box y Track Pro (GPS portátiles) y Tolva control (plataformas de carga).
-- Un dispositivo GPS es distinto de un dispositivo de seguridad de E2: se reutiliza y vuelve a bodega, puede ser propio o alquilado, y lo reporta el proveedor. Por eso va en un catálogo propio y no como una categoría más de H06 (suposición por confirmar).
+- Un dispositivo GPS es distinto de un dispositivo de seguridad de E2: se reutiliza y vuelve a bodega, puede ser propio o alquilado, y lo reporta el proveedor. Por eso va en un catálogo propio y no como una categoría más de H06.
 - Integración con el proveedor de monitoreo (24HM), revisada el 2026-11-27. No se construye todavía:
   - Servicio SOAP en `https://xservice.24hm.net/xws/wsService`. Su WSDL anuncia la dirección en `http`, así que la URL `https` se fija en la configuración. Las credenciales van solo en `.env`.
   - `ConsultarActivo` devuelve los activos de la cuenta, en JSON dentro de un texto: `IdActivo`, `Alias`, `Etiqueta`, `EstadoServicio`, `EstadoOperativo`, `VID`, `IdProducto` (por ejemplo `BR`), `IdTipoDispositivo` (por ejemplo `240` o `247`) y su último reporte (fecha, posición y dirección). Los errores llegan como `{"Error": ...}`, a veces con el JSON mal formado.
   - No tiene una operación para dar de alta un dispositivo: el proveedor los activa en su plataforma y SIGLA los lee.
+- Las suposiciones de H39 se cerraron en T89: el usuario las aprobó todas el 2026-11-27.
 - Depende de: E8 (H10, proveedores, que dan la marca). La usarán las historias de inventario, instalación y retiro, que todavía no existen.
 
 **H39 · Gestionar modelos de dispositivo GPS**
@@ -867,22 +868,22 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   1. Se crea un modelo con:
      - nombre, por ejemplo Hunter Block;
      - marca: un proveedor activo de la tabla maestra (H10), obligatorio;
-     - categoría, de una lista fija: Candado para contenedor, Cerradura de puerta, Candado para unidad liviana, Candado portátil, GPS portátil y Control de tolva (la lista es una suposición por confirmar);
-     - tipo de apertura, remota o manual (suposición por confirmar);
-     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales (suposición por confirmar);
+     - categoría, de una lista fija: Candado para contenedor, Cerradura de puerta, Candado para unidad liviana, Candado portátil, GPS portátil y Control de tolva;
+     - tipo de apertura, remota o manual;
+     - código de producto y código de tipo del proveedor de monitoreo, por ejemplo `BR` y `240`, opcionales;
      - descripción opcional.
-  2. No se pueden crear dos modelos con el mismo nombre en la misma marca, aunque uno esté desactivado. En marcas distintas, sí (suposición por confirmar).
-  3. El par código de producto y código de tipo no se repite entre modelos, para que más adelante cada unidad que reporta el proveedor caiga en un solo modelo (suposición por confirmar).
-  4. Se editan todos los datos, también la marca y la categoría, porque todavía no hay unidades que dependan del modelo (suposición por confirmar).
+  2. No se pueden crear dos modelos con el mismo nombre en la misma marca, aunque uno esté desactivado. En marcas distintas, sí.
+  3. El par código de producto y código de tipo no se repite entre modelos, para que más adelante cada unidad que reporta el proveedor caiga en un solo modelo.
+  4. Se editan todos los datos, también la marca y la categoría, porque todavía no hay unidades que dependan del modelo.
   5. Un modelo se desactiva en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista.
   6. Los modelos no se eliminan, aunque no se hayan usado: solo se desactivan.
   7. Un proveedor desactivado no aparece al crear ni al editar un modelo, pero se conserva en los modelos que ya lo tienen.
   8. Hay una lista de modelos, ordenada por marca y nombre, que se puede buscar por nombre o código y filtrar por marca, categoría y estado.
   9. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
   10. La pantalla se puede usar bien desde el celular.
-- Sin seeder: el usuario carga los modelos en pantalla, porque todavía no se sabe qué modelo es cada código del proveedor (`240` y `247`) (suposición por confirmar).
-- En el menú (suposición por confirmar): un grupo nuevo, «Candados GPS», con «Modelos GPS», que después recibirá el inventario.
-- Diseño (suposición por confirmar): se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo, como H06.
+- Sin seeder: el usuario carga los modelos en pantalla, porque todavía no se sabe qué modelo es cada código del proveedor (`240` y `247`).
+- En el menú: un grupo nuevo, «Candados GPS», con «Modelos GPS», que después recibirá el inventario.
+- Diseño: se construye desde la plantilla "Lista con tabla", sin diseño propio en el lienzo, como H06.
 - Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
 
 ## Fuera del Product Goal (ideas para después, sin historias)
