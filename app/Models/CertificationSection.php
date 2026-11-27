@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property CertificationSectionType $type
  * @property CheckpointSectionKind|null $checkpoint_kind What a checkpoint section asks for; null for the other types.
- * @property bool $skips_reinspection Whether an incorrect series in this verification section does not ask for a reinspection (T88).
+ * @property bool $skips_reinspection Whether an incorrect series in this verification section does not ask for a reinspection (T91).
  * @property int|null $sort_order Position among the active sections; null while it is deactivated.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

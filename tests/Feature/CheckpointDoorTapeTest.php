@@ -33,7 +33,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * T88: an incorrect series in a verification step that does not ask for a reinspection, like the door tape, lets the
+ * T91: an incorrect series in a verification step that does not ask for a reinspection, like the door tape, lets the
  * checkpoint close with a required observation as «Cerrado con observación»; the other incorrect series still ask for
  * a reinspection.
  */

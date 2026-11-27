@@ -9,7 +9,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations. An incorrect series in a verification section marked this way does not ask for a reinspection:
-     * the checkpoint is closed with a required observation (T88, team decision of 2026-11-27). The step of a checkpoint
+     * the checkpoint is closed with a required observation (T91, team decision of 2026-11-27). The step of a checkpoint
      * copies the mark when it is born, as it copies what the section asks for. «Verificación de cinta de puerta» is
      * marked from the start, also in the steps of the checkpoints already born.
      */

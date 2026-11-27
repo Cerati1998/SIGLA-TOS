@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  * keeps the reason and who started it, and one device to replace for each incorrect series, with the section of the
  * certification where it is placed, which is reopened. The checkpoint is not closed and waits for it. All or nothing.
  * The incorrect series of a step that does not ask for a reinspection are left as they are, and with one of them the
- * observations of the checkpoint must be written first (T88).
+ * observations of the checkpoint must be written first (T91).
  */
 class StartReinspection
 {

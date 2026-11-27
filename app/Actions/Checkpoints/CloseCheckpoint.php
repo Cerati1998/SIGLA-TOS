@@ -12,12 +12,12 @@ use Illuminate\Validation\ValidationException;
  * Close a checkpoint (H34, criteria 8 and 9): every photo step has a photo, every series is marked and all of them are
  * correct. It keeps the observations and who closed it and when. With an incorrect series it is not closed: it starts a
  * reinspection instead (H35), and while it waits for one it is not closed either. An incorrect series in a step that
- * does not ask for a reinspection does not stop it, but then the observations are required (T88).
+ * does not ask for a reinspection does not stop it, but then the observations are required (T91).
  */
 class CloseCheckpoint
 {
     /**
-     * The message when an incorrect series that does not ask for a reinspection has no observation (T88).
+     * The message when an incorrect series that does not ask for a reinspection has no observation (T91).
      */
     public const string OBSERVATION_REQUIRED = 'Escribe la observación: hay una serie incorrecta que no pide reinspección.';
 

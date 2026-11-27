@@ -5,7 +5,7 @@ namespace App\Enums;
 /**
  * Where a checkpoint is, worked out from its closing and its reinspections; it is not stored (H36). It waits En
  * reinspección while a reinspection it started is open (H35). It is closed with an observation when it was closed with
- * an incorrect series in a step that does not ask for a reinspection (T88).
+ * an incorrect series in a step that does not ask for a reinspection (T91).
  */
 enum CheckpointStatus: string
 {

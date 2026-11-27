@@ -86,7 +86,7 @@ class CertificationSectionCatalogSeeder extends Seeder
     ];
 
     /**
-     * The verification sections where an incorrect series does not ask for a reinspection (T88, team decision of
+     * The verification sections where an incorrect series does not ask for a reinspection (T91, team decision of
      * 2026-11-27).
      *
      * @var list<string>

@@ -80,7 +80,8 @@ Base de partida: el ER del usuario (`SIGLA2.0.mwb`, 29 tablas), las migraciones 
 | `checkpoints`, `checkpoint_steps`, `checkpoint_photos`, `checkpoint_marks` | E6 · H34 | `en código` | (nuevas) |
 | `reinspections`, `reinspection_devices` | E6 · H35 | `en código` | (nuevas) |
 | `checkpoints.started_by` | E6 · H36 | `en código` | (nueva columna) |
-| `certification_sections.skips_reinspection`, `checkpoint_steps.skips_reinspection` | E6 · T88 | `en código` | (nuevas columnas) |
+| `gps_device_models` | E10 · H39 | `en código` | (nueva; modelos de dispositivo GPS) |
+| `certification_sections.skips_reinspection`, `checkpoint_steps.skips_reinspection` | E6 · T91 | `en código` | (nuevas columnas) |
 | `password_reset_tokens`, `sessions` | E1 · H01/H03 | `framework` | — |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — | `framework` | — |
 
@@ -652,6 +653,27 @@ erDiagram
   }
 ```
 
+### 4.11 Modelos de dispositivo GPS (E10)
+
+Los modelos de los dispositivos GPS (H39): candados, cerraduras y GPS portátiles. La marca es un proveedor; la categoría y la apertura son enums de PHP, sin tabla (decisión del usuario del 2026-11-27). Las unidades físicas que reporta el proveedor de monitoreo llegan después.
+
+```mermaid
+erDiagram
+  providers ||--o{ gps_device_models : "marca"
+
+  gps_device_models {
+    bigint id PK
+    bigint brand_id FK
+    string name "UK con brand_id"
+    string category
+    string opening_type
+    string monitoring_product_code "null, UK con monitoring_device_type_code"
+    string monitoring_device_type_code "null"
+    string description "null"
+    datetime deleted_at
+  }
+```
+
 ## 5. Diccionario de tablas
 
 Notación: `UK` único · `FK` llave foránea. Todo es `NOT NULL` salvo donde dice «null».
@@ -747,7 +769,7 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 
 ### 5.7 `providers` · `en código`
 
-Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.
+Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera. `ProviderSeeder` carga AUTOSAFE SAC (RUC 20504292968), la marca de los modelos GPS de Hunter (H39, datos dados por el usuario el 2026-11-27); si el RUC ya existe, aunque esté desactivado, no lo toca.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -866,7 +888,7 @@ Secciones del contenedor que se inspeccionan. ER: `certification_criteria_items`
 | `name` | varchar(100) | UK compuesta con `type`, aunque la sección esté desactivada (H11, criterio 2): una interna y una externa pueden llamarse igual (cambiado el 2026-11-20, T63; antes UK sola). |
 | `type` | varchar(20) | Enum de PHP `CertificationSectionType`: `internal` (Interna), `external` (Externa) o `checkpoint` (Checkpoint, H33). Las puertas no son un tipo (P1). Las certificaciones solo copian las internas y externas. |
 | `checkpoint_kind` | varchar(20) (null) | Enum de PHP `CheckpointSectionKind`, solo en las de checkpoint (H33): `photos` (pide al menos una foto) o `verification` (marca cada serie de las secciones que verifica, sin fotos). Null en las internas y externas. |
-| `skips_reinspection` | boolean, default false | Solo en las de verificación (T88): una serie incorrecta de esta sección no pide reinspección, y el checkpoint se cierra con una observación obligatoria. La migración deja marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27). |
+| `skips_reinspection` | boolean, default false | Solo en las de verificación (T91): una serie incorrecta de esta sección no pide reinspección, y el checkpoint se cierra con una observación obligatoria. La migración deja marcada «Verificación de cinta de puerta» (decisión del equipo del 2026-11-27). |
 | `sort_order` | smallint sin signo (null) | Índice. Posición entre las activas, desde 1: es el orden de los pasos, uno solo para internas, externas y de checkpoint (H33); cada inspección y el checkpoint toman solo las suyas. Una nueva o reactivada va al final; al desactivarla queda en null y las demás se corren. |
 | `timestamps`, `deleted_at` | | Desactivar = `deleted_at`. |
 
@@ -1215,7 +1237,7 @@ Los reemplazos de un dispositivo del kit, ya colocado en una sección, por un di
 
 ### 5.27 `checkpoints` · `en código`
 
-El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está en proceso hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); cerrado con una marca incorrecta que cuenta (de un paso con `skips_reinspection`), está cerrado con observación (T88). El listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
+El checkpoint de una certificación (H34): uno por certificación. Nace la primera vez que alguien abre la unidad desde «Registrar checkpoint», solo si la certificación está cerrada y no anulada (decisión del usuario del 2026-11-24). No tiene columna de estado: está en proceso hasta que `closed_at` tiene valor, y en reinspección mientras tiene una reinspección abierta (H35); cerrado con una marca incorrecta que cuenta (de un paso con `skips_reinspection`), está cerrado con observación (T91). El listado de checkpoints lo calcula así (H36). Un checkpoint cerrado no se edita.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -1241,7 +1263,7 @@ Las secciones activas de tipo Checkpoint del catálogo (`certification_sections`
 | `checkpoint_id` | bigint FK → `checkpoints.id` | Índice con `position`. |
 | `certification_section_id` | bigint FK → `certification_sections.id` | UK junto con `checkpoint_id`. |
 | `kind` | varchar(20) | Enum de PHP `CheckpointSectionKind`: `photos` o `verification`, copiado de `checkpoint_kind`. |
-| `skips_reinspection` | boolean, default false | Copiado de `certification_sections.skips_reinspection`, solo en los pasos de verificación (T88). |
+| `skips_reinspection` | boolean, default false | Copiado de `certification_sections.skips_reinspection`, solo en los pasos de verificación (T91). |
 | `position` | smallint | Orden del paso. |
 | `timestamps` | | |
 
@@ -1302,6 +1324,22 @@ Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie inc
 | `security_device_id` | bigint FK → `security_devices.id` | El dispositivo de la serie incorrecta, que pasa a Descartado al reemplazarlo. |
 | `security_device_replacement_id` | bigint FK → `security_device_replacements.id` null | UK. Su reemplazo; null mientras falta reemplazarlo. |
 | `timestamps` | | |
+
+### 5.33 `gps_device_models` · `en código`
+
+Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `GpsDeviceModelSeeder`, en `DatabaseSeeder`, carga los siete modelos de Hunter, sin códigos, en su marca: el proveedor activo AUTOSAFE SAC (RUC 20504292968), que carga `ProviderSeeder` justo antes. Sin ese proveedor activo no carga nada, y no toca un modelo que ya existe en la marca, aunque esté desactivado.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | bigint PK | |
+| `brand_id` | bigint FK → `providers.id` | La marca es un proveedor (decisión del usuario del 2026-11-27). Se elige con el selector de proveedores, que busca en el servidor y solo ofrece activos, o se crea ahí mismo con «Agregar»; se conserva una desactivada que el modelo ya tenía. |
+| `name` | varchar(100) | UK compuesta con `brand_id`, aunque el modelo esté desactivado (criterio 2). El mismo nombre puede repetirse en otra marca. |
+| `category` | varchar(30) | Enum de PHP `GpsDeviceCategory`: `container_lock`, `door_lock`, `light_vehicle_lock`, `portable_lock`, `portable_tracker` o `hopper_control`. Lista fija, sin pantalla. |
+| `opening_type` | varchar(10) | Enum de PHP `GpsOpeningType`: `remote`, `manual` o `none` (sin apertura, para GPS portátiles y de tolva). |
+| `monitoring_product_code` | varchar(20) (null) | Código de producto que reporta el proveedor de monitoreo (`IdProducto` de 24HM, por ejemplo `BR`), en mayúsculas. Va junto con `monitoring_device_type_code` o los dos quedan en null. |
+| `monitoring_device_type_code` | varchar(20) (null) | Código de tipo (`IdTipoDispositivo` de 24HM, por ejemplo `240`). El par con `monitoring_product_code` es UK (`gps_device_models_monitoring_codes_unique`), aunque el otro modelo esté desactivado (criterio 3); dos modelos sin códigos no chocan, porque los null no se comparan. |
+| `description` | varchar(255) (null) | Opcional. Vacía se guarda como null. |
+| `timestamps`, `deleted_at` | | Desactivar = `deleted_at` (criterio 5). Los modelos no se eliminan. |
 
 ## 6. Cambios del ER original que ya aplican
 
