@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations. The last report of the device in 24HM and when it was checked (H42, shared with H41).
+     * Run the migrations. The last report of the device in 24HM and when it was checked (H42).
      */
     public function up(): void
     {

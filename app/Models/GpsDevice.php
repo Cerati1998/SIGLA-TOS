@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * A physical GPS device, such as a lock with the code HBR140 (H40): its model, whether it is own or rented, its branch
- * and its id in the monitoring platform, to link it with H41. Deactivating it gives it its discharge.
+ * and its id in the monitoring platform, to check its connectivity (H42). Deactivating it gives it its discharge.
  *
  * @property int $id
  * @property string $code
