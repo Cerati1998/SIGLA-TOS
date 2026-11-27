@@ -766,7 +766,7 @@ Los datos de facturación solo se guardan: SIGLA no factura todavía y ningún p
 
 ### 5.7 `providers` · `en código`
 
-Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera.
+Global (sin sucursal). Solo lo que pide H10; `cuenta_cte` y `detalle_servicio` del ER quedan fuera. `ProviderSeeder` carga AUTOSAFE SAC (RUC 20504292968), la marca de los modelos GPS de Hunter (H39, datos dados por el usuario el 2026-11-27); si el RUC ya existe, aunque esté desactivado, no lo toca.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |
@@ -1322,7 +1322,7 @@ Los dispositivos a reemplazar de una reinspección (H35): uno por cada serie inc
 
 ### 5.33 `gps_device_models` · `en código`
 
-Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `GpsDeviceModelSeeder` carga los siete modelos de Hunter, sin códigos, en el proveedor activo cuya razón social contiene «Hunter»; sin uno solo no carga nada, y no toca un modelo que ya existe en la marca, aunque esté desactivado. Se corre a mano: `php artisan db:seed --class=GpsDeviceModelSeeder`.
+Modelos de dispositivo GPS (H39). Se gestionan en Maestros → Modelos GPS. `GpsDeviceModelSeeder`, en `DatabaseSeeder`, carga los siete modelos de Hunter, sin códigos, en su marca: el proveedor activo AUTOSAFE SAC (RUC 20504292968), que carga `ProviderSeeder` justo antes. Sin ese proveedor activo no carga nada, y no toca un modelo que ya existe en la marca, aunque esté desactivado.
 
 | Columna | Tipo | Notas |
 | --- | --- | --- |

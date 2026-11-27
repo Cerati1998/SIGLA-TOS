@@ -9,10 +9,12 @@ use App\Livewire\GpsDeviceModels\EditModal;
 use App\Livewire\Providers\CreateModal as ProviderCreateModal;
 use App\Livewire\Tables\GpsDeviceModelsTable;
 use App\Models\GpsDeviceModel;
+use App\Models\Identity;
 use App\Models\Provider;
 use App\Models\User;
 use Database\Seeders\GpsDeviceModelSeeder;
 use Database\Seeders\IdentitySeeder;
+use Database\Seeders\ProviderSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -313,16 +315,36 @@ class GpsDeviceModelsManagementTest extends TestCase
         $this->assertDatabaseHas('gps_device_models', ['id' => $gpsDeviceModel->id, 'name' => 'Nombre Corregido', 'brand_id' => $savedBrand->id]);
     }
 
-    public function test_the_seeder_loads_the_hunter_models_in_the_hunter_provider_without_monitoring_codes(): void
+    public function test_the_provider_seeder_loads_autosafe_once_and_leaves_it_as_it_is(): void
     {
-        $hunter = Provider::factory()->create(['business_name' => 'Hunter del Perú S.A.C.']);
-        Provider::factory()->create(['business_name' => 'Otro Proveedor S.A.']);
+        $this->seed(ProviderSeeder::class);
 
-        $this->seed(GpsDeviceModelSeeder::class);
+        $autosafe = Provider::query()->where('document_number', ProviderSeeder::HUNTER_RUC)->sole();
+        $this->assertSame(Identity::RUC, $autosafe->identity_id);
+        $this->assertSame('AUTOSAFE SAC', $autosafe->business_name);
+        $this->assertSame('AV. JOSE PARDO NRO. 434 INT. 1301 LIMA LIMA MIRAFLORES', $autosafe->address);
 
-        $this->assertSame(count(GpsDeviceModelSeeder::MODELS), GpsDeviceModel::query()->where('brand_id', $hunter->id)->count());
+        $autosafe->update(['business_name' => 'Nombre corregido en pantalla']);
+        $autosafe->delete();
+
+        $this->seed(ProviderSeeder::class);
+
+        $this->assertSame(1, Provider::withTrashed()->where('document_number', ProviderSeeder::HUNTER_RUC)->count());
+        $this->assertSoftDeleted($autosafe);
+        $this->assertDatabaseHas('providers', ['id' => $autosafe->id, 'business_name' => 'Nombre corregido en pantalla']);
+    }
+
+    public function test_the_seeder_loads_the_hunter_models_in_autosafe_without_monitoring_codes(): void
+    {
+        Provider::factory()->create(['business_name' => 'Hunter Falso S.A.C.']);
+
+        $this->seed([ProviderSeeder::class, GpsDeviceModelSeeder::class]);
+
+        $autosafe = Provider::query()->where('document_number', ProviderSeeder::HUNTER_RUC)->sole();
+        $this->assertSame(count(GpsDeviceModelSeeder::MODELS), GpsDeviceModel::query()->where('brand_id', $autosafe->id)->count());
+        $this->assertDatabaseCount('gps_device_models', count(GpsDeviceModelSeeder::MODELS));
         $this->assertDatabaseHas('gps_device_models', [
-            'brand_id' => $hunter->id,
+            'brand_id' => $autosafe->id,
             'name' => 'Hunter Block',
             'category' => GpsDeviceCategory::ContainerLock->value,
             'opening_type' => GpsOpeningType::Remote->value,
@@ -338,8 +360,9 @@ class GpsDeviceModelsManagementTest extends TestCase
 
     public function test_the_seeder_leaves_existing_models_as_they_are_and_does_not_repeat_them(): void
     {
-        $hunter = Provider::factory()->create(['business_name' => 'Hunter del Perú S.A.C.']);
-        $edited = GpsDeviceModel::factory()->for($hunter, 'brand')->withMonitoringCodes('BR', '240')->trashed()->create([
+        $this->seed(ProviderSeeder::class);
+        $autosafe = Provider::query()->where('document_number', ProviderSeeder::HUNTER_RUC)->sole();
+        $edited = GpsDeviceModel::factory()->for($autosafe, 'brand')->withMonitoringCodes('BR', '240')->trashed()->create([
             'name' => 'Hunter Block',
             'description' => 'Descripción del usuario.',
         ]);
@@ -352,15 +375,14 @@ class GpsDeviceModelsManagementTest extends TestCase
         $this->assertDatabaseHas('gps_device_models', ['id' => $edited->id, 'monitoring_device_type_code' => '240', 'description' => 'Descripción del usuario.']);
     }
 
-    public function test_the_seeder_loads_nothing_without_a_single_active_hunter_provider(): void
+    public function test_the_seeder_loads_nothing_without_autosafe_active(): void
     {
-        Provider::factory()->trashed()->create(['business_name' => 'Hunter del Perú S.A.C.']);
-
         $this->seed(GpsDeviceModelSeeder::class);
 
         $this->assertDatabaseCount('gps_device_models', 0);
 
-        Provider::factory()->count(2)->sequence(['business_name' => 'Hunter Uno S.A.C.'], ['business_name' => 'Hunter Dos S.A.C.'])->create();
+        $this->seed(ProviderSeeder::class);
+        Provider::query()->where('document_number', ProviderSeeder::HUNTER_RUC)->sole()->delete();
 
         $this->seed(GpsDeviceModelSeeder::class);
 

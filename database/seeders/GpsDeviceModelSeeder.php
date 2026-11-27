@@ -5,17 +5,12 @@ namespace Database\Seeders;
 use App\Enums\GpsDeviceCategory;
 use App\Enums\GpsOpeningType;
 use App\Models\GpsDeviceModel;
+use App\Models\Identity;
 use App\Models\Provider;
 use Illuminate\Database\Seeder;
 
 class GpsDeviceModelSeeder extends Seeder
 {
-    /**
-     * The text the brand's business name contains. The brand is a provider registered on its screen, with its RUC: this
-     * seeder does not create it, because its RUC was not given (asked by the user on 2026-11-27).
-     */
-    public const string BRAND_NAME = 'HUNTER';
-
     /**
      * The Hunter models for asset tracking, taken from its website on 2026-11-27, as name => [category, opening, description].
      * They come without monitoring codes: it is not known yet which model each code of the monitoring platform is.
@@ -33,22 +28,25 @@ class GpsDeviceModelSeeder extends Seeder
     ];
 
     /**
-     * Load the Hunter models in the active provider whose business name contains «Hunter». Without a single such provider
-     * nothing is loaded. A model that already exists in the brand, even a deactivated one, is left as it is.
+     * Load the Hunter models in their brand, the active provider with the RUC of AUTOSAFE SAC that ProviderSeeder loads.
+     * Without it nothing is loaded. A model that already exists in the brand, even a deactivated one, is left as it is.
      */
     public function run(): void
     {
-        $brands = Provider::query()->where('business_name', 'like', '%'.self::BRAND_NAME.'%')->limit(2)->pluck('id');
+        $brandId = Provider::query()
+            ->where('identity_id', Identity::RUC)
+            ->where('document_number', ProviderSeeder::HUNTER_RUC)
+            ->value('id');
 
-        if ($brands->count() !== 1) {
-            $this->command?->warn('No se cargaron los modelos GPS: registra a Hunter en Proveedores (una sola vez y activo) y vuelve a correr este seeder.');
+        if ($brandId === null) {
+            $this->command?->warn('No se cargaron los modelos GPS: falta el proveedor AUTOSAFE SAC (RUC '.ProviderSeeder::HUNTER_RUC.') activo. Corre ProviderSeeder o reactívalo.');
 
             return;
         }
 
         foreach (self::MODELS as $name => [$category, $openingType, $description]) {
             GpsDeviceModel::withTrashed()->firstOrCreate(
-                ['brand_id' => $brands->first(), 'name' => $name],
+                ['brand_id' => $brandId, 'name' => $name],
                 ['category' => $category, 'opening_type' => $openingType, 'description' => $description],
             );
         }
