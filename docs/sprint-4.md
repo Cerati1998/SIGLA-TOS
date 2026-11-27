@@ -107,7 +107,7 @@ Pedido por el usuario el 2026-11-27, último día del sprint, a partir de la dai
 
 ### Segundo pedido urgente del 2026-11-27
 Pedido por el usuario el 2026-11-27, último día del sprint, después del merge de H39; el usuario lo marcó como urgente (acuerdo 3). Las horas son una propuesta de Claude Code.
-- [ ] **T91** · Aprobar H40 (E10): cerrar sus suposiciones por confirmar (el código como alias de 24HM, el proveedor del alquiler, la sucursal, el ID de 24HM opcional, el estado «Disponible» al registrar, qué se edita, el lugar en el menú y la falta de seeder). Quién: Scrum Master con Claude Code. 0.25 h. Frena a T92.
+- [x] **T91** · Aprobar H40 (E10): cerrar sus suposiciones por confirmar (el código como alias de 24HM, el proveedor del alquiler, la sucursal, el ID de 24HM opcional, el estado «Disponible» al registrar, qué se edita, el lugar en el menú y la falta de seeder). Quién: Scrum Master con Claude Code. 0.25 h. Frena a T92. (Hecho el 2026-11-27 con Claude Code, en la rama de T92. El usuario decidió el alta manual, con la sincronización con 24HM aparte en H41, y aprobó las suposiciones tal como estaban.)
 - [ ] **T92** · H40 · Gestionar dispositivos GPS. Incluye su diseño en la página «E10 · Candados GPS» del lienzo, aprobado por el usuario antes de construir (rule «Diseño en el lienzo»). Deja `docs/database.md` al día. Quién: Claude Code. 2 h. Empieza cuando T91 esté cerrada.
 
 ## Total estimado

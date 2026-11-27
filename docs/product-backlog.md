@@ -886,28 +886,29 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
 - Diseño: «H39 · Modelos GPS», «H39 · Nuevo modelo GPS», «H39 · Estados de modelos GPS» y «H39 · Móvil · Nuevo modelo GPS», página «E10 · Candados GPS» del lienzo, sobre la plantilla "Lista con tabla" y las zonas de patio (H26), aprobado por el usuario el 2026-11-27. (Cambiado el 2026-11-27: en T89 se había aprobado construir sin diseño propio, como H06, pero la rule «Diseño en el lienzo» pide uno para toda vista nueva y el usuario eligió diseñarlo.)
 - Fuera: la pantalla de categorías, las unidades físicas, la sincronización con el proveedor de monitoreo, el inventario propio o alquilado, el despacho con candado, la instalación y el retiro, la bitácora y la consulta de hitos.
 
-**H40 · Gestionar dispositivos GPS** (pedida por el usuario el 2026-11-27, como urgente; en revisión: sus "por confirmar" se cierran en T91)
+**H40 · Gestionar dispositivos GPS** (pedida por el usuario el 2026-11-27, como urgente; aprobada por el usuario el 2026-11-27 en T91, con todas sus suposiciones)
 - Como usuario de bodega, quiero registrar, editar, desactivar y reactivar los dispositivos GPS, es decir, cada candado o GPS físico, con su modelo y si es propio o alquilado, para llevar su inventario.
 - Sale de la nota de la daily «inventario de candados (propios y alquiler)». Por decisión del usuario del 2026-11-27, los dispositivos se registran a mano en pantalla; traerlos desde 24HM es H41, aparte.
 - Criterios de aceptación:
   1. Se registra un dispositivo con:
-     - código, por ejemplo HBR140: el nombre que lleva el equipo y el `Alias` que le da 24HM (suposición por confirmar);
+     - código, por ejemplo HBR140: el nombre que lleva el equipo y el `Alias` que le da 24HM;
      - modelo, de los activos de H39;
      - propiedad: propio o alquilado;
-     - si es alquilado, el proveedor que lo alquila, de los activos de E8 (suposición por confirmar);
-     - sucursal, de las activas (suposición por confirmar);
-     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41 (suposición por confirmar);
+     - si es alquilado, el proveedor que lo alquila, de los activos de E8;
+     - sucursal, de las activas;
+     - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41;
      - observaciones, opcionales.
+     No se piden serie ni IMEI aparte: alcanzan el código y el ID de 24HM.
   2. No se pueden registrar dos dispositivos con el mismo código, ni con el mismo ID de 24HM, aunque uno esté desactivado.
-  3. Un dispositivo nuevo queda «Disponible». Los demás estados (despachado, instalado, retirado) llegan con las historias del despacho, la instalación y el retiro (suposición por confirmar).
-  4. Se editan todos los datos, porque todavía no hay despachos que dependan del dispositivo (suposición por confirmar).
+  3. Un dispositivo nuevo queda «Disponible». Los demás estados (despachado, instalado, retirado) llegan con las historias del despacho, la instalación y el retiro.
+  4. Se editan todos los datos, porque todavía no hay despachos que dependan del dispositivo.
   5. Un dispositivo se desactiva (se da de baja) en vez de borrarlo, con Soft Deletes, y se reactiva desde la lista. No se eliminan.
   6. Un modelo, un proveedor o una sucursal desactivados no aparecen al registrar ni al editar, pero se conservan en los dispositivos que ya los tienen.
   7. Hay una lista de dispositivos, ordenada por código, que se puede buscar por código o ID de 24HM y filtrar por modelo, propiedad, sucursal y estado.
   8. Por ahora, cualquier usuario con sesión usa esta pantalla. Los roles llegan con H24.
   9. La pantalla se puede usar bien desde el celular.
-- En el menú (suposición por confirmar): «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
-- Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno (suposición por confirmar).
+- En el menú: «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
+- Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno.
 - Diseño: en la página «E10 · Candados GPS» del lienzo, aprobado antes de construir (rule «Diseño en el lienzo»).
 - Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
 
