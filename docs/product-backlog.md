@@ -899,6 +899,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
      - ID del activo en 24HM (`IdActivo`, por ejemplo 282463), opcional y solo números, para enlazarlo después con H41;
      - observaciones, opcionales.
      No se piden serie ni IMEI aparte: alcanzan el código y el ID de 24HM.
+  1b. Cada dispositivo puede tener una foto de referencia, opcional: se toma con la cámara o se elige de la galería, se comprime en el navegador y lleva el código, la fecha y la hora como marca de agua, como las fotos de las inspecciones. En el modal se ve su miniatura, se abre en grande, se cambia o se quita; en la lista, la miniatura abre la foto en grande en otra pestaña. La foto se guarda en el disco privado y solo se ve con sesión (pedido del usuario del 2026-11-27, al aprobar el diseño).
   2. No se pueden registrar dos dispositivos con el mismo código, ni con el mismo ID de 24HM, aunque uno esté desactivado.
   3. Un dispositivo nuevo queda «Disponible». Los demás estados (despachado, instalado, retirado) llegan con las historias del despacho, la instalación y el retiro.
   4. Se editan todos los datos, porque todavía no hay despachos que dependan del dispositivo.
@@ -909,7 +910,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   9. La pantalla se puede usar bien desde el celular.
 - En el menú: «Dispositivos GPS», en el grupo Bodega, porque es el inventario de bodega.
 - Sin seeder: los 50 activos que hoy reporta 24HM los traerá H41, porque todavía no se sabe qué modelo es cada uno.
-- Diseño: en la página «E10 · Candados GPS» del lienzo, aprobado antes de construir (rule «Diseño en el lienzo»).
+- Diseño: «H40 · Dispositivos GPS», «H40 · Nuevo dispositivo GPS», «H40 · Estados de dispositivos GPS» y «H40 · Móvil · Nuevo dispositivo GPS», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27. El diseño suma: el código en mayúsculas (hbr140 y HBR140 son el mismo), el modelo con el selector que busca en el servidor y «+ Agregar», el estado «Disponible» o «Desactivado», el menú en Bodega entre «Kits» y «Despachos», y la foto de referencia (criterio 1b), con «Elegir de la galería» además de «Tomar foto».
 - Fuera: la sincronización con 24HM (H41), el contrato del alquiler (fechas y costo), el despacho con candado, la instalación y el retiro, la reasignación desde bodega, la bitácora y la consulta de hitos.
 
 **H41 · Sincronizar los dispositivos GPS con 24HM** (pedida por el usuario el 2026-11-27; sin aprobar, no entra al sprint)
