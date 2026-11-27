@@ -7,6 +7,8 @@ use App\Livewire\GpsDevices\ConnectivityModal;
 use App\Livewire\Tables\GpsDevicesTable;
 use App\Models\GpsDevice;
 use App\Models\User;
+use App\Services\Monitoring\MonitoringPlatform;
+use App\Services\Monitoring\MonitoringReport;
 use Database\Seeders\IdentitySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
@@ -167,6 +169,27 @@ class GpsDeviceConnectivityTest extends TestCase
             ->call('verify')
             ->assertSet('failure', 'Faltan las credenciales de 24HM en la configuración.');
 
+        Http::assertNothingSent();
+    }
+
+    public function test_the_check_asks_the_monitoring_platform_in_use_not_only_24hm(): void
+    {
+        Http::fake();
+        $this->app->bind(MonitoringPlatform::class, fn (): MonitoringPlatform => new class implements MonitoringPlatform
+        {
+            public function asset(int $assetId): MonitoringReport
+            {
+                return new MonitoringReport($assetId, 'OTRO-1', null, null, Carbon::parse('2026-11-27 20:50:00'), null, null, 'Plataforma de prueba', null, null, null);
+            }
+        });
+        $gpsDevice = GpsDevice::factory()->create(['monitoring_asset_id' => 777]);
+
+        Livewire::test(ConnectivityModal::class)
+            ->dispatch('show-gps-device-connectivity', gpsDeviceId: $gpsDevice->id)
+            ->call('verify')
+            ->assertSee('Plataforma de prueba');
+
+        $this->assertSame(GpsConnectivity::Connected, $gpsDevice->refresh()->connectivity());
         Http::assertNothingSent();
     }
 

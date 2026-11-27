@@ -3,16 +3,16 @@
 namespace App\Actions\GpsDevices;
 
 use App\Models\GpsDevice;
-use App\Services\Monitoring\Gps24hmClient;
+use App\Services\Monitoring\MonitoringPlatform;
 use App\Services\Monitoring\MonitoringPlatformException;
 
 class CheckGpsDeviceConnectivity
 {
-    public function __construct(private Gps24hmClient $client) {}
+    public function __construct(private MonitoringPlatform $platform) {}
 
     /**
-     * Ask 24HM for the last report of the device and save it, with when it was checked (H42). If 24HM does not give
-     * it, nothing changes and the reason comes in the exception.
+     * Ask the monitoring platform (today 24HM) for the last report of the device and save it, with when it was checked
+     * (H42). If the platform does not give it, nothing changes and the reason comes in the exception.
      *
      * @throws MonitoringPlatformException
      */
@@ -22,7 +22,7 @@ class CheckGpsDeviceConnectivity
             throw new MonitoringPlatformException('Este dispositivo no tiene ID de 24HM. Agrégalo en su edición para poder verificarlo.');
         }
 
-        $report = $this->client->asset($gpsDevice->monitoring_asset_id);
+        $report = $this->platform->asset($gpsDevice->monitoring_asset_id);
 
         $gpsDevice->update([
             'last_reported_at' => $report->reportedAt,

@@ -13,7 +13,7 @@ use Throwable;
  * and the password in its body and answers a JSON inside a text; an error comes as {"Error": ...}, sometimes with the
  * JSON broken, and a malformed request as a SOAP fault. The credentials never reach a message nor a log.
  */
-class Gps24hmClient
+class Gps24hmClient implements MonitoringPlatform
 {
     /**
      * Get the last report of the given asset (H42).

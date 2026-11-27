@@ -944,6 +944,7 @@ E1, E7, E8, E2, E3, E4, E9, E5, E6. E10 se agregó el 2026-11-27, después de E6
   6. Por ahora, cualquier usuario con sesión prueba. Los roles llegan con H24.
   7. Se usa bien desde el celular.
 - Diseño: «H42 · Conectividad de un dispositivo GPS», «H42 · Estados de conectividad» y «H42 · Móvil · Conectividad», página «E10 · Candados GPS» del lienzo, aprobados por el usuario el 2026-11-27; la lista de H40 suma el botón azul «Conectividad», entre Editar y Desactivar. El estado de servicio y el operativo se muestran tal como llegan de 24HM (A, C) hasta saber qué significan.
+- Más de un proveedor de monitoreo (decisión del usuario del 2026-11-27, al construir): el código consulta una «plataforma de monitoreo» genérica (`MonitoringPlatform`) y 24HM es la primera. Los textos siguen diciendo 24HM, porque hoy es la única. Cuando llegue otro proveedor, su historia agrega la plataforma de cada modelo GPS (H39) y su propio cliente.
 - Fuera: los comandos al candado (abrir o cerrar), los históricos y la sincronización (H41).
 
 ## Fuera del Product Goal (ideas para después, sin historias)

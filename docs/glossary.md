@@ -70,3 +70,4 @@ Registra el único nombre en inglés de cada término del negocio sin traducció
 | Última verificación | `last_checked_at` | Cuándo se consultó a 24HM por última vez con éxito (H42, aprobado por el usuario el 2026-11-27). |
 | Conectividad | `GpsConnectivity` | Enum: `connected` (Conectado, reportó hace menos de 24 horas), `no_signal` (Sin señal) y `unchecked` (Sin verificar) (H42, aprobado por el usuario el 2026-11-27). |
 | Cliente de 24HM | `Gps24hmClient`, `MonitoringReport` | La clase que habla con el servicio SOAP de 24HM y el último reporte que devuelve (H42, aprobado por el usuario el 2026-11-27). |
+| Plataforma de monitoreo | `MonitoringPlatform` | Interfaz de la plataforma a la que reportan los dispositivos GPS; hoy la única es 24HM (`Gps24hmClient`). Otro proveedor suma su propio cliente (H42, decisión del usuario del 2026-11-27). |
